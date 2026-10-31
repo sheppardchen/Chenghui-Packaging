@@ -33,23 +33,23 @@
                     </svg>
                 </div>
                 <h2 class="text-2xl font-bold text-slate-800" id="auth-title">物料订单管理系统</h2>
-                <p class="text-xs text-slate-500 mt-1" id="auth-subtitle">请输入固定账号密码登录后台</p>
+                <p class="text-xs text-slate-500 mt-1" id="auth-subtitle">请输入密码登录系统后台</p>
             </div>
             
-            <form id="login-form" onsubmit="handleAuthSubmit(event)" class="space-y-4 text-sm">
+            <form id="login-form" onsubmit="handleAuthSubmit(event)" class="space-y-4 text-sm" autocomplete="off">
                 <div>
-                    <label class="block font-medium text-slate-700 mb-1" id="label-user-email">账号</label>
+                    <label class="block font-medium text-slate-700 mb-1" id="label-user-email">登录账号（已固定）</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-user" id="auth-icon"></i></span>
-                        <input type="text" id="auth-input-id" required class="w-full pl-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" placeholder="ChenghuiGroup">
+                        <!-- 设置 readonly 且背景置灰，防止用户修改 -->
+                        <input type="text" id="auth-input-id" value="ChenghuiGroup" readonly class="w-full pl-10 border border-slate-300 bg-slate-100 text-slate-600 p-2.5 rounded-xl outline-none cursor-not-allowed">
                     </div>
                 </div>
                 <div id="password-field-wrap">
                     <label class="block font-medium text-slate-700 mb-1">密码</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-key"></i></span>
-                        <!-- 注意：此处移除了 value="123456"，改用 placeholder 提示 -->
-                        <input type="password" id="auth-password" class="w-full pl-10 pr-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请输入密码">
+                        <input type="password" id="auth-password" autocomplete="new-password" class="w-full pl-10 pr-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请输入密码">
                         <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none">
                             <i class="fa-solid fa-eye" id="pwd-eye-icon"></i>
                         </button>
@@ -64,7 +64,7 @@
 
                 <div class="flex justify-between text-xs pt-2 text-slate-500">
                     <button type="button" onclick="switchAuthMode('forgot')" id="toggle-forgot-btn" class="hover:text-indigo-600 underline">忘记密码？通过邮箱重置</button>
-                    <button type="button" onclick="switchAuthMode('login')" id="toggle-login-btn" class="hover:text-indigo-600 underline hidden">返回账号登录</button>
+                    <button type="button" onclick="switchAuthMode('login')" id="toggle-login-btn" class="hover:text-indigo-600 underline hidden">返回登录</button>
                 </div>
             </form>
         </div>
@@ -234,6 +234,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             checkSession();
+            document.getElementById('auth-password').value = '';
         });
 
         function checkSession() {
@@ -247,6 +248,7 @@
             } else {
                 document.getElementById('login-overlay').classList.remove('hidden');
                 document.getElementById('main-app').classList.add('hidden');
+                document.getElementById('auth-password').value = '';
             }
         }
 
@@ -282,6 +284,8 @@
                 sub.innerText = "请输入您在Supabase绑定的管理员邮箱";
                 userLabel.innerText = "电子邮箱";
                 authInput.type = "email";
+                authInput.readOnly = false; // 找回密码时需要输入邮箱
+                authInput.className = "w-full pl-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
                 authInput.placeholder = "your_email@domain.com";
                 authInput.value = "";
                 authIcon.className = "fa-solid fa-envelope";
@@ -292,15 +296,16 @@
                 toggleLogin.classList.remove('hidden');
             } else {
                 title.innerText = "物料订单管理系统";
-                sub.innerText = "请输入固定账号密码登录后台";
-                userLabel.innerText = "账号";
+                sub.innerText = "请输入密码登录系统后台";
+                userLabel.innerText = "登录账号（已固定）";
                 authInput.type = "text";
+                authInput.readOnly = true; // 恢复固定账号，不可修改
+                authInput.className = "w-full pl-10 border border-slate-300 bg-slate-100 text-slate-600 p-2.5 rounded-xl outline-none cursor-not-allowed";
                 authInput.placeholder = "ChenghuiGroup";
                 authInput.value = FIXED_USER;
                 authIcon.className = "fa-solid fa-user";
                 pwdField.classList.remove('hidden');
                 document.getElementById('auth-password').required = true;
-                // 切换回登录时，清空密码框并恢复默认提示
                 document.getElementById('auth-password').value = "";
                 submitBtn.innerText = "安全登录";
                 toggleForgot.classList.remove('hidden');
@@ -334,17 +339,18 @@
 
                 if (u === FIXED_USER && p === currentPwd) {
                     sessionStorage.setItem('chenghui_logged', 'true');
+                    document.getElementById('auth-password').value = "";
                     checkSession();
                 } else {
                     msg.className = "text-xs font-medium text-rose-500";
-                    msg.innerText = "账号或密码错误！";
+                    msg.innerText = "密码错误！";
                 }
             }
         }
 
         function handleLogout() {
             sessionStorage.removeItem('chenghui_logged');
-            document.getElementById('auth-password').value = ""; // 退出时清空密码
+            document.getElementById('auth-password').value = "";
             checkSession();
         }
 
