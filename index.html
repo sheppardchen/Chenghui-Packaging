@@ -48,8 +48,8 @@
                     <label class="block font-medium text-slate-700 mb-1">密码</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-key"></i></span>
-                        <!-- 密码输入框与可视切换按钮 -->
-                        <input type="password" id="auth-password" class="w-full pl-10 pr-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" placeholder="123456">
+                        <!-- 注意：此处移除了 value="123456"，改用 placeholder 提示 -->
+                        <input type="password" id="auth-password" class="w-full pl-10 pr-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请输入密码">
                         <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none">
                             <i class="fa-solid fa-eye" id="pwd-eye-icon"></i>
                         </button>
@@ -300,6 +300,8 @@
                 authIcon.className = "fa-solid fa-user";
                 pwdField.classList.remove('hidden');
                 document.getElementById('auth-password').required = true;
+                // 切换回登录时，清空密码框并恢复默认提示
+                document.getElementById('auth-password').value = "";
                 submitBtn.innerText = "安全登录";
                 toggleForgot.classList.remove('hidden');
                 toggleLogin.classList.add('hidden');
@@ -342,6 +344,7 @@
 
         function handleLogout() {
             sessionStorage.removeItem('chenghui_logged');
+            document.getElementById('auth-password').value = ""; // 退出时清空密码
             checkSession();
         }
 
@@ -361,7 +364,7 @@
                 alert("原密码输入错误！");
                 return;
             }
-            if (newP.length < 6) {
+            if (newP.length < 8) {
                 alert("新密码长度不能少于 8 位！");
                 return;
             }
