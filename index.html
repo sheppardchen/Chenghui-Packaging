@@ -15,7 +15,6 @@
     <style>
         @media (max-width: 640px) {
             .mobile-touch-target { min-height: 44px; }
-            /* 手机端调整 Tab 顺序：客户订单排在最上方 */
             .mobile-order-first { order: -1 !important; }
         }
         .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
@@ -41,7 +40,6 @@
                         </defs>
                     </svg>
                 </div>
-                <!-- 彻底删除了“请输入密码登录系统后台”的副标题 -->
                 <h2 class="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight mt-2" id="auth-title">物料订单管理系统</h2>
             </div>
             
@@ -49,16 +47,16 @@
                 <div>
                     <label class="block font-medium text-slate-700 mb-1" id="label-user-email">登录账号</label>
                     <div class="relative">
-                        <!-- 修正 padding 左边距为 pl-12，防止图标挡住文字 -->
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-user" id="auth-icon"></i></span>
+                        <!-- 图标定位与 pl-12 确保文字不会被图标遮挡 -->
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 pointer-events-none"><i class="fa-solid fa-user" id="auth-icon"></i></span>
                         <input type="text" id="auth-input-id" value="ChenghuiGroup" readonly class="w-full pl-12 pr-4 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium">
                     </div>
                 </div>
                 <div id="password-field-wrap">
                     <label class="block font-medium text-slate-700 mb-1">密码</label>
                     <div class="relative">
-                        <!-- 修正 padding 左边距为 pl-12，防止钥匙图标挡住输入的密码 -->
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-key"></i></span>
+                        <!-- 钥匙图标定位与 pl-12 确保输入密码时不会被钥匙遮挡 -->
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 pointer-events-none"><i class="fa-solid fa-key"></i></span>
                         <input type="password" id="auth-password" autocomplete="new-password" class="w-full pl-12 pr-10 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" placeholder="">
                         <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 focus:outline-none">
                             <i class="fa-solid fa-eye" id="pwd-eye-icon"></i>
@@ -452,7 +450,6 @@
                 alert("原密码输入错误！");
                 return;
             }
-            // 验证修改后密码不得少于八位
             if (newP.length < 8) {
                 alert("新密码长度不能少于 8 位！");
                 return;
