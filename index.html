@@ -38,10 +38,10 @@
             
             <form id="login-form" onsubmit="handleAuthSubmit(event)" class="space-y-4 text-sm" autocomplete="off">
                 <div>
-                    <label class="block font-medium text-slate-700 mb-1" id="label-user-email">登录账号（已固定）</label>
+                    <!-- 移除了“（已固定）”文字及括号 -->
+                    <label class="block font-medium text-slate-700 mb-1" id="label-user-email">登录账号</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-user" id="auth-icon"></i></span>
-                        <!-- 设置 readonly 且背景置灰，防止用户修改 -->
                         <input type="text" id="auth-input-id" value="ChenghuiGroup" readonly class="w-full pl-10 border border-slate-300 bg-slate-100 text-slate-600 p-2.5 rounded-xl outline-none cursor-not-allowed">
                     </div>
                 </div>
@@ -49,7 +49,8 @@
                     <label class="block font-medium text-slate-700 mb-1">密码</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-key"></i></span>
-                        <input type="password" id="auth-password" autocomplete="new-password" class="w-full pl-10 pr-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请输入密码">
+                        <!-- 纯空白占位符，未输入前不显示任何掩码文字 -->
+                        <input type="password" id="auth-password" autocomplete="new-password" class="w-full pl-10 pr-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" placeholder="">
                         <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none">
                             <i class="fa-solid fa-eye" id="pwd-eye-icon"></i>
                         </button>
@@ -107,43 +108,70 @@
 
         <!-- 主体容器 -->
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            <!-- 顶栏 KPI 看板（含动态环比变化百分比） -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center text-slate-500 text-sm"><span>月度总订单数</span><i class="fa-solid fa-cart-shopping text-indigo-500"></i></div>
+                    <div class="flex justify-between items-center text-slate-500 text-sm">
+                        <span>月度总订单数</span>
+                        <i class="fa-solid fa-cart-shopping text-indigo-500"></i>
+                    </div>
                     <div class="text-2xl font-bold mt-2" id="kpi-orders">0 笔</div>
+                    <div class="text-xs text-slate-400 mt-1 flex items-center gap-1" id="kpi-orders-trend">
+                        <span>较上月环比：</span><span class="font-bold text-emerald-600">+0.0%</span>
+                    </div>
                 </div>
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center text-slate-500 text-sm"><span>月度订单总额</span><i class="fa-solid fa-sack-dollar text-emerald-500"></i></div>
+                    <div class="flex justify-between items-center text-slate-500 text-sm">
+                        <span>月度订单总额</span>
+                        <i class="fa-solid fa-sack-dollar text-emerald-500"></i>
+                    </div>
                     <div class="text-2xl font-bold mt-2 text-emerald-600" id="kpi-amount">¥0.00</div>
+                    <div class="text-xs text-slate-400 mt-1 flex items-center gap-1" id="kpi-amount-trend">
+                        <span>较上月环比：</span><span class="font-bold text-emerald-600">+0.0%</span>
+                    </div>
                 </div>
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center text-slate-500 text-sm"><span>原材料入库汇总</span><i class="fa-solid fa-arrow-down-long text-blue-500"></i></div>
+                    <div class="flex justify-between items-center text-slate-500 text-sm">
+                        <span>原材料入库汇总</span>
+                        <i class="fa-solid fa-arrow-down-long text-blue-500"></i>
+                    </div>
                     <div class="text-2xl font-bold mt-2 text-blue-600" id="kpi-in-stock">0 件</div>
+                    <div class="text-xs text-slate-400 mt-1 flex items-center gap-1" id="kpi-in-trend">
+                        <span>较上月环比：</span><span class="font-bold text-blue-600">+0.0%</span>
+                    </div>
                 </div>
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center text-slate-500 text-sm"><span>原材料出库汇总</span><i class="fa-solid fa-arrow-up-long text-rose-500"></i></div>
+                    <div class="flex justify-between items-center text-slate-500 text-sm">
+                        <span>原材料出库汇总</span>
+                        <i class="fa-solid fa-arrow-up-long text-rose-500"></i>
+                    </div>
                     <div class="text-2xl font-bold mt-2 text-rose-600" id="kpi-out-stock">0 件</div>
+                    <div class="text-xs text-slate-400 mt-1 flex items-center gap-1" id="kpi-out-trend">
+                        <span>较上月环比：</span><span class="font-bold text-rose-600">+0.0%</span>
+                    </div>
                 </div>
             </div>
 
+            <!-- Tab 导航 -->
             <div class="flex border-b border-slate-200 bg-white rounded-t-xl px-4 pt-2">
                 <button onclick="switchTab('orders')" id="tab-btn-orders" class="px-5 py-3 border-b-2 border-indigo-600 font-medium text-indigo-600 flex items-center gap-2"><i class="fa-solid fa-users-viewfinder"></i> 客户订单管理</button>
                 <button onclick="switchTab('inventory')" id="tab-btn-inventory" class="px-5 py-3 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-700 flex items-center gap-2"><i class="fa-solid fa-boxes-packing"></i> 原材料出入库</button>
-                <button onclick="switchTab('report')" id="tab-btn-report" class="px-5 py-3 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-700 flex items-center gap-2"><i class="fa-solid fa-chart-pie"></i> 月度分析与报表</button>
+                <button onclick="switchTab('report')" id="tab-btn-report" class="px-5 py-3 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-700 flex items-center gap-2"><i class="fa-solid fa-chart-pie"></i> 月度深度分析与报表</button>
             </div>
 
-            <!-- 订单模块 -->
+            <!-- 1. 客户订单模块 -->
             <section id="sec-orders" class="bg-white p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-lg font-bold text-slate-800">客户订单分类列表</h2>
+                    <h2 class="text-lg font-bold text-slate-800">客户订单分类列表（折叠与批注）</h2>
                     <button onclick="openOrderModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 shadow-sm"><i class="fa-solid fa-plus"></i> 新增客户订单</button>
                 </div>
                 <div id="orders-grouped-container" class="space-y-4"></div>
             </section>
 
-            <!-- 出入库模块 -->
+            <!-- 2. 原材料出入库模块 -->
             <section id="sec-inventory" class="bg-white p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden">
                 <form id="inventory-batch-form" onsubmit="handleBatchInventorySubmit(event)" class="mb-6 border-b border-slate-100 pb-4">
+                    <h2 class="text-md font-bold text-slate-800 mb-3">批量出入库录入</h2>
                     <div id="batch-rows-container" class="space-y-3 mb-4"></div>
                     <div class="flex justify-between items-center">
                         <button type="button" onclick="addInventoryRow()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm px-3 py-1.5 rounded-lg border border-slate-300 font-medium"><i class="fa-solid fa-plus"></i> 增加一行</button>
@@ -160,11 +188,47 @@
                 </div>
             </section>
 
-            <!-- 报表模块 -->
-            <section id="sec-report" class="bg-white p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden space-y-6">
+            <!-- 3. 月度深度分析与报表模块（含每个客户独立分析与Excel导出） -->
+            <section id="sec-report" class="bg-white p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden space-y-8">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">月度经营与客户分析报告</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">多维度核算客户订单占比、产品采购规模及出入库增减趋势</p>
+                    </div>
+                    <!-- Excel 导出下载按钮 -->
+                    <button onclick="exportReportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-file-excel"></i> 导出 Excel 报表
+                    </button>
+                </div>
+
+                <!-- 自动化趋势智能文字分析报告 -->
+                <div class="bg-indigo-50/60 border border-indigo-100 p-4 rounded-xl text-xs space-y-2 text-indigo-950">
+                    <div class="font-bold text-sm text-indigo-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-line text-indigo-600"></i> 月度经营数据智能分析结论
+                    </div>
+                    <div id="smart-report-text">生成中...</div>
+                </div>
+
+                <!-- 各客户独立分析卡片网格 -->
+                <div>
+                    <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-user-group text-indigo-500"></i> 独立客户经营指标分析
+                    </h3>
+                    <div id="customer-cards-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- 动态生成各客户独立的分析卡片 -->
+                    </div>
+                </div>
+
+                <!-- 对比可视化图表 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="border border-slate-200 p-4 rounded-xl bg-slate-50"><canvas id="chart-orders-qty" class="max-h-60"></canvas></div>
-                    <div class="border border-slate-200 p-4 rounded-xl bg-slate-50"><canvas id="chart-orders-amount" class="max-h-60"></canvas></div>
+                    <div class="border border-slate-200 p-4 rounded-xl bg-slate-50/50">
+                        <h4 class="text-xs font-bold text-slate-700 mb-3">各客户订单笔数对比</h4>
+                        <canvas id="chart-orders-qty" class="max-h-60"></canvas>
+                    </div>
+                    <div class="border border-slate-200 p-4 rounded-xl bg-slate-50/50">
+                        <h4 class="text-xs font-bold text-slate-700 mb-3">各客户消费总金额(元)对比</h4>
+                        <canvas id="chart-orders-amount" class="max-h-60"></canvas>
+                    </div>
                 </div>
             </section>
         </main>
@@ -191,24 +255,24 @@
         </div>
     </div>
 
-    <!-- 弹窗：新增订单（带批注） -->
+    <!-- 弹窗：新建客户订单 -->
     <div id="modal-order" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h3 class="text-lg font-bold text-slate-800 mb-4">新建客户订单</h3>
             <form id="order-form" onsubmit="handleOrderSubmit(event)" class="space-y-3 text-xs">
-                <div><label class="block font-medium mb-1">图片上传</label><input type="file" id="ord-image" accept="image/*" onchange="handleImagePreview(event)" class="w-full border border-slate-300 p-1.5 rounded-lg"></div>
+                <div><label class="block font-medium mb-1">产品样品图片上传</label><input type="file" id="ord-image" accept="image/*" onchange="handleImagePreview(event)" class="w-full border border-slate-300 p-1.5 rounded-lg"></div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label class="block font-medium mb-1">客户名称 *</label><input type="text" id="ord-customer" required class="w-full border border-slate-300 p-2 rounded-lg"></div>
+                    <div><label class="block font-medium mb-1">客户名称 *</label><input type="text" id="ord-customer" required class="w-full border border-slate-300 p-2 rounded-lg" placeholder="如：上海捷科技"></div>
                     <div><label class="block font-medium mb-1">下单时间 *</label><input type="date" id="ord-date" required class="w-full border border-slate-300 p-2 rounded-lg"></div>
                 </div>
                 <div class="grid grid-cols-3 gap-3">
                     <div><label class="block font-medium mb-1">数量 *</label><input type="number" id="ord-qty" oninput="calcOrderTotal()" required class="w-full border border-slate-300 p-2 rounded-lg"></div>
-                    <div><label class="block font-medium mb-1">单价 *</label><input type="number" step="0.01" id="ord-price" oninput="calcOrderTotal()" required class="w-full border border-slate-300 p-2 rounded-lg"></div>
+                    <div><label class="block font-medium mb-1">单价(元) *</label><input type="number" step="0.01" id="ord-price" oninput="calcOrderTotal()" required class="w-full border border-slate-300 p-2 rounded-lg"></div>
                     <div><label class="block font-medium mb-1">总金额</label><input type="text" id="ord-total" readonly class="w-full border border-slate-100 bg-slate-100 p-2 rounded-lg font-bold text-emerald-600" value="¥0.00"></div>
                 </div>
                 <div>
                     <label class="block font-medium mb-1">订单批注 / 备注说明</label>
-                    <textarea id="ord-remark" class="w-full border border-slate-300 p-2 rounded-lg" placeholder="填写订单批注..."></textarea>
+                    <textarea id="ord-remark" class="w-full border border-slate-300 p-2 rounded-lg" placeholder="填写订单特殊批注..."></textarea>
                 </div>
                 <div class="flex justify-end gap-2 pt-3">
                     <button type="button" onclick="closeOrderModal()" class="px-4 py-2 border border-slate-300 rounded-lg">取消</button>
@@ -230,6 +294,8 @@
         let ordersData = [];
         let inventoryData = [];
         let authMode = 'login';
+        let chartInstance1 = null;
+        let chartInstance2 = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -252,7 +318,6 @@
             }
         }
 
-        // 切换密码可见性函数
         function togglePasswordVisibility() {
             const pwdInput = document.getElementById('auth-password');
             const eyeIcon = document.getElementById('pwd-eye-icon');
@@ -284,7 +349,7 @@
                 sub.innerText = "请输入您在Supabase绑定的管理员邮箱";
                 userLabel.innerText = "电子邮箱";
                 authInput.type = "email";
-                authInput.readOnly = false; // 找回密码时需要输入邮箱
+                authInput.readOnly = false;
                 authInput.className = "w-full pl-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
                 authInput.placeholder = "your_email@domain.com";
                 authInput.value = "";
@@ -297,9 +362,9 @@
             } else {
                 title.innerText = "物料订单管理系统";
                 sub.innerText = "请输入密码登录系统后台";
-                userLabel.innerText = "登录账号（已固定）";
+                userLabel.innerText = "登录账号";
                 authInput.type = "text";
-                authInput.readOnly = true; // 恢复固定账号，不可修改
+                authInput.readOnly = true;
                 authInput.className = "w-full pl-10 border border-slate-300 bg-slate-100 text-slate-600 p-2.5 rounded-xl outline-none cursor-not-allowed";
                 authInput.placeholder = "ChenghuiGroup";
                 authInput.value = FIXED_USER;
@@ -398,6 +463,8 @@
             });
             document.getElementById(`sec-${tab}`).classList.remove('hidden');
             document.getElementById(`tab-btn-${tab}`).className = "px-5 py-3 border-b-2 border-indigo-600 font-medium text-indigo-600 flex items-center gap-2";
+
+            if (tab === 'report') renderDeepReport();
         }
 
         function renderOrders() {
@@ -417,13 +484,14 @@
                         <div id="acc-${index}" class="hidden border-t border-slate-200 p-3 text-xs overflow-x-auto">
                             <table class="w-full text-left text-slate-600">
                                 <tr class="bg-slate-100/50 text-slate-500 font-bold">
-                                    <th class="p-2">日期</th><th class="p-2">数量</th><th class="p-2">总额</th><th class="p-2">批注</th><th class="p-2 text-right">操作</th>
+                                    <th class="p-2">日期</th><th class="p-2">数量</th><th class="p-2">单价</th><th class="p-2">总额</th><th class="p-2">批注</th><th class="p-2 text-right">操作</th>
                                 </tr>
                                 ${list.map(o => `
                                     <tr class="border-b border-slate-100">
                                         <td class="p-2">${o.order_date || '-'}</td>
-                                        <td class="p-2">${o.quantity}</td>
-                                        <td class="p-2 text-emerald-600 font-bold">¥${o.total_amount}</td>
+                                        <td class="p-2 font-medium">${o.quantity}</td>
+                                        <td class="p-2">¥${Number(o.price || 0).toFixed(2)}</td>
+                                        <td class="p-2 text-emerald-600 font-bold">¥${Number(o.total_amount || 0).toFixed(2)}</td>
                                         <td class="p-2 text-slate-500">${o.remark || '无批注'}</td>
                                         <td class="p-2 text-right"><button onclick="deleteOrder(${o.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td>
                                     </tr>
@@ -478,11 +546,139 @@
                 </tr>`).join('');
         }
 
+        // 计算月度环比百分比 (当月 vs 上月)
         function updateKPIs() {
+            const now = new Date();
+            const curYear = now.getFullYear();
+            const curMonth = now.getMonth();
+
+            const curOrders = ordersData.filter(o => {
+                const d = new Date(o.order_date);
+                return d.getFullYear() === curYear && d.getMonth() === curMonth;
+            });
+            const prevOrders = ordersData.filter(o => {
+                const d = new Date(o.order_date);
+                return (curMonth === 0) ? (d.getFullYear() === curYear - 1 && d.getMonth() === 11) : (d.getFullYear() === curYear && d.getMonth() === curMonth - 1);
+            });
+
+            const curAmt = curOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+            const prevAmt = prevOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+            const amtTrendPct = prevAmt === 0 ? (curAmt > 0 ? 100 : 0) : (((curAmt - prevAmt) / prevAmt) * 100).toFixed(1);
+
+            const curQtyCount = curOrders.length;
+            const prevQtyCount = prevOrders.length;
+            const countTrendPct = prevQtyCount === 0 ? (curQtyCount > 0 ? 100 : 0) : (((curQtyCount - prevQtyCount) / prevQtyCount) * 100).toFixed(1);
+
             document.getElementById('kpi-orders').innerText = `${ordersData.length} 笔`;
+            document.getElementById('kpi-orders-trend').innerHTML = `<span>当月环比上月：</span><span class="font-bold ${countTrendPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${countTrendPct >= 0 ? '+' : ''}${countTrendPct}%</span>`;
+
             document.getElementById('kpi-amount').innerText = `¥${ordersData.reduce((s, o) => s + Number(o.total_amount || 0), 0).toFixed(2)}`;
-            document.getElementById('kpi-in-stock').innerText = `${inventoryData.filter(i => i.type === 'IN').reduce((s, i) => s + Number(i.quantity || 0), 0)} 件`;
-            document.getElementById('kpi-out-stock').innerText = `${inventoryData.filter(i => i.type === 'OUT').reduce((s, i) => s + Number(i.quantity || 0), 0)} 件`;
+            document.getElementById('kpi-amount-trend').innerHTML = `<span>当月金额环比：</span><span class="font-bold ${amtTrendPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${amtTrendPct >= 0 ? '+' : ''}${amtTrendPct}%</span>`;
+
+            const totalIn = inventoryData.filter(i => i.type === 'IN').reduce((s, i) => s + Number(i.quantity || 0), 0);
+            const totalOut = inventoryData.filter(i => i.type === 'OUT').reduce((s, i) => s + Number(i.quantity || 0), 0);
+            document.getElementById('kpi-in-stock').innerText = `${totalIn} 件`;
+            document.getElementById('kpi-out-stock').innerText = `${totalOut} 件`;
+        }
+
+        // 月度深度分析与客户独立分析渲染
+        function renderDeepReport() {
+            const container = document.getElementById('customer-cards-container');
+            container.innerHTML = '';
+
+            const groups = {};
+            ordersData.forEach(o => {
+                if (!groups[o.customer]) {
+                    groups[o.customer] = { count: 0, totalAmt: 0, totalQty: 0, lastDate: '' };
+                }
+                groups[o.customer].count += 1;
+                groups[o.customer].totalAmt += Number(o.total_amount || 0);
+                groups[o.customer].totalQty += Number(o.quantity || 0);
+                if (o.order_date && o.order_date > groups[o.customer].lastDate) {
+                    groups[o.customer].lastDate = o.order_date;
+                }
+            });
+
+            const customers = Object.keys(groups);
+            if (customers.length === 0) {
+                container.innerHTML = `<div class="col-span-3 text-center py-6 text-slate-400">暂无客户分析数据</div>`;
+            } else {
+                customers.forEach(c => {
+                    const info = groups[c];
+                    const avgAmt = info.count > 0 ? (info.totalAmt / info.count).toFixed(2) : '0.00';
+                    container.innerHTML += `
+                        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+                            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                                <span class="font-bold text-slate-800 text-sm">${c}</span>
+                                <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-medium">成交 ${info.count} 笔</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                                <div><span class="text-slate-400">采购总数量：</span><span class="font-bold text-slate-700">${info.totalQty} 件</span></div>
+                                <div><span class="text-slate-400">平均客单价：</span><span class="font-bold text-slate-700">¥${avgAmt}</span></div>
+                                <div class="col-span-2"><span class="text-slate-400">累计成交总额：</span><span class="font-bold text-emerald-600 text-sm">¥${info.totalAmt.toFixed(2)}</span></div>
+                                <div class="col-span-2"><span class="text-slate-400">最新采购日期：</span><span class="text-slate-600">${info.lastDate || '-'}</span></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // 智能结论生成
+            const totalOrders = ordersData.length;
+            const totalSum = ordersData.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+            document.getElementById('smart-report-text').innerHTML = `
+                • 截止目前系统累计服务客户 <strong class="text-indigo-700">${customers.length}</strong> 家，总计完成订单 <strong class="text-indigo-700">${totalOrders}</strong> 笔，总营收额达 <strong class="text-emerald-700">¥${totalSum.toFixed(2)}</strong>。<br>
+                • 采购额最高客户为 <strong class="text-indigo-700">${customers[0] || '无'}</strong>，原材料库存运转保持稳定良好状态。
+            `;
+
+            renderCharts(customers, customers.map(c => groups[c].count), customers.map(c => groups[c].totalAmt));
+        }
+
+        function renderCharts(labels, qty, amt) {
+            if (chartInstance1) chartInstance1.destroy();
+            if (chartInstance2) chartInstance2.destroy();
+
+            const ctx1 = document.getElementById('chart-orders-qty').getContext('2d');
+            chartInstance1 = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: '订单笔数', data: qty, backgroundColor: '#6366f1' }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const ctx2 = document.getElementById('chart-orders-amount').getContext('2d');
+            chartInstance2 = new Chart(ctx2, {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: '消费金额(元)', data: amt, backgroundColor: '#10b981' }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // 导出月度分析为 CSV/Excel 文件
+        function exportReportToCSV() {
+            if (ordersData.length === 0) {
+                alert("暂无数据可导出！");
+                return;
+            }
+            let csvContent = "\uFEFF客户名称,订单笔数,采购总数量,累计消费总金额(元),最新交易时间\n";
+            const groups = {};
+            ordersData.forEach(o => {
+                if (!groups[o.customer]) groups[o.customer] = { count: 0, amt: 0, qty: 0, last: '' };
+                groups[o.customer].count += 1;
+                groups[o.customer].amt += Number(o.total_amount || 0);
+                groups[o.customer].qty += Number(o.quantity || 0);
+                if (o.order_date && o.order_date > groups[o.customer].last) groups[o.customer].last = o.order_date;
+            });
+
+            Object.keys(groups).forEach(c => {
+                csvContent += `"${c}",${groups[c].count},${groups[c].qty},${groups[c].amt.toFixed(2)},"${groups[c].last}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `承辉包装_月度客户分析报表_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
         }
 
         let currentUploadedImageBase64 = '';
