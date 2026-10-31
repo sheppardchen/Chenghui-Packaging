@@ -91,10 +91,10 @@
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                         <span class="text-emerald-400 font-medium">云端已连接</span>
                     </div>
-                    <!-- 新增的修改密码按钮 -->
                     <button onclick="openChangePwdModal()" class="bg-indigo-600 hover:bg-indigo-500 text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1">
                         <i class="fa-solid fa-key"></i> 修改密码
                     </button>
+                    <!-- 主动退出按钮 -->
                     <button onclick="handleLogout()" class="bg-rose-600 hover:bg-rose-500 text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1">
                         <i class="fa-solid fa-right-from-bracket"></i> 退出
                     </button>
@@ -150,7 +150,7 @@
                 <div class="overflow-x-auto border border-slate-200 rounded-lg">
                     <table class="w-full text-sm text-left text-slate-600">
                         <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
-                            <tr><th class="p-3">日期</th><th class="p-3">材料名称</th><th class="p-3">类型</th><th class="p-3">数量</th><th class="p-3">备注</th><th class="p-3 text-right">操作</th></tr>
+                            <tr><th class="p-3">日期</th><th class="p-3">材料名称</th><th class="p-3">类型</th><th class="p-3">数量</th><th class="p-3">批注说明</th><th class="p-3 text-right">操作</th></tr>
                         </thead>
                         <tbody id="inventory-table-body"></tbody>
                     </table>
@@ -188,7 +188,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：新增订单 -->
+    <!-- 弹窗：新增订单（带批注） -->
     <div id="modal-order" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h3 class="text-lg font-bold text-slate-800 mb-4">新建客户订单</h3>
@@ -202,6 +202,10 @@
                     <div><label class="block font-medium mb-1">数量 *</label><input type="number" id="ord-qty" oninput="calcOrderTotal()" required class="w-full border border-slate-300 p-2 rounded-lg"></div>
                     <div><label class="block font-medium mb-1">单价 *</label><input type="number" step="0.01" id="ord-price" oninput="calcOrderTotal()" required class="w-full border border-slate-300 p-2 rounded-lg"></div>
                     <div><label class="block font-medium mb-1">总金额</label><input type="text" id="ord-total" readonly class="w-full border border-slate-100 bg-slate-100 p-2 rounded-lg font-bold text-emerald-600" value="¥0.00"></div>
+                </div>
+                <div>
+                    <label class="block font-medium mb-1">订单批注 / 备注说明</label>
+                    <textarea id="ord-remark" class="w-full border border-slate-300 p-2 rounded-lg" placeholder="填写订单批注..."></textarea>
                 </div>
                 <div class="flex justify-end gap-2 pt-3">
                     <button type="button" onclick="closeOrderModal()" class="px-4 py-2 border border-slate-300 rounded-lg">取消</button>
@@ -342,7 +346,7 @@
                 return;
             }
             if (newP.length < 6) {
-                alert("新密码长度不能少于 6 位！");
+                alert("新密码长度不能少于 8 位！");
                 return;
             }
 
@@ -385,8 +389,21 @@
                             <span class="font-bold text-slate-800">${customer} (${list.length} 笔订单)</span>
                             <span class="text-sm font-semibold text-emerald-600">累计金额: ¥${totalAmt.toFixed(2)}</span>
                         </div>
-                        <div id="acc-${index}" class="hidden border-t border-slate-200 p-3 text-xs">
-                            ${list.map(o => `<div>订单ID: ${o.id} | 数量: ${o.quantity} | 总额: ¥${o.total_amount}</div>`).join('')}
+                        <div id="acc-${index}" class="hidden border-t border-slate-200 p-3 text-xs overflow-x-auto">
+                            <table class="w-full text-left text-slate-600">
+                                <tr class="bg-slate-100/50 text-slate-500 font-bold">
+                                    <th class="p-2">日期</th><th class="p-2">数量</th><th class="p-2">总额</th><th class="p-2">批注</th><th class="p-2 text-right">操作</th>
+                                </tr>
+                                ${list.map(o => `
+                                    <tr class="border-b border-slate-100">
+                                        <td class="p-2">${o.order_date || '-'}</td>
+                                        <td class="p-2">${o.quantity}</td>
+                                        <td class="p-2 text-emerald-600 font-bold">¥${o.total_amount}</td>
+                                        <td class="p-2 text-slate-500">${o.remark || '无批注'}</td>
+                                        <td class="p-2 text-right"><button onclick="deleteOrder(${o.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td>
+                                    </tr>
+                                `).join('')}
+                            </table>
                         </div>
                     </div>`;
             });
@@ -396,11 +413,12 @@
         function addInventoryRow() {
             document.getElementById('batch-rows-container').insertAdjacentHTML('beforeend', `
                 <div class="grid grid-cols-12 gap-2 items-center inv-batch-row">
-                    <input type="date" value="${new Date().toISOString().split('T')[0]}" class="col-span-3 border border-slate-300 p-2 rounded-lg text-xs" required>
+                    <input type="date" value="${new Date().toISOString().split('T')[0]}" class="col-span-2 border border-slate-300 p-2 rounded-lg text-xs" required>
                     <input type="text" placeholder="原材料名称" class="col-span-3 border border-slate-300 p-2 rounded-lg text-xs" required>
                     <select class="col-span-2 border border-slate-300 p-2 rounded-lg text-xs"><option value="IN">入库</option><option value="OUT">出库</option></select>
                     <input type="number" placeholder="数量" class="col-span-2 border border-slate-300 p-2 rounded-lg text-xs" required>
-                    <button type="button" onclick="this.parentElement.remove()" class="col-span-2 text-rose-500"><i class="fa-solid fa-xmark text-base"></i></button>
+                    <input type="text" placeholder="批注说明" class="col-span-2 border border-slate-300 p-2 rounded-lg text-xs">
+                    <button type="button" onclick="this.parentElement.remove()" class="col-span-1 text-rose-500 text-center"><i class="fa-solid fa-xmark text-base"></i></button>
                 </div>`);
         }
 
@@ -410,7 +428,13 @@
             const newItems = [];
             rows.forEach(r => {
                 const inputs = r.querySelectorAll('input, select');
-                newItems.push({ date: inputs[0].value, material: inputs[1].value, type: inputs[2].value, quantity: Number(inputs[3].value), remark: '批量录入' });
+                newItems.push({ 
+                    date: inputs[0].value, 
+                    material: inputs[1].value, 
+                    type: inputs[2].value, 
+                    quantity: Number(inputs[3].value), 
+                    remark: inputs[4].value || '无批注' 
+                });
             });
             await supabaseClient.from('inventory').insert(newItems);
             fetchDataFromCloud();
@@ -419,7 +443,14 @@
 
         function renderInventoryTable() {
             document.getElementById('inventory-table-body').innerHTML = inventoryData.map(i => `
-                <tr class="border-b border-slate-100"><td class="p-3">${i.date}</td><td class="p-3">${i.material}</td><td class="p-3">${i.type === 'IN' ? '入库' : '出库'}</td><td class="p-3">${i.quantity}</td><td class="p-3">${i.remark || '-'}</td><td class="p-3 text-right"></td></tr>`).join('');
+                <tr class="border-b border-slate-100">
+                    <td class="p-3">${i.date}</td>
+                    <td class="p-3 font-medium">${i.material}</td>
+                    <td class="p-3">${i.type === 'IN' ? '入库' : '出库'}</td>
+                    <td class="p-3">${i.quantity}</td>
+                    <td class="p-3 text-slate-500">${i.remark || '无批注'}</td>
+                    <td class="p-3 text-right"><button onclick="deleteInventory(${i.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`).join('');
         }
 
         function updateKPIs() {
@@ -450,10 +481,25 @@
                 customer: document.getElementById('ord-customer').value,
                 order_date: document.getElementById('ord-date').value,
                 quantity: q, price: p, total_amount: q * p,
+                remark: document.getElementById('ord-remark').value || '无批注',
                 image: currentUploadedImageBase64 || null
             }]);
             fetchDataFromCloud();
             closeOrderModal();
+        }
+
+        async function deleteOrder(id) {
+            if (confirm('确认删除该笔订单？')) {
+                await supabaseClient.from('orders').delete().eq('id', id);
+                fetchDataFromCloud();
+            }
+        }
+
+        async function deleteInventory(id) {
+            if (confirm('确认删除该条记录？')) {
+                await supabaseClient.from('inventory').delete().eq('id', id);
+                fetchDataFromCloud();
+            }
         }
     </script>
 </body>
