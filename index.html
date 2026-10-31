@@ -46,19 +46,19 @@
             <form id="login-form" onsubmit="handleAuthSubmit(event)" class="space-y-4 text-sm" autocomplete="off">
                 <div>
                     <label class="block font-medium text-slate-700 mb-1" id="label-user-email">登录账号</label>
-                    <div class="relative">
-                        <!-- 图标定位与 pl-12 确保文字不会被图标遮挡 -->
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 pointer-events-none"><i class="fa-solid fa-user" id="auth-icon"></i></span>
-                        <input type="text" id="auth-input-id" value="ChenghuiGroup" readonly class="w-full pl-12 pr-4 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium">
+                    <div class="relative flex items-center">
+                        <!-- 使用 inline style 强制左侧留白 50px，彻底杜绝图标和文字重叠 -->
+                        <span class="absolute left-4 text-slate-400 pointer-events-none z-10"><i class="fa-solid fa-user" id="auth-icon"></i></span>
+                        <input type="text" id="auth-input-id" value="ChenghuiGroup" readonly style="padding-left: 50px;" class="w-full pr-4 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium">
                     </div>
                 </div>
                 <div id="password-field-wrap">
                     <label class="block font-medium text-slate-700 mb-1">密码</label>
-                    <div class="relative">
-                        <!-- 钥匙图标定位与 pl-12 确保输入密码时不会被钥匙遮挡 -->
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 pointer-events-none"><i class="fa-solid fa-key"></i></span>
-                        <input type="password" id="auth-password" autocomplete="new-password" class="w-full pl-12 pr-10 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" placeholder="">
-                        <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 focus:outline-none">
+                    <div class="relative flex items-center">
+                        <!-- 钥匙图标绝对定位并强制左侧留白 50px -->
+                        <span class="absolute left-4 text-slate-400 pointer-events-none z-10"><i class="fa-solid fa-key"></i></span>
+                        <input type="password" id="auth-password" autocomplete="new-password" style="padding-left: 50px;" class="w-full pr-10 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" placeholder="">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-0 inset-y-0 px-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none z-10">
                             <i class="fa-solid fa-eye" id="pwd-eye-icon"></i>
                         </button>
                     </div>
@@ -357,7 +357,8 @@
                 userLabel.innerText = "电子邮箱";
                 authInput.type = "email";
                 authInput.readOnly = false;
-                authInput.className = "w-full pl-12 pr-4 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
+                authInput.style.paddingLeft = "50px";
+                authInput.className = "w-full pr-4 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
                 authInput.placeholder = "your_email@domain.com";
                 authInput.value = "";
                 authIcon.className = "fa-solid fa-envelope";
@@ -372,7 +373,8 @@
                 userLabel.innerText = "登录账号";
                 authInput.type = "text";
                 authInput.readOnly = true;
-                authInput.className = "w-full pl-12 pr-4 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium";
+                authInput.style.paddingLeft = "50px";
+                authInput.className = "w-full pr-4 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium";
                 authInput.placeholder = "ChenghuiGroup";
                 authInput.value = FIXED_USER;
                 authIcon.className = "fa-solid fa-user";
