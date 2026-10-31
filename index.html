@@ -15,67 +15,8 @@
 </head>
 <body class="bg-slate-100 font-sans min-h-screen text-slate-800">
 
-    <!-- 1. 登录遮罩页面 -->
-    <div id="login-overlay" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full border border-slate-100">
-            <div class="text-center mb-6">
-                <!-- 承辉包装 LOGO 矢量展示 -->
-                <div class="flex justify-center mb-4">
-                    <svg class="h-12 w-auto" viewBox="0 0 520 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M75 18 C30 18 10 50 10 75 C10 95 30 100 55 95 C72 92 88 78 96 68 L84 57 C77 65 65 77 50 78 C38 79 26 73 26 62 C26 42 45 32 75 32 L85 32 L95 18 Z" fill="url(#logo-grad1)"/>
-                        <path d="M72 18 L60 95 L78 95 L84 55 C92 42 112 30 128 30 L135 18 L105 18 C92 18 82 25 76 34 L78 18 Z" fill="url(#logo-grad2)"/>
-                        <path d="M125 18 L102 95 L120 95 L143 18 Z" fill="#6B21A8"/>
-                        <text x="160" y="65" font-family="'PingFang SC', 'Microsoft YaHei', sans-serif" font-weight="900" font-size="52" fill="#7E22CE">承辉包装</text>
-                        <text x="162" y="92" font-family="'Arial Black', sans-serif" font-weight="900" font-size="22" fill="#1E1B4B" letter-spacing="2">CHENGHUI PACKAGING</text>
-                        <defs>
-                            <linearGradient id="logo-grad1" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stop-color="#D946EF"/>
-                                <stop offset="100%" stop-color="#9333EA"/>
-                            </linearGradient>
-                            <linearGradient id="logo-grad2" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stop-color="#A855F7"/>
-                                <stop offset="100%" stop-color="#6B21A8"/>
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                </div>
-                <h2 class="text-2xl font-bold text-slate-800">物料订单管理系统</h2>
-                <p class="text-xs text-slate-500 mt-1">请输入账号密码以进入管理后台</p>
-            </div>
-            
-            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4 text-sm">
-                <div>
-                    <label class="block font-medium text-slate-700 mb-1">账号</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                            <i class="fa-solid fa-user"></i>
-                        </span>
-                        <input type="text" id="login-username" required class="w-full pl-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="账号">
-                    </div>
-                </div>
-                <div>
-                    <label class="block font-medium text-slate-700 mb-1">密码</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                            <i class="fa-solid fa-key"></i>
-                        </span>
-                        <input type="password" id="login-password" required class="w-full pl-10 border border-slate-300 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="密码">
-                    </div>
-                </div>
-                
-                <div id="login-error" class="text-rose-500 text-xs hidden font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-circle-exclamation"></i> 账号或密码错误！
-                </div>
-
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold transition shadow-md shadow-indigo-200">
-                    安全登录
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- 2. 主页面结构 -->
-    <div id="main-app" class="hidden">
+    <!-- 主页面结构 -->
+    <div id="main-app" class="block">
         <!-- 顶部导航 -->
         <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
@@ -106,15 +47,6 @@
                         <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" id="status-dot"></span>
                         <span id="status-text" class="text-slate-300">检查连接中...</span>
                     </div>
-                    <button onclick="openConfigModal()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1 border border-slate-700">
-                        <i class="fa-solid fa-plug"></i> 配置云端
-                    </button>
-                    <button onclick="openChangePasswordModal()" class="bg-indigo-600 hover:bg-indigo-500 text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1">
-                        <i class="fa-solid fa-key"></i> 修改密码
-                    </button>
-                    <button onclick="handleLogout()" class="bg-rose-600 hover:bg-rose-500 text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1">
-                        <i class="fa-solid fa-right-from-bracket"></i> 退出
-                    </button>
                 </div>
             </div>
         </header>
@@ -270,49 +202,6 @@
         </main>
     </div>
 
-    <!-- 修改密码弹窗 -->
-    <div id="modal-password" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full mx-4">
-            <h3 class="text-lg font-bold text-slate-800 mb-3">修改后台登录密码</h3>
-            <form onsubmit="handleChangePassword(event)" class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-medium text-slate-700 mb-1">当前旧密码</label>
-                    <input type="password" id="pwd-old" required class="w-full border border-slate-300 p-2 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div>
-                    <label class="block font-medium text-slate-700 mb-1">设置新密码</label>
-                    <input type="password" id="pwd-new" required class="w-full border border-slate-300 p-2 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div class="flex justify-end gap-2 mt-4">
-                    <button type="button" onclick="closeChangePasswordModal()" class="px-3 py-1.5 border border-slate-300 text-slate-600 rounded-lg">取消</button>
-                    <button type="submit" class="px-4 py-1.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">确认更改</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Supabase 密钥配置弹窗 -->
-    <div id="modal-config" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
-            <h3 class="text-lg font-bold text-slate-800 mb-3">绑定 Supabase 云数据库</h3>
-            <p class="text-xs text-slate-500 mb-4">请输入您 Supabase 项目的 API Credentials</p>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 mb-1">Project URL</label>
-                    <input type="text" id="cfg-url" placeholder="https://xxx.supabase.co" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-700 mb-1">Anon Public Key</label>
-                    <input type="password" id="cfg-key" placeholder="eyJhbGciOiJIUzI1Ni..." class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-            </div>
-            <div class="flex justify-end gap-2 mt-5">
-                <button onclick="closeConfigModal()" class="px-3 py-1.5 border border-slate-300 text-slate-600 rounded-lg text-xs">取消</button>
-                <button onclick="saveConfig()" class="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-medium hover:bg-indigo-700">连接云端</button>
-            </div>
-        </div>
-    </div>
-
     <!-- 新增订单弹窗 -->
     <div id="modal-order" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -384,9 +273,6 @@
 
     <!-- JS 核心逻辑 -->
     <script>
-        const DEFAULT_USER = "Xinhui Group";
-        const DEFAULT_PWD = "123456";
-
         let supabaseClient = null;
         let ordersData = [];
         let inventoryData = [];
@@ -394,77 +280,16 @@
         let chartInstance2 = null;
         let currentUploadedImageBase64 = '';
 
-        function getStoredPassword() {
-            return localStorage.getItem('app_password') || DEFAULT_PWD;
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('login-username').value = DEFAULT_USER;
-            checkLoginSession();
+            initInventoryBatchRows();
+            initSupabaseClient();
+            document.getElementById('ord-date').valueAsDate = new Date();
         });
 
-        function checkLoginSession() {
-            const loggedIn = sessionStorage.getItem('is_logged_in');
-            if (loggedIn === 'true') {
-                document.getElementById('login-overlay').classList.add('hidden');
-                document.getElementById('main-app').classList.remove('hidden');
-                initInventoryBatchRows();
-                initSupabaseClient();
-                document.getElementById('ord-date').valueAsDate = new Date();
-            } else {
-                document.getElementById('login-overlay').classList.remove('hidden');
-                document.getElementById('main-app').classList.add('hidden');
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('login-username').value.trim();
-            const p = document.getElementById('login-password').value.trim();
-            const err = document.getElementById('login-error');
-
-            if (u === DEFAULT_USER && p === getStoredPassword()) {
-                sessionStorage.setItem('is_logged_in', 'true');
-                err.classList.add('hidden');
-                checkLoginSession();
-            } else {
-                err.classList.remove('hidden');
-            }
-        }
-
-        function handleLogout() {
-            sessionStorage.removeItem('is_logged_in');
-            checkLoginSession();
-        }
-
-        function openChangePasswordModal() { document.getElementById('modal-password').classList.remove('hidden'); }
-        function closeChangePasswordModal() { document.getElementById('modal-password').classList.add('hidden'); }
-
-        function handleChangePassword(e) {
-            e.preventDefault();
-            const oldP = document.getElementById('pwd-old').value.trim();
-            const newP = document.getElementById('pwd-new').value.trim();
-
-            if (oldP !== getStoredPassword()) {
-                alert("旧密码输入不正确！");
-                return;
-            }
-
-            if (!newP) {
-                alert("密码不能为空！");
-                return;
-            }
-
-            localStorage.setItem('app_password', newP);
-            alert("密码修改成功！下次登录请使用新密码。");
-            closeChangePasswordModal();
-            document.getElementById('pwd-old').value = '';
-            document.getElementById('pwd-new').value = '';
-        }
-
+        // 已写死您的 Supabase 云端配置，实现免手动配置直连
         function initSupabaseClient() {
-            const url = localStorage.getItem('sp_url');
-            const key = localStorage.getItem('sp_key');
+            const url = "https://bmihjttxiqlzypdvxrdo.supabase.co";
+            const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtaWhqdHR4aXFsenlwZHZ4cmRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0MTE5MzQsImV4cCI6MjEwODk4NzkzNH0.nx-XTeYs--D04QgfsX5rkMUEmBRUr_YK8-MU9-QGr6w"; // <-- 请把这里替换为您复制的 anon 公开密钥
 
             if (url && key) {
                 try {
@@ -813,29 +638,6 @@
                 fetchDataFromCloud();
             }
         }
-
-        function openConfigModal() {
-            document.getElementById('cfg-url').value = localStorage.getItem('sp_url') || '';
-            document.getElementById('cfg-key').value = localStorage.getItem('sp_key') || '';
-            document.getElementById('modal-config').classList.remove('hidden');
-        }
-        function closeConfigModal() { document.getElementById('modal-config').classList.add('hidden'); }
-        function saveConfig() {
-            localStorage.setItem('sp_url', document.getElementById('cfg-url').value.trim());
-            localStorage.setItem('sp_key', document.getElementById('cfg-key').value.trim());
-            closeConfigModal();
-            initSupabaseClient();
-        }
     </script>
 </body>
 </html>
-```
-
-### 数据库小贴士（保存产品图片）
-如果您将产品图片上传保存到 Supabase，请确保在 Supabase 的 **SQL Editor** 中补充运行下面这一行命令（新增 `image` 列）：
-
-```sql
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS image TEXT;
-```
-
-右侧的代码预览区域已实时为您更新并运行该系统！您可以在右上角点击 **Preview** 按钮直观地查看和测试系统的完整功能。
