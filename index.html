@@ -13,13 +13,11 @@
     <!-- FontAwesome 图标 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* 移动端专有体验与视觉优化 */
         @media (max-width: 640px) {
-            .mobile-padding { padding-left: 0.75rem; padding-right: 0.75rem; }
             .mobile-touch-target { min-height: 44px; }
-            .mobile-card-compact { padding: 1rem; }
+            /* 手机端调整 Tab 顺序：客户订单排在最上方 */
+            .mobile-order-first { order: -1 !important; }
         }
-        /* 平滑滚动条与触控滑动优化 */
         .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
@@ -43,30 +41,31 @@
                         </defs>
                     </svg>
                 </div>
-                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight" id="auth-title">物料订单管理系统</h2>
-                <p class="text-xs text-slate-500 mt-1" id="auth-subtitle">请输入密码登录系统后台</p>
+                <!-- 彻底删除了“请输入密码登录系统后台”的副标题 -->
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight mt-2" id="auth-title">物料订单管理系统</h2>
             </div>
             
             <form id="login-form" onsubmit="handleAuthSubmit(event)" class="space-y-4 text-sm" autocomplete="off">
                 <div>
                     <label class="block font-medium text-slate-700 mb-1" id="label-user-email">登录账号</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400"><i class="fa-solid fa-user" id="auth-icon"></i></span>
-                        <input type="text" id="auth-input-id" value="ChenghuiGroup" readonly class="w-full pl-10 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium">
+                        <!-- 修正 padding 左边距为 pl-12，防止图标挡住文字 -->
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-user" id="auth-icon"></i></span>
+                        <input type="text" id="auth-input-id" value="ChenghuiGroup" readonly class="w-full pl-12 pr-4 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium">
                     </div>
                 </div>
                 <div id="password-field-wrap">
                     <label class="block font-medium text-slate-700 mb-1">密码</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400"><i class="fa-solid fa-key"></i></span>
-                        <input type="password" id="auth-password" autocomplete="new-password" class="w-full pl-10 pr-10 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" placeholder="">
+                        <!-- 修正 padding 左边距为 pl-12，防止钥匙图标挡住输入的密码 -->
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-key"></i></span>
+                        <input type="password" id="auth-password" autocomplete="new-password" class="w-full pl-12 pr-10 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" placeholder="">
                         <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 focus:outline-none">
                             <i class="fa-solid fa-eye" id="pwd-eye-icon"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- 新增常登录模式勾选框 -->
                 <div id="remember-me-wrap" class="flex items-center justify-between text-xs pt-1">
                     <label class="flex items-center gap-2 cursor-pointer select-none text-slate-600">
                         <input type="checkbox" id="remember-me-checkbox" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
@@ -90,7 +89,6 @@
 
     <!-- 2. 主页面结构 -->
     <div id="main-app" class="hidden min-h-screen flex flex-col">
-        <!-- 顶部导航栏 (手机端响应式优化) -->
         <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex justify-between items-center">
                 <div class="flex items-center space-x-2 sm:space-x-3">
@@ -124,9 +122,7 @@
             </div>
         </header>
 
-        <!-- 主体容器 (移动端间距与布局优化) -->
         <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 flex-1 w-full">
-            <!-- 顶栏 KPI 看板 (手机端网格流式适配) -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
@@ -170,9 +166,9 @@
                 </div>
             </div>
 
-            <!-- Tab 选项卡导航 (手机端横向滚动触控) -->
+            <!-- Tab 选项卡导航 (手机端通过 CSS 将客户订单置顶) -->
             <div class="flex border-b border-slate-200 bg-white rounded-t-xl px-2 sm:px-4 pt-1.5 overflow-x-auto custom-scroll">
-                <button onclick="switchTab('orders')" id="tab-btn-orders" class="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b-2 border-indigo-600 font-medium text-xs sm:text-sm text-indigo-600 flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-users-viewfinder"></i> 客户订单管理</button>
+                <button onclick="switchTab('orders')" id="tab-btn-orders" class="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b-2 border-indigo-600 font-medium text-xs sm:text-sm text-indigo-600 flex items-center gap-1.5 whitespace-nowrap mobile-order-first"><i class="fa-solid fa-users-viewfinder"></i> 客户订单管理</button>
                 <button onclick="switchTab('inventory')" id="tab-btn-inventory" class="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b-2 border-transparent font-medium text-xs sm:text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-boxes-packing"></i> 原材料出入库</button>
                 <button onclick="switchTab('report')" id="tab-btn-report" class="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b-2 border-transparent font-medium text-xs sm:text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-chart-pie"></i> 月度深度分析与报表</button>
             </div>
@@ -246,7 +242,7 @@
         </main>
     </div>
 
-    <!-- 弹窗：修改系统密码 (手机端响应式居中) -->
+    <!-- 弹窗：修改密码 (限制不得少于8位) -->
     <div id="modal-changepwd" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-sm w-full">
             <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-3">修改系统密码</h3>
@@ -256,18 +252,18 @@
                     <input type="password" id="old-pwd" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label class="block font-medium mb-1 text-slate-700">输入新密码</label>
-                    <input type="password" id="new-pwd" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="block font-medium mb-1 text-slate-700">输入新密码 (至少8位)</label>
+                    <input type="password" id="new-pwd" minlength="8" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="不得少于8位">
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="document.getElementById('modal-changepwd').classList.add('hidden')" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 mobile-touch-target">取消</button>
+                    <button type="button" onclick="document.getElementById('modal-changepwd').classList.add('hidden')" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg mobile-touch-target">取消</button>
                     <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 mobile-touch-target">确认修改</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 弹窗：新建客户订单 (手机端抽屉式沉浸体验) -->
+    <!-- 弹窗：新建客户订单 -->
     <div id="modal-order" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-3 sm:p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scroll">
             <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-3">新建客户订单</h3>
@@ -294,7 +290,7 @@
         </div>
     </div>
 
-    <!-- JS 核心逻辑（原有核心逻辑100%保留 + 新增常登录模式持久化） -->
+    <!-- JS 核心逻辑 -->
     <script>
         const SUPABASE_URL = "https://bmihjttxiqlzypdvxrdo.supabase.co";
         const SUPABASE_KEY = "填入您的Publishable key(eyJh...开头)"; // 请填入您的 Publishable key
@@ -315,7 +311,6 @@
             document.getElementById('auth-password').value = '';
         });
 
-        // 检查登录状态（支持常登录模式校验）
         function checkSession() {
             const isSessionLogged = sessionStorage.getItem('chenghui_logged');
             const isPersistentLogged = localStorage.getItem('chenghui_persistent_logged');
@@ -348,7 +343,6 @@
         function switchAuthMode(mode) {
             authMode = mode;
             const title = document.getElementById('auth-title');
-            const sub = document.getElementById('auth-subtitle');
             const userLabel = document.getElementById('label-user-email');
             const authInput = document.getElementById('auth-input-id');
             const authIcon = document.getElementById('auth-icon');
@@ -362,11 +356,10 @@
             msg.classList.add('hidden');
             if (mode === 'forgot') {
                 title.innerText = "通过邮箱重置密码";
-                sub.innerText = "请输入您在Supabase绑定的管理员邮箱";
                 userLabel.innerText = "电子邮箱";
                 authInput.type = "email";
                 authInput.readOnly = false;
-                authInput.className = "w-full pl-10 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
+                authInput.className = "w-full pl-12 pr-4 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
                 authInput.placeholder = "your_email@domain.com";
                 authInput.value = "";
                 authIcon.className = "fa-solid fa-envelope";
@@ -378,11 +371,10 @@
                 toggleLogin.classList.remove('hidden');
             } else {
                 title.innerText = "物料订单管理系统";
-                sub.innerText = "请输入密码登录系统后台";
                 userLabel.innerText = "登录账号";
                 authInput.type = "text";
                 authInput.readOnly = true;
-                authInput.className = "w-full pl-10 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium";
+                authInput.className = "w-full pl-12 pr-4 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium";
                 authInput.placeholder = "ChenghuiGroup";
                 authInput.value = FIXED_USER;
                 authIcon.className = "fa-solid fa-user";
@@ -421,7 +413,6 @@
                 const currentPwd = localStorage.getItem('app_custom_pwd') || DEFAULT_PWD;
 
                 if (u === FIXED_USER && p === currentPwd) {
-                    // 判断是否开启常登录模式
                     const rememberMe = document.getElementById('remember-me-checkbox').checked;
                     sessionStorage.setItem('chenghui_logged', 'true');
                     if (rememberMe) {
@@ -429,7 +420,6 @@
                     } else {
                         localStorage.removeItem('chenghui_persistent_logged');
                     }
-                    
                     document.getElementById('auth-password').value = "";
                     checkSession();
                 } else {
@@ -439,7 +429,6 @@
             }
         }
 
-        // 主动退出登录（同时清除常登录状态）
         function handleLogout() {
             sessionStorage.removeItem('chenghui_logged');
             localStorage.removeItem('chenghui_persistent_logged');
@@ -463,6 +452,7 @@
                 alert("原密码输入错误！");
                 return;
             }
+            // 验证修改后密码不得少于八位
             if (newP.length < 8) {
                 alert("新密码长度不能少于 8 位！");
                 return;
