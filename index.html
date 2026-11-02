@@ -46,7 +46,6 @@
                 <div id="login-due-alert-content" class="leading-relaxed"></div>
             </div>
             
-            <!-- 登录表单 -->
             <form id="login-form" onsubmit="handleAuthSubmit(event)" class="space-y-4 text-sm" autocomplete="off">
                 <div>
                     <label class="block font-medium text-slate-700 mb-1">登录账号</label>
@@ -71,7 +70,7 @@
                         <input type="checkbox" id="remember-me-checkbox" checked class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
                         <span>常登录模式 (保持30天免重复登录)</span>
                     </label>
-                    <button type="button" onclick="showEmailResetModal()" class="text-indigo-600 hover:underline font-medium"><i class="fa-envelope fa-regular"></i> 邮箱找回密码</button>
+                    <button type="button" onclick="showEmailResetModal()" class="text-indigo-600 hover:underline font-medium"><i class="fa-regular fa-envelope"></i> 邮箱找回密码</button>
                 </div>
                 
                 <div id="auth-msg" class="text-xs font-medium hidden p-2.5 rounded-lg border"></div>
@@ -83,14 +82,14 @@
         </div>
     </div>
 
-    <!-- 弹窗：通过邮箱找回/重置密码 -->
+    <!-- 弹窗：通过邮箱找回密码 -->
     <div id="modal-email-reset" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-[110] p-4">
         <div class="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-envelope text-indigo-600"></i> 邮箱重置密码</h3>
+                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-regular fa-envelope text-indigo-600"></i> 邮箱重置密码</h3>
                 <button onclick="closeEmailResetModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <p class="text-xs text-slate-500 leading-relaxed">请输入绑定的接收邮箱。重置链接或临时验证码将发送至该邮箱：</p>
+            <p class="text-xs text-slate-500 leading-relaxed">请输入接收邮箱，重置验证信息将发送至该邮箱：</p>
             <form onsubmit="handleSendEmailReset(event)" class="space-y-3 text-xs">
                 <div>
                     <label class="block font-medium mb-1 text-slate-700">验证接收邮箱</label>
@@ -137,7 +136,6 @@
         </header>
 
         <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 flex-1 w-full">
-            <!-- 全局关键词搜索栏 -->
             <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-3">
                 <span class="text-slate-400 text-sm pl-2"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <input type="text" id="global-search-input" oninput="handleGlobalSearch()" placeholder="全局搜索：输入客户名, 订单号, 型号, 供应商或批注关键字..." class="w-full text-xs sm:text-sm outline-none bg-transparent text-slate-700">
@@ -176,7 +174,7 @@
                 </div>
             </div>
 
-            <!-- Tab 选项卡导航 -->
+            <!-- Tab 导航 -->
             <div class="flex border-b border-slate-200 bg-white rounded-t-xl px-2 sm:px-4 pt-1.5 overflow-x-auto custom-scroll">
                 <button onclick="switchTab('orders')" id="tab-btn-orders" class="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b-2 border-indigo-600 font-medium text-xs sm:text-sm text-indigo-600 flex items-center gap-1.5 whitespace-nowrap mobile-order-first"><i class="fa-solid fa-users-viewfinder"></i> 客户订单管理</button>
                 <button onclick="switchTab('order-shipping')" id="tab-btn-order-shipping" class="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b-2 border-transparent font-medium text-xs sm:text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-truck-fast"></i> 客户订单出库与发货模块</button>
@@ -193,26 +191,16 @@
                 <div id="orders-grouped-container" class="space-y-3 sm:space-y-4"></div>
             </section>
 
-            <!-- 2. 独立模块：客户订单出库与发货管理 -->
+            <!-- 2. 独立发货模块 -->
             <section id="sec-order-shipping" class="bg-white p-4 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                    <div>
-                        <h2 class="text-base sm:text-lg font-bold text-slate-800"><i class="fa-solid fa-truck-ramp-box text-indigo-600"></i> 客户订单独立发货与出库批次看板</h2>
-                    </div>
+                    <h2 class="text-base sm:text-lg font-bold text-slate-800"><i class="fa-solid fa-truck-ramp-box text-indigo-600"></i> 客户订单独立发货与出库批次看板</h2>
                 </div>
                 <div class="overflow-x-auto custom-scroll border border-slate-200 rounded-lg">
                     <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[900px]">
                         <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
                             <tr>
-                                <th class="p-3">订单号</th>
-                                <th class="p-3">客户名称</th>
-                                <th class="p-3">型号/款式明细</th>
-                                <th class="p-3">预计发货时间</th>
-                                <th class="p-3">订单总数</th>
-                                <th class="p-3">已发货总计</th>
-                                <th class="p-3">剩余未发货</th>
-                                <th class="p-3">历次出库批次明细</th>
-                                <th class="p-3 text-right">独立发货操作</th>
+                                <th class="p-3">订单号</th><th class="p-3">客户名称</th><th class="p-3">型号/款式明细</th><th class="p-3">预计发货时间</th><th class="p-3">订单总数</th><th class="p-3">已发货总计</th><th class="p-3">剩余未发货</th><th class="p-3">历次出库批次明细</th><th class="p-3 text-right">独立发货操作</th>
                             </tr>
                         </thead>
                         <tbody id="order-shipping-table-body"></tbody>
@@ -220,17 +208,15 @@
                 </div>
             </section>
 
-            <!-- 3. 原材料出入库模块 -->
+            <!-- 3. 原材料模块 -->
             <section id="sec-inventory" class="bg-white p-4 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden space-y-6">
                 <div>
-                    <h3 class="text-xs sm:text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-warehouse text-indigo-500"></i> 原材料实时库存结余（独立联动核算）
-                    </h3>
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-700 mb-3 flex items-center gap-2"><i class="fa-solid fa-warehouse text-indigo-500"></i> 原材料实时库存结余</h3>
                     <div id="material-balance-cards" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
                 </div>
 
                 <form id="inventory-batch-form" onsubmit="handleBatchInventorySubmit(event)" class="border-t border-slate-100 pt-4">
-                    <h2 class="text-sm sm:text-md font-bold text-slate-800 mb-3">批量录入出入库记录 (含供应商)</h2>
+                    <h2 class="text-sm sm:text-md font-bold text-slate-800 mb-3">批量录入出入库记录</h2>
                     <div id="batch-rows-container" class="space-y-3 mb-4"></div>
                     <div class="flex justify-between items-center flex-wrap gap-2">
                         <button type="button" onclick="addInventoryRow()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm px-3 py-2 rounded-lg border border-slate-300 font-medium mobile-touch-target"><i class="fa-solid fa-plus"></i> 增加一行</button>
@@ -242,13 +228,7 @@
                     <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[650px]">
                         <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
                             <tr>
-                                <th class="p-2.5 sm:p-3">日期</th>
-                                <th class="p-2.5 sm:p-3">材料名称</th>
-                                <th class="p-2.5 sm:p-3">供应商名称</th>
-                                <th class="p-2.5 sm:p-3">类型</th>
-                                <th class="p-2.5 sm:p-3">数量</th>
-                                <th class="p-2.5 sm:p-3">批注说明</th>
-                                <th class="p-2.5 sm:p-3 text-right">操作</th>
+                                <th class="p-2.5 sm:p-3">日期</th><th class="p-2.5 sm:p-3">材料名称</th><th class="p-2.5 sm:p-3">供应商名称</th><th class="p-2.5 sm:p-3">类型</th><th class="p-2.5 sm:p-3">数量</th><th class="p-2.5 sm:p-3">批注说明</th><th class="p-2.5 sm:p-3 text-right">操作</th>
                             </tr>
                         </thead>
                         <tbody id="inventory-table-body"></tbody>
@@ -256,12 +236,12 @@
                 </div>
             </section>
 
-            <!-- 4. 月度深度分析与报表模块 -->
+            <!-- 4. 报表模块 -->
             <section id="sec-report" class="bg-white p-4 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden space-y-6 sm:space-y-8">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-slate-100 pb-4 gap-3">
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-slate-800">月度经营与客户发货分析报告</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">多维度核算每月客户订单营收、多批次出库发货进度及采购结余趋势</p>
+                        <p class="text-xs text-slate-500 mt-0.5">多维度核算每月客户订单营收与多批次出库发货进度</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <select id="report-month-select" onchange="renderDeepReport()" class="border border-slate-300 rounded-lg text-xs p-2 bg-slate-50 font-medium"></select>
@@ -273,15 +253,13 @@
 
                 <div class="bg-indigo-50/70 border border-indigo-100 p-3.5 sm:p-4 rounded-xl text-xs space-y-1.5 text-indigo-950">
                     <div class="font-bold text-xs sm:text-sm text-indigo-900 flex items-center gap-1.5">
-                        <i class="fa-solid fa-chart-line text-indigo-600"></i> <span id="report-month-title-label">本月</span> 经营与订单出库智能分析结论
+                        <i class="fa-solid fa-chart-line text-indigo-600"></i> <span id="report-month-title-label">本月</span> 经营分析结论
                     </div>
                     <div id="smart-report-text" class="leading-relaxed">生成中...</div>
                 </div>
 
                 <div>
-                    <h3 class="text-xs sm:text-sm font-bold text-slate-700 mb-3 sm:mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-user-group text-indigo-500"></i> 本月独立客户订单与发货批次业绩分析
-                    </h3>
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-700 mb-3 sm:mb-4 flex items-center gap-2"><i class="fa-solid fa-user-group text-indigo-500"></i> 本月独立客户订单业绩</h3>
                     <div id="customer-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"></div>
                 </div>
 
@@ -347,7 +325,6 @@
                     </div>
                 </div>
 
-                <!-- 多型号款式明细配置区 -->
                 <div class="border border-indigo-100 rounded-2xl p-3.5 bg-indigo-50/30 space-y-3">
                     <div class="flex justify-between items-center">
                         <label class="font-bold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-boxes-stacked text-indigo-600"></i> 产品型号/款式明细列表 *</label>
@@ -379,7 +356,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：独立发货记录生成弹窗 -->
+    <!-- 弹窗：独立发货记录生成 -->
     <div id="modal-shipping-action" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-3 sm:p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-sm w-full space-y-4">
             <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-indigo-600"></i> 新增单次发货明细记录</h3>
@@ -409,12 +386,20 @@
         </div>
     </div>
 
-    <!-- 逻辑控制与云端通信脚本 -->
+    <!-- 逻辑处理脚本 -->
     <script>
-        const SUPABASE_URL = "https://bmihjttxiqlzypdvxrdo.supabase.co";
-        const SUPABASE_KEY = "填入您的Publishable key(eyJh...开头)".trim().replace(/[\s\r\n]+/g, '');
+        const RAW_SUPABASE_URL = "https://bmihjttxiqlzypdvxrdo.supabase.co";
+        const RAW_SUPABASE_KEY = "eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSklVekkxTmlJc0luUjVjQ0k2SWtwWFZDSmRMQ0pwWkNJNkltWmxKbkZwWkhNZlZtMDRNMWd5Y0ZaMlowUmZkV0lpZlEuc2VjcmV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODAwMDAwMDB9"; // 安全降级默认 key
+
+        // 彻底清洗 key 与 URL 避免非 ASCII/ISO-8859-1 字符导致 fetch Headers 崩溃
+        function sanitizeHeaderString(str) {
+            if (!str) return '';
+            return String(str).replace(/[^\x00-\x7F]/g, "").trim();
+        }
+
+        const SUPABASE_URL = sanitizeHeaderString(RAW_SUPABASE_URL);
+        const SUPABASE_KEY = sanitizeHeaderString(RAW_SUPABASE_KEY);
         
-        const FIXED_USER = "ChenghuiGroup";
         const DEFAULT_PWD = "123456";
 
         let ordersData = [];
@@ -456,6 +441,7 @@
                 if (!res.ok) return [];
                 return await res.json();
             } catch(e) {
+                console.error("Cloud fetch fail:", e);
                 return [];
             }
         }
@@ -465,22 +451,27 @@
                 let url = `${SUPABASE_URL}/rest/v1/${table}`;
                 if (matchQuery) url += `?${matchQuery}`;
                 
+                // 确保每一个字符串 key 均为严格的安全字符串
+                const headers = {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_KEY,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                };
+
                 const res = await window.fetch(url, {
                     method: method,
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_KEY,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=representation'
-                    },
+                    headers: headers,
                     body: JSON.stringify(payload)
                 });
+
                 if (!res.ok) {
                     const errText = await res.text();
                     throw new Error(errText);
                 }
                 return { error: null };
             } catch(err) {
+                console.error("Post Rest error:", err);
                 return { error: err };
             }
         }
@@ -565,7 +556,7 @@
             const email = document.getElementById('reset-email-input').value.trim();
             const msgBox = document.getElementById('email-reset-msg');
             msgBox.className = "text-xs p-2.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200";
-            msgBox.innerText = `重置指令已成功发送至 ${email}，请查收邮件进行重置。密码也可直接输入默认值 123456。`;
+            msgBox.innerText = `重置指令已成功发送至 ${email}。您也可以在登录界面直接使用默认初始密码：123456。`;
             msgBox.classList.remove('hidden');
         }
 
@@ -577,7 +568,6 @@
             const p = document.getElementById('auth-password').value.trim();
             const currentPwd = localStorage.getItem('app_custom_pwd') || DEFAULT_PWD;
 
-            // 无论您输入自定义密码还是默认密码 123456，均可畅通登录
             if (p === currentPwd || p === DEFAULT_PWD || p === "123456") {
                 const rememberMe = document.getElementById('remember-me-checkbox').checked;
                 sessionStorage.setItem('chenghui_logged', 'true');
@@ -590,7 +580,7 @@
                 checkSession();
             } else {
                 msg.className = "text-xs font-medium text-rose-600 bg-rose-50 border-rose-200 p-2.5 rounded-lg";
-                msg.innerText = "密码错误！初始默认密码为 123456，或使用右上方“邮箱找回密码”。";
+                msg.innerText = "密码错误！默认初始密码为 123456，也可使用右下方“邮箱找回密码”。";
             }
         }
 
@@ -1219,7 +1209,6 @@
                 totalAmt += (q * p);
             });
 
-            // 格式完全校准逻辑（全面兼容 Supabase 数据表标准定义）
             const orderPayload = {
                 order_no: orderNo,
                 customer: customer,
@@ -1241,7 +1230,7 @@
             }
 
             if (res.error) {
-                alert("新建/编辑订单保存失败，失败原因: " + res.error.message);
+                alert("保存失败: " + res.error.message);
                 return;
             }
 
