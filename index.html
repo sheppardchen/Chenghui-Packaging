@@ -343,13 +343,13 @@
                     </div>
                 </div>
 
-                <!-- 多型号款式明细配置区 -->
-                <div class="border border-slate-200 rounded-xl p-3 bg-slate-50/50 space-y-2">
+                <!-- 多型号款式明细配置区（每行自带型号、数量、单价及专属图片上传行） -->
+                <div class="border border-slate-200 rounded-xl p-3 bg-slate-50/50 space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="font-bold text-slate-700">产品型号/款式明细列表 *</label>
+                        <label class="font-bold text-slate-700">产品型号/款式明细列表 * (每行自带款式专属图片上传)</label>
                         <button type="button" onclick="addOrderModelRow()" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2.5 py-1 rounded font-medium text-xs"><i class="fa-solid fa-plus"></i> 增加型号行</button>
                     </div>
-                    <div id="order-models-container" class="space-y-2"></div>
+                    <div id="order-models-container" class="space-y-3"></div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 bg-white p-2 rounded-lg border border-slate-100">
@@ -363,10 +363,6 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="block font-medium mb-1 text-slate-700">产品样品图片上传 (可选)</label>
-                    <input type="file" id="ord-image" accept="image/*" onchange="handleImagePreview(event)" class="w-full border border-slate-300 p-2 rounded-lg bg-slate-50">
-                </div>
                 <div>
                     <label class="block font-medium mb-1 text-slate-700">订单批注 / 备注说明</label>
                     <textarea id="ord-remark" class="w-full border border-slate-300 p-2 rounded-lg outline-none" placeholder="填写特殊批注..." rows="2"></textarea>
@@ -424,7 +420,6 @@
         let chartInstance1 = null;
         let chartInstance2 = null;
         let globalSearchKeyword = '';
-        let uploadedImageFilename = '';
 
         window.addEventListener('DOMContentLoaded', () => {
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -676,7 +671,7 @@
                 models = typeof o.models_json === 'string' ? JSON.parse(o.models_json) : (o.models_json || []);
             } catch(e) { models = []; }
             if (models.length === 0 && o.quantity) {
-                models = [{ modelName: '默认款式/型号', qty: Number(o.quantity || 0), price: Number(o.price || 0) }];
+                models = [{ modelName: '默认款式/型号', qty: Number(o.quantity || 0), price: Number(o.price || 0), imgName: o.image || '' }];
             }
             return models;
         }
@@ -710,12 +705,12 @@
                         <div id="acc-${index}" class="border-t border-slate-200 p-2.5 sm:p-3 text-xs overflow-x-auto custom-scroll">
                             <table class="w-full text-left text-slate-600 min-w-[850px]">
                                 <tr class="bg-slate-100/60 text-slate-500 font-bold">
-                                    <th class="p-2">订单号</th><th class="p-2">下单日期</th><th class="p-2">预计发货时间</th><th class="p-2">型号/款式明细</th><th class="p-2">订单总数</th><th class="p-2">总金额</th><th class="p-2">批注说明</th><th class="p-2 text-right">操作</th>
+                                    <th class="p-2">订单号</th><th class="p-2">下单日期</th><th class="p-2">预计发货时间</th><th class="p-2">型号/款式明细及图片</th><th class="p-2">订单总数</th><th class="p-2">总金额</th><th class="p-2">批注说明</th><th class="p-2 text-right">操作</th>
                                 </tr>
                                 ${list.map(o => {
                                     const models = parseModels(o);
                                     const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                                    const modelTags = models.map(m => `<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 mr-1 inline-block mb-0.5">${m.modelName}: ${m.qty}件 (单价¥${m.price})</span>`).join('');
+                                    const modelTags = models.map(m => `<div class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 mb-1 inline-block"><span class="font-bold">${m.modelName}</span>: ${m.qty}件 (单价¥${m.price})${m.imgName ? ` <span class="text-xs text-slate-500">[图: ${m.imgName}]</span>` : ''}</div>`).join('');
                                     return `
                                         <tr class="border-b border-slate-100 align-top">
                                             <td class="p-2 font-mono font-medium text-indigo-600">${o.order_no || '无单号'}</td>
@@ -767,7 +762,7 @@
                 const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
                 const remainingQ = Math.max(0, totalQ - shippedQ);
 
-                const modelTags = models.map(m => `<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 mr-1 text-[11px] inline-block mb-0.5">${m.modelName}: ${m.qty}件</span>`).join('');
+                const modelTags = models.map(m => `<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 mr-1 text-[11px] inline-block mb-0.5">${m.modelName}: ${m.qty}件${m.imgName ? `(${m.imgName})` : ''}</span>`).join('');
                 let historyHtml = historyList.length === 0 ? '<span class="text-slate-400 italic text-[11px]">尚无出库批次</span>' : 
                     historyList.map((h, idx) => `<span class="inline-block bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.5 text-[11px] mr-1 mb-1">[${h.model || '标准'}]: ${h.qty}件 (${h.date}) <i class="fa-solid fa-xmark cursor-pointer text-rose-500 ml-1" onclick="deleteShippingBatch(${o.id}, ${idx})" title="删除"></i></span>`).join('');
 
@@ -1139,7 +1134,6 @@
             document.getElementById('order-modal-title').innerText = "新建客户订单";
             document.getElementById('ord-edit-id').value = "";
             document.getElementById('order-form').reset();
-            uploadedImageFilename = '';
             document.getElementById('ord-date').valueAsDate = new Date();
             document.getElementById('ord-due-date').valueAsDate = new Date();
             document.getElementById('ord-no').value = 'CH-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(100 + Math.random() * 900);
@@ -1149,18 +1143,35 @@
             document.getElementById('modal-order').classList.remove('hidden');
         }
 
-        function addOrderModelRow(modelName = '', qty = '', price = '') {
+        // 新增型号行（每行自带型号、数量、单价，以及专属图片上传输入框）
+        function addOrderModelRow(modelName = '', qty = '', price = '', imgName = '') {
             const container = document.getElementById('order-models-container');
             const rowId = 'm-row-' + Math.random().toString(36).substr(2, 5);
             container.insertAdjacentHTML('beforeend', `
-                <div id="${rowId}" class="grid grid-cols-12 gap-2 items-center bg-white p-2 rounded-lg border border-slate-200 model-row">
-                    <input type="text" placeholder="产品型号/款式名称" value="${modelName}" class="col-span-5 border border-slate-300 p-1.5 rounded text-xs model-name" required oninput="calcOrderFormTotals()">
-                    <input type="number" placeholder="数量" value="${qty}" class="col-span-3 border border-slate-300 p-1.5 rounded text-xs model-qty" required oninput="calcOrderFormTotals()">
-                    <input type="number" step="0.01" placeholder="单价(元)" value="${price}" class="col-span-3 border border-slate-300 p-1.5 rounded text-xs model-price" required oninput="calcOrderFormTotals()">
-                    <button type="button" onclick="document.getElementById('${rowId}').remove(); calcOrderFormTotals();" class="col-span-1 text-rose-500 text-center"><i class="fa-solid fa-trash"></i></button>
+                <div id="${rowId}" class="bg-white p-3 rounded-lg border border-slate-200 model-row space-y-2">
+                    <div class="grid grid-cols-12 gap-2 items-center">
+                        <input type="text" placeholder="产品型号/款式名称" value="${modelName}" class="col-span-5 border border-slate-300 p-1.5 rounded text-xs model-name" required oninput="calcOrderFormTotals()">
+                        <input type="number" placeholder="数量" value="${qty}" class="col-span-3 border border-slate-300 p-1.5 rounded text-xs model-qty" required oninput="calcOrderFormTotals()">
+                        <input type="number" step="0.01" placeholder="单价(元)" value="${price}" class="col-span-3 border border-slate-300 p-1.5 rounded text-xs model-price" required oninput="calcOrderFormTotals()">
+                        <button type="button" onclick="document.getElementById('${rowId}').remove(); calcOrderFormTotals();" class="col-span-1 text-rose-500 text-center"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <div class="flex items-center gap-2 pt-1 border-t border-slate-100 text-[11px] text-slate-600">
+                        <span class="font-medium text-slate-500 whitespace-nowrap"><i class="fa-solid fa-image text-indigo-500"></i> 款式专属图片:</span>
+                        <input type="file" accept="image/*" class="w-full text-xs model-file-input" onchange="handleModelFileChange(this)">
+                        <span class="model-file-name text-indigo-600 font-medium truncate max-w-[120px]">${imgName || '未选择'}</span>
+                    </div>
                 </div>
             `);
             calcOrderFormTotals();
+        }
+
+        function handleModelFileChange(input) {
+            if (input.files && input.files[0]) {
+                const fileNameSpan = input.parentElement.querySelector('.model-file-name');
+                if (fileNameSpan) {
+                    fileNameSpan.innerText = input.files[0].name;
+                }
+            }
         }
 
         function calcOrderFormTotals() {
@@ -1187,24 +1198,16 @@
             document.getElementById('ord-date').value = o.order_date || '';
             document.getElementById('ord-due-date').value = o.due_date || '';
             document.getElementById('ord-remark').value = o.remark || '';
-            uploadedImageFilename = o.image || '';
 
             const container = document.getElementById('order-models-container');
             container.innerHTML = '';
             const models = parseModels(o);
-            models.forEach(m => addOrderModelRow(m.modelName, m.qty, m.price));
+            models.forEach(m => addOrderModelRow(m.modelName, m.qty, m.price, m.imgName));
 
             document.getElementById('modal-order').classList.remove('hidden');
         }
 
         function closeOrderModal() { document.getElementById('modal-order').classList.add('hidden'); }
-
-        function handleImagePreview(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            // 只记录纯文本文件名，彻底避免 Base64 引起的 Headers 校验错误
-            uploadedImageFilename = file.name;
-        }
 
         async function handleOrderSubmit(e) {
             e.preventDefault();
@@ -1223,11 +1226,15 @@
                 const mName = r.querySelector('.model-name').value;
                 const q = Number(r.querySelector('.model-qty').value || 0);
                 const p = Number(r.querySelector('.model-price').value || 0);
-                modelsList.push({ modelName: mName, qty: q, price: p });
+                const fileNameSpan = r.querySelector('.model-file-name');
+                const imgName = (fileNameSpan && fileNameSpan.innerText !== '未选择') ? fileNameSpan.innerText : '';
+
+                modelsList.push({ modelName: mName, qty: q, price: p, imgName: imgName });
                 totalQ += q;
                 totalAmt += (q * p);
             });
 
+            // 彻底杜绝任何复杂的头或Base64传输，用最安全的纯文本 JSON 存储
             const orderPayload = {
                 order_no: orderNo,
                 customer: customer,
@@ -1238,7 +1245,7 @@
                 total_amount: totalAmt,
                 models_json: JSON.stringify(modelsList),
                 remark: remark,
-                image: uploadedImageFilename || null
+                image: modelsList[0] ? modelsList[0].imgName : null
             };
 
             let res;
