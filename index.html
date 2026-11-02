@@ -364,7 +364,7 @@
                 </div>
 
                 <div>
-                    <label class="block font-medium mb-1 text-slate-700">产品样品图片上传</label>
+                    <label class="block font-medium mb-1 text-slate-700">产品样品图片上传 (可选)</label>
                     <input type="file" id="ord-image" accept="image/*" onchange="handleImagePreview(event)" class="w-full border border-slate-300 p-2 rounded-lg bg-slate-50">
                 </div>
                 <div>
@@ -424,6 +424,7 @@
         let chartInstance1 = null;
         let chartInstance2 = null;
         let globalSearchKeyword = '';
+        let uploadedImageFilename = '';
 
         window.addEventListener('DOMContentLoaded', () => {
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -737,7 +738,6 @@
             });
         }
 
-        // 渲染独立的“客户订单出库与发货模块” (确保即使无数据也有提示，有数据时完美展示“新增发货”按钮)
         function renderOrderShippingModule() {
             const tbody = document.getElementById('order-shipping-table-body');
             if(!tbody) return;
@@ -1135,12 +1135,11 @@
             a.click();
         }
 
-        let currentUploadedImageBase64 = null;
         function openOrderModal() {
             document.getElementById('order-modal-title').innerText = "新建客户订单";
             document.getElementById('ord-edit-id').value = "";
             document.getElementById('order-form').reset();
-            currentUploadedImageBase64 = null;
+            uploadedImageFilename = '';
             document.getElementById('ord-date').valueAsDate = new Date();
             document.getElementById('ord-due-date').valueAsDate = new Date();
             document.getElementById('ord-no').value = 'CH-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(100 + Math.random() * 900);
@@ -1188,7 +1187,7 @@
             document.getElementById('ord-date').value = o.order_date || '';
             document.getElementById('ord-due-date').value = o.due_date || '';
             document.getElementById('ord-remark').value = o.remark || '';
-            currentUploadedImageBase64 = o.image || null;
+            uploadedImageFilename = o.image || '';
 
             const container = document.getElementById('order-models-container');
             container.innerHTML = '';
@@ -1203,12 +1202,8 @@
         function handleImagePreview(e) {
             const file = e.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                // 安全转码，彻底避免非 ISO-8859-1 报错
-                currentUploadedImageBase64 = evt.target.result;
-            };
-            reader.readAsDataURL(file);
+            // 只记录纯文本文件名，彻底避免 Base64 引起的 Headers 校验错误
+            uploadedImageFilename = file.name;
         }
 
         async function handleOrderSubmit(e) {
@@ -1243,7 +1238,7 @@
                 total_amount: totalAmt,
                 models_json: JSON.stringify(modelsList),
                 remark: remark,
-                image: currentUploadedImageBase64 || null
+                image: uploadedImageFilename || null
             };
 
             let res;
