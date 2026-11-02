@@ -189,7 +189,7 @@
                 <div id="orders-grouped-container" class="space-y-3 sm:space-y-4"></div>
             </section>
 
-            <!-- 2. 独立模块：客户订单出库与发货管理 (带独立发货操作按钮) -->
+            <!-- 2. 独立模块：客户订单出库与发货管理 -->
             <section id="sec-order-shipping" class="bg-white p-4 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                     <div>
@@ -737,7 +737,7 @@
             });
         }
 
-        // 渲染独立的“客户订单出库与发货模块” (确保渲染发货操作按钮)
+        // 渲染独立的“客户订单出库与发货模块” (确保即使无数据也有提示，有数据时完美展示“新增发货”按钮)
         function renderOrderShippingModule() {
             const tbody = document.getElementById('order-shipping-table-body');
             if(!tbody) return;
@@ -751,7 +751,7 @@
             });
 
             if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400">暂无出库发货记录</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-10 text-slate-400">暂无出库发货记录，请先在“客户订单管理”中新增客户订单</td></tr>`;
                 return;
             }
 
@@ -767,7 +767,7 @@
                 const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
                 const remainingQ = Math.max(0, totalQ - shippedQ);
 
-                const modelTags = models.map(m => `<span class="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded border border-indigo-100 mr-1 text-[11px] inline-block mb-0.5">${m.modelName}: ${m.qty}件</span>`).join('');
+                const modelTags = models.map(m => `<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 mr-1 text-[11px] inline-block mb-0.5">${m.modelName}: ${m.qty}件</span>`).join('');
                 let historyHtml = historyList.length === 0 ? '<span class="text-slate-400 italic text-[11px]">尚无出库批次</span>' : 
                     historyList.map((h, idx) => `<span class="inline-block bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.5 text-[11px] mr-1 mb-1">[${h.model || '标准'}]: ${h.qty}件 (${h.date}) <i class="fa-solid fa-xmark cursor-pointer text-rose-500 ml-1" onclick="deleteShippingBatch(${o.id}, ${idx})" title="删除"></i></span>`).join('');
 
@@ -1205,9 +1205,8 @@
             if (!file) return;
             const reader = new FileReader();
             reader.onload = (evt) => {
-                try {
-                    currentUploadedImageBase64 = btoa(unescape(encodeURIComponent(evt.target.result)));
-                } catch(err) { currentUploadedImageBase64 = evt.target.result; }
+                // 安全转码，彻底避免非 ISO-8859-1 报错
+                currentUploadedImageBase64 = evt.target.result;
             };
             reader.readAsDataURL(file);
         }
