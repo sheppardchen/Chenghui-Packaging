@@ -25,8 +25,8 @@
 
     <!-- 1. 登录与找回密码遮罩页面 -->
     <div id="login-overlay" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl max-w-md w-full border border-slate-100 my-auto">
-            <div class="text-center mb-6">
+        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl max-w-md w-full border border-slate-100 my-auto space-y-4">
+            <div class="text-center mb-4">
                 <div class="flex justify-center mb-4">
                     <svg class="h-10 sm:h-12 w-auto" viewBox="0 0 520 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M75 18 C30 18 10 50 10 75 C10 95 30 100 55 95 C72 92 88 78 96 68 L84 57 C77 65 65 77 50 78 C38 79 26 73 26 62 C26 42 45 32 75 32 L85 32 L95 18 Z" fill="url(#logo-grad1)"/>
@@ -41,6 +41,12 @@
                     </svg>
                 </div>
                 <h2 class="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight mt-2" id="auth-title">物料订单管理系统</h2>
+            </div>
+
+            <!-- 登录页发货到期提醒横幅 -->
+            <div id="login-due-alert" class="hidden bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-xl text-xs space-y-1">
+                <div class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-amber-600"></i> 发货到期提醒 (近7天内)</div>
+                <div id="login-due-alert-content" class="leading-relaxed"></div>
             </div>
             
             <form id="login-form" onsubmit="handleAuthSubmit(event)" class="space-y-4 text-sm" autocomplete="off">
@@ -177,13 +183,13 @@
             <!-- 1. 客户订单管理模块 -->
             <section id="sec-orders" class="bg-white p-4 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200">
                 <div class="flex justify-between items-center mb-4 sm:mb-6">
-                    <h2 class="text-base sm:text-lg font-bold text-slate-800">客户订单分类列表 (支持多型号款式多行明细)</h2>
+                    <h2 class="text-base sm:text-lg font-bold text-slate-800">客户订单分类列表</h2>
                     <button type="button" onclick="openOrderModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm px-3.5 sm:px-4 sm:py-2.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm mobile-touch-target cursor-pointer z-20"><i class="fa-solid fa-plus"></i> 新增客户订单</button>
                 </div>
                 <div id="orders-grouped-container" class="space-y-3 sm:space-y-4"></div>
             </section>
 
-            <!-- 2. 独立模块：客户订单出库与发货管理 -->
+            <!-- 2. 独立模块：客户订单出库与发货管理 (带独立发货操作按钮) -->
             <section id="sec-order-shipping" class="bg-white p-4 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                     <div>
@@ -191,12 +197,13 @@
                     </div>
                 </div>
                 <div class="overflow-x-auto custom-scroll border border-slate-200 rounded-lg">
-                    <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[850px]">
+                    <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[900px]">
                         <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
                             <tr>
                                 <th class="p-3">订单号</th>
                                 <th class="p-3">客户名称</th>
                                 <th class="p-3">型号/款式明细</th>
+                                <th class="p-3">预计发货时间</th>
                                 <th class="p-3">订单总数</th>
                                 <th class="p-3">已发货总计</th>
                                 <th class="p-3">剩余未发货</th>
@@ -309,13 +316,13 @@
         </div>
     </div>
 
-    <!-- 弹窗：新建/编辑客户订单 (支持多型号款式明细) -->
+    <!-- 弹窗：新建/编辑客户订单 -->
     <div id="modal-order" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-3 sm:p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scroll">
             <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-3" id="order-modal-title">新建客户订单</h3>
             <form id="order-form" onsubmit="handleOrderSubmit(event)" class="space-y-3 text-xs">
                 <input type="hidden" id="ord-edit-id">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block font-medium mb-1 text-slate-700">订单号 *</label>
                         <input type="text" id="ord-no" required class="w-full border border-slate-300 p-2 rounded-lg outline-none bg-slate-50 font-mono">
@@ -324,9 +331,15 @@
                         <label class="block font-medium mb-1 text-slate-700">客户名称 *</label>
                         <input type="text" id="ord-customer" required class="w-full border border-slate-300 p-2 rounded-lg outline-none" placeholder="如：温州捷胜">
                     </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block font-medium mb-1 text-slate-700">下单日期 *</label>
                         <input type="date" id="ord-date" required class="w-full border border-slate-300 p-2 rounded-lg bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-medium mb-1 text-slate-700 font-bold text-indigo-600">预计发货时间 *</label>
+                        <input type="date" id="ord-due-date" required class="w-full border border-indigo-300 bg-indigo-50/50 p-2 rounded-lg bg-white">
                     </div>
                 </div>
 
@@ -417,7 +430,7 @@
             checkSession();
         });
 
-        function checkSession() {
+        async function checkSession() {
             const isSessionLogged = sessionStorage.getItem('chenghui_logged');
             const isPersistentLogged = localStorage.getItem('chenghui_persistent_logged');
 
@@ -430,6 +443,46 @@
                 document.getElementById('login-overlay').classList.remove('hidden');
                 document.getElementById('main-app').classList.add('hidden');
                 document.getElementById('auth-password').value = '';
+                await fetchOrdersForLoginAlert();
+            }
+        }
+
+        async function fetchOrdersForLoginAlert() {
+            if (!supabaseClient) return;
+            let { data: orders } = await supabaseClient.from('orders').select('*');
+            if (!orders) return;
+
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+            let dueAlerts = [];
+            orders.forEach(o => {
+                if (!o.due_date) return;
+                let historyList = [];
+                try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
+                const models = parseModels(o);
+                const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
+                const shippedQ = historyList.reduce((s, h) => s + Number(h.qty || 0), 0);
+
+                if (shippedQ < totalQ) {
+                    const dueDateObj = new Date(o.due_date);
+                    dueDateObj.setHours(0,0,0,0);
+                    if (dueDateObj <= sevenDaysLater) {
+                        const diffDays = Math.ceil((dueDateObj - now) / (1000 * 60 * 60 * 24));
+                        let timeStr = diffDays < 0 ? `已逾期 ${Math.abs(diffDays)} 天` : (diffDays === 0 ? '今天到期' : `${diffDays} 天后到期`);
+                        dueAlerts.push(`• 订单 <strong class="font-mono">${o.order_no || '无单号'}</strong> (${o.customer}) 预计发货日 [${o.due_date}] <span class="text-rose-600 font-bold">(${timeStr})</span>，剩余未发: ${totalQ - shippedQ}件`);
+                    }
+                }
+            });
+
+            const alertBox = document.getElementById('login-due-alert');
+            const alertContent = document.getElementById('login-due-alert-content');
+            if (dueAlerts.length > 0) {
+                alertContent.innerHTML = dueAlerts.join('<br>');
+                alertBox.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
             }
         }
 
@@ -654,9 +707,9 @@
                             <span class="text-xs sm:text-sm font-semibold text-emerald-600">累计总额: ¥${totalAmt.toFixed(2)}</span>
                         </div>
                         <div id="acc-${index}" class="border-t border-slate-200 p-2.5 sm:p-3 text-xs overflow-x-auto custom-scroll">
-                            <table class="w-full text-left text-slate-600 min-w-[780px]">
+                            <table class="w-full text-left text-slate-600 min-w-[850px]">
                                 <tr class="bg-slate-100/60 text-slate-500 font-bold">
-                                    <th class="p-2">订单号</th><th class="p-2">下单日期</th><th class="p-2">型号/款式明细</th><th class="p-2">订单总数</th><th class="p-2">总金额</th><th class="p-2">批注说明</th><th class="p-2 text-right">操作</th>
+                                    <th class="p-2">订单号</th><th class="p-2">下单日期</th><th class="p-2">预计发货时间</th><th class="p-2">型号/款式明细</th><th class="p-2">订单总数</th><th class="p-2">总金额</th><th class="p-2">批注说明</th><th class="p-2 text-right">操作</th>
                                 </tr>
                                 ${list.map(o => {
                                     const models = parseModels(o);
@@ -666,6 +719,7 @@
                                         <tr class="border-b border-slate-100 align-top">
                                             <td class="p-2 font-mono font-medium text-indigo-600">${o.order_no || '无单号'}</td>
                                             <td class="p-2">${o.order_date || '-'}</td>
+                                            <td class="p-2 font-bold text-indigo-600">${o.due_date || '<span class="text-slate-400 font-normal">未设</span>'}</td>
                                             <td class="p-2 max-w-xs">${modelTags}</td>
                                             <td class="p-2 font-bold">${totalQ} 件</td>
                                             <td class="p-2 text-emerald-600 font-bold">¥${Number(o.total_amount || 0).toFixed(2)}</td>
@@ -683,7 +737,7 @@
             });
         }
 
-        // 渲染独立的“客户订单出库与发货模块”
+        // 渲染独立的“客户订单出库与发货模块” (确保渲染发货操作按钮)
         function renderOrderShippingModule() {
             const tbody = document.getElementById('order-shipping-table-body');
             if(!tbody) return;
@@ -697,7 +751,7 @@
             });
 
             if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">暂无出库发货记录</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400">暂无出库发货记录</td></tr>`;
                 return;
             }
 
@@ -722,19 +776,19 @@
                         <td class="p-3 font-mono font-bold text-indigo-600">${o.order_no || '无单号'}</td>
                         <td class="p-3 font-medium text-slate-800">${o.customer}</td>
                         <td class="p-3 max-w-xs">${modelTags}</td>
+                        <td class="p-3 font-bold text-indigo-600">${o.due_date || '<span class="text-slate-400 font-normal">未设</span>'}</td>
                         <td class="p-3 font-bold">${totalQ} 件</td>
                         <td class="p-3 text-blue-600 font-semibold">${shippedQ} 件</td>
                         <td class="p-3 text-amber-600 font-bold">${remainingQ} 件</td>
                         <td class="p-3 max-w-xs">${historyHtml}</td>
                         <td class="p-3 text-right">
-                            <button type="button" onclick="openQuickShippingModal(${o.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm transition flex items-center gap-1 inline-flex ml-auto"><i class="fa-solid fa-truck-fast"></i> 新增发货</button>
+                            <button type="button" onclick="openQuickShippingModal(${o.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg text-xs font-medium shadow-sm transition flex items-center gap-1.5 inline-flex ml-auto cursor-pointer"><i class="fa-solid fa-truck-fast"></i> 新增发货</button>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
-        // 打开单次发货弹窗
         function openQuickShippingModal(id) {
             const o = ordersData.find(item => item.id === id);
             if(!o) return;
@@ -750,7 +804,6 @@
             document.getElementById('modal-shipping-action').classList.remove('hidden');
         }
 
-        // 提交单次发货
         async function handleShippingActionSubmit(e) {
             e.preventDefault();
             const id = Number(document.getElementById('ship-action-id').value);
@@ -1061,7 +1114,7 @@
             }
 
             let csvContent = `\uFEFF${selectedMonth} 客户订单多型号与出库月度报表\n`;
-            csvContent += "订单号,客户名称,下单日期,总数量,已发货总数,剩余未发货,总金额(元),发货批次详情\n";
+            csvContent += "订单号,客户名称,下单日期,预计发货时间,总数量,已发货总数,剩余未发货,总金额(元),发货批次详情\n";
 
             monthOrders.forEach(o => {
                 const models = parseModels(o);
@@ -1071,7 +1124,7 @@
                 const shippedQ = hList.reduce((s, h) => s + Number(h.qty || 0), 0);
                 const remainingQ = Math.max(0, totalQ - shippedQ);
                 const hStr = hList.map(h => `[${h.model}:${h.qty}件(${h.date})]`).join(' ');
-                csvContent += `"${o.order_no || ''}","${o.customer}","${o.order_date}",${totalQ},${shippedQ},${remainingQ},${Number(o.total_amount || 0).toFixed(2)},"${hStr}"\n`;
+                csvContent += `"${o.order_no || ''}","${o.customer}","${o.order_date}","${o.due_date || '未设'}",${totalQ},${shippedQ},${remainingQ},${Number(o.total_amount || 0).toFixed(2)},"${hStr}"\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1089,6 +1142,7 @@
             document.getElementById('order-form').reset();
             currentUploadedImageBase64 = null;
             document.getElementById('ord-date').valueAsDate = new Date();
+            document.getElementById('ord-due-date').valueAsDate = new Date();
             document.getElementById('ord-no').value = 'CH-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(100 + Math.random() * 900);
             
             document.getElementById('order-models-container').innerHTML = '';
@@ -1132,6 +1186,7 @@
             document.getElementById('ord-no').value = o.order_no || '';
             document.getElementById('ord-customer').value = o.customer || '';
             document.getElementById('ord-date').value = o.order_date || '';
+            document.getElementById('ord-due-date').value = o.due_date || '';
             document.getElementById('ord-remark').value = o.remark || '';
             currentUploadedImageBase64 = o.image || null;
 
@@ -1162,6 +1217,7 @@
             const editId = document.getElementById('ord-edit-id').value;
             const orderNo = document.getElementById('ord-no').value;
             const customer = document.getElementById('ord-customer').value;
+            const dueDate = document.getElementById('ord-due-date').value;
             const remark = document.getElementById('ord-remark').value || '无批注';
 
             const rows = document.querySelectorAll('.model-row');
@@ -1182,6 +1238,7 @@
                 order_no: orderNo,
                 customer: customer,
                 order_date: document.getElementById('ord-date').value,
+                due_date: dueDate,
                 quantity: totalQ,
                 price: totalAmt / (totalQ || 1),
                 total_amount: totalAmt,
