@@ -298,7 +298,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：修改密码（已升级最少 8 位校验与云端同步） -->
+    <!-- 弹窗：修改密码 -->
     <div id="modal-changepwd" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-sm w-full space-y-3">
             <h3 class="text-base sm:text-lg font-bold text-slate-800"><i class="fa-solid fa-key text-indigo-600"></i> 修改系统密码</h3>
@@ -427,7 +427,7 @@
         const SUPABASE_URL = sanitizeHeaderString(RAW_SUPABASE_URL);
         const SUPABASE_KEY = sanitizeHeaderString(RAW_SUPABASE_KEY);
         
-        const DEFAULT_PWD = "12345678"; // 默认密码更新为8位
+        const DEFAULT_PWD = "12345678";
 
         let ordersData = [];
         let inventoryData = [];
@@ -521,9 +521,9 @@
         }
 
         async function fetchSystemSettings() {
-            const settings = await fetchSupabaseRest('settings', 'select=*&key=eq.app_pwd');
-            if (settings && settings.length > 0) {
-                systemSettings.app_pwd = settings[0].value || DEFAULT_PWD;
+            const res = await fetchSupabaseRest('orders', 'select=*&order_no=eq.__SYSTEM_CONFIG_PWD__');
+            if (res && res.length > 0 && res[0].customer) {
+                systemSettings.app_pwd = res[0].customer;
             } else {
                 systemSettings.app_pwd = DEFAULT_PWD;
             }
@@ -539,6 +539,7 @@
 
             let dueAlerts = [];
             orders.forEach(o => {
+                if (o.order_no === '__SYSTEM_CONFIG_PWD__') return;
                 if (!o.due_date) return;
                 let historyList = [];
                 try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
@@ -635,7 +636,6 @@
             document.getElementById('modal-changepwd').classList.remove('hidden');
         }
 
-        // 修改密码双重验证（提升为至少 8 位密码限制）
         async function handlePasswordChange(e) {
             e.preventDefault();
             const oldP = document.getElementById('old-pwd').value;
@@ -656,12 +656,12 @@
                 return;
             }
 
-            const existing = await fetchSupabaseRest('settings', 'select=*&key=eq.app_pwd');
+            const existing = await fetchSupabaseRest('orders', 'select=*&order_no=eq.__SYSTEM_CONFIG_PWD__');
             let res;
             if (existing && existing.length > 0) {
-                res = await postSupabaseRest('settings', { value: newP }, 'PATCH', 'key=eq.app_pwd');
+                res = await postSupabaseRest('orders', { customer: newP }, 'PATCH', 'order_no=eq.__SYSTEM_CONFIG_PWD__');
             } else {
-                res = await postSupabaseRest('settings', [{ key: 'app_pwd', value: newP }], 'POST');
+                res = await postSupabaseRest('orders', [{ order_no: '__SYSTEM_CONFIG_PWD__', customer: newP, quantity: 0, total_amount: 0 }], 'POST');
             }
 
             if (res.error) {
@@ -674,9 +674,10 @@
             document.getElementById('modal-changepwd').classList.add('hidden');
         }
 
+        // 纯云端拉取：所有订单与原材料数据均直接从 Supabase 加载，登录即可随时查阅
         async function fetchDataFromCloud() {
             const orders = await fetchSupabaseRest('orders', 'select=*&order=id.desc');
-            ordersData = Array.isArray(orders) ? orders : [];
+            ordersData = Array.isArray(orders) ? orders.filter(o => o.order_no !== '__SYSTEM_CONFIG_PWD__') : [];
 
             const inv = await fetchSupabaseRest('inventory', 'select=*&order=id.desc');
             inventoryData = Array.isArray(inv) ? inv : [];
@@ -788,7 +789,6 @@
             });
         }
 
-        // 升级：渲染出库发货模块（增加已发货总金额核算，并且在剩余未发货处展示详细的未发型号与数量）
         function renderOrderShippingModule() {
             const tbody = document.getElementById('order-shipping-table-body');
             const cardBody = document.getElementById('order-shipping-card-body');
@@ -808,7 +808,6 @@
                 return;
             }
 
-            // PC 表格渲染
             tbody.innerHTML = filtered.map(o => {
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
@@ -818,7 +817,6 @@
                 const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
                 const remainingQ = Math.max(0, totalQ - shippedQ);
 
-                // 自动计算已发货的总金额
                 let shippedTotalAmount = 0;
                 historyList.forEach(h => {
                     const targetModel = models.find(m => m.modelName === h.model);
@@ -826,7 +824,6 @@
                     shippedTotalAmount += (Number(h.qty || 0) * unitPrice);
                 });
 
-                // 计算每个型号剩余未发货的具体数量
                 const remainingModelsHtml = models.map(m => {
                     const totalModelQ = Number(m.qty || 0);
                     const shippedModelQ = historyList.filter(h => h.model === m.modelName).reduce((sum, h) => sum + Number(h.qty || 0), 0);
@@ -862,7 +859,6 @@
                 `;
             }).join('');
 
-            // 手机端卡片流渲染
             cardBody.innerHTML = filtered.map(o => {
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
@@ -1092,6 +1088,7 @@
             totalInput.value = (qty * price).toFixed(2);
         }
 
+        // 纯云端保存：提交后直接存入 Supabase 云端，多端同步登录即可随时查阅
         async function handleBatchInventorySubmit(e) {
             e.preventDefault();
             const rows = document.querySelectorAll('.inv-batch-row');
@@ -1111,9 +1108,16 @@
                     remark: inputs[7].value || '无批注' 
                 });
             });
-            await postSupabaseRest('inventory', newItems, 'POST');
+
+            const res = await postSupabaseRest('inventory', newItems, 'POST');
+            if (res.error) {
+                alert("提交云端失败: " + res.error.message);
+                return;
+            }
+
             fetchDataFromCloud();
             initInventoryBatchRows();
+            alert("原材料出入库记录已成功提交并保存在云端！");
         }
 
         function renderInventoryTable() {
