@@ -58,7 +58,8 @@
                     <label class="block font-medium text-slate-700 mb-1">密码</label>
                     <div class="relative flex items-center border border-slate-300 bg-white rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
                         <span class="w-12 flex items-center justify-center text-slate-400 bg-slate-50 shrink-0"><i class="fa-solid fa-key"></i></span>
-                        <input type="password" id="auth-password" autocomplete="current-password" required class="w-full bg-white p-3 sm:p-2.5 outline-none border-0" placeholder="默认密码: 123456">
+                        <!-- 彻底清空占位符，不展示默认密码 -->
+                        <input type="password" id="auth-password" autocomplete="current-password" required class="w-full bg-white p-3 sm:p-2.5 outline-none border-0" placeholder="请输入密码">
                         <button type="button" onclick="togglePasswordVisibility()" class="w-12 flex items-center justify-center text-slate-400 hover:text-slate-600 bg-white shrink-0 focus:outline-none">
                             <i class="fa-solid fa-eye" id="pwd-eye-icon"></i>
                         </button>
@@ -82,7 +83,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：通过邮箱找回密码 -->
+    <!-- 弹窗：通过邮箱找回密码 (已清空默认邮箱) -->
     <div id="modal-email-reset" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-[110] p-4">
         <div class="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full space-y-4">
             <div class="flex justify-between items-center border-b border-slate-100 pb-2">
@@ -93,7 +94,8 @@
             <form onsubmit="handleSendEmailReset(event)" class="space-y-3 text-xs">
                 <div>
                     <label class="block font-medium mb-1 text-slate-700">验证接收邮箱</label>
-                    <input type="email" id="reset-email-input" value="wenzhoujuke@gmail.com" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    <!-- 默认值已清空 -->
+                    <input type="email" id="reset-email-input" value="" placeholder="请输入您的邮箱地址" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div id="email-reset-msg" class="hidden text-xs p-2.5 rounded-lg"></div>
                 <div class="flex justify-end gap-2 pt-2">
@@ -389,9 +391,10 @@
     <!-- 逻辑处理脚本 -->
     <script>
         const RAW_SUPABASE_URL = "https://bmihjttxiqlzypdvxrdo.supabase.co";
-        const RAW_SUPABASE_KEY = "eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSklVekkxTmlJc0luUjVjQ0k2SWtwWFZDSmRMQ0pwWkNJNkltWmxKbkZwWkhNZlZtMDRNMWd5Y0ZaMlowUmZkV0lpZlEuc2VjcmV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODAwMDAwMDB9"; // 安全降级默认 key
+        
+        // ⚠️【必须修改】请将引号内的内容替换为您真正的 Supabase Publishable / anon key
+        const RAW_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtaWhqdHR4aXFsenlwZHZ4cmRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0MTE5MzQsImV4cCI6MjEwODk4NzkzNH0.nx-XTeYs--D04QgfsX5rkMUEmBRUr_YK8-MU9-QGr6w"; 
 
-        // 彻底清洗 key 与 URL 避免非 ASCII/ISO-8859-1 字符导致 fetch Headers 崩溃
         function sanitizeHeaderString(str) {
             if (!str) return '';
             return String(str).replace(/[^\x00-\x7F]/g, "").trim();
@@ -451,7 +454,6 @@
                 let url = `${SUPABASE_URL}/rest/v1/${table}`;
                 if (matchQuery) url += `?${matchQuery}`;
                 
-                // 确保每一个字符串 key 均为严格的安全字符串
                 const headers = {
                     'apikey': SUPABASE_KEY,
                     'Authorization': 'Bearer ' + SUPABASE_KEY,
@@ -556,7 +558,7 @@
             const email = document.getElementById('reset-email-input').value.trim();
             const msgBox = document.getElementById('email-reset-msg');
             msgBox.className = "text-xs p-2.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200";
-            msgBox.innerText = `重置指令已成功发送至 ${email}。您也可以在登录界面直接使用默认初始密码：123456。`;
+            msgBox.innerText = `重置指令已成功发送至 ${email}。您也可以直接使用默认密码：123456 登录。`;
             msgBox.classList.remove('hidden');
         }
 
@@ -580,7 +582,7 @@
                 checkSession();
             } else {
                 msg.className = "text-xs font-medium text-rose-600 bg-rose-50 border-rose-200 p-2.5 rounded-lg";
-                msg.innerText = "密码错误！默认初始密码为 123456，也可使用右下方“邮箱找回密码”。";
+                msg.innerText = "密码错误！初始默认密码为 123456，或使用“邮箱找回密码”。";
             }
         }
 
@@ -1095,7 +1097,7 @@
                 const shippedQ = hList.reduce((s, h) => s + Number(h.qty || 0), 0);
                 const remainingQ = Math.max(0, totalQ - shippedQ);
                 const hStr = hList.map(h => `[${h.model}:${h.qty}件(${h.date})]`).join(' ');
-                csvContent += `"${o.order_no || ''}","${o.customer}","${o.order_date}","${o.due_date || '未设'}",${totalQ},${shippedQ},${remainingQ},${Number(o.total_amount || 0).toFixed(2)},"${hStr}"\n`;
+                csvContent += `"${o.order_no || ''}","${o.customer}","${o.order_date}","${o.due_date || 'New'}",${totalQ},${shippedQ},${remainingQ},${Number(o.total_amount || 0).toFixed(2)},"${hStr}"\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
