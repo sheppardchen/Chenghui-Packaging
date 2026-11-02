@@ -14,7 +14,6 @@
         @media (max-width: 640px) {
             .mobile-touch-target { min-height: 44px; }
             .mobile-order-first { order: -1 !important; }
-            /* 手机端隐藏PC表格，启用移动端精美卡片 */
             .pc-table-view { display: none !important; }
             .mobile-card-view { display: block !important; }
         }
@@ -24,7 +23,6 @@
         }
         .custom-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        /* 手机悬浮 FAB 按钮动画与阴影 */
         .fab-btn {
             box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
             transition: all 0.2s ease;
@@ -220,7 +218,7 @@
                         <tbody id="order-shipping-table-body"></tbody>
                     </table>
                 </div>
-                <!-- 手机端精美卡片视图 -->
+                <!-- 手机端卡片视图 -->
                 <div id="order-shipping-card-body" class="mobile-card-view space-y-3"></div>
             </section>
 
@@ -241,10 +239,10 @@
                 </form>
 
                 <div class="overflow-x-auto custom-scroll border border-slate-200 rounded-lg pt-2">
-                    <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[650px]">
+                    <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[750px]">
                         <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
                             <tr>
-                                <th class="p-2.5 sm:p-3">日期</th><th class="p-2.5 sm:p-3">材料名称</th><th class="p-2.5 sm:p-3">供应商名称</th><th class="p-2.5 sm:p-3">类型</th><th class="p-2.5 sm:p-3">数量</th><th class="p-2.5 sm:p-3">批注说明</th><th class="p-2.5 sm:p-3 text-right">操作</th>
+                                <th class="p-2.5 sm:p-3">日期</th><th class="p-2.5 sm:p-3">材料名称</th><th class="p-2.5 sm:p-3">供应商名称</th><th class="p-2.5 sm:p-3">类型</th><th class="p-2.5 sm:p-3">数量</th><th class="p-2.5 sm:p-3">单价(元)</th><th class="p-2.5 sm:p-3">总金额(元)</th><th class="p-2.5 sm:p-3">批注说明</th><th class="p-2.5 sm:p-3 text-right">操作</th>
                             </tr>
                         </thead>
                         <tbody id="inventory-table-body"></tbody>
@@ -300,18 +298,22 @@
         </div>
     </div>
 
-    <!-- 弹窗：修改密码 -->
+    <!-- 弹窗：修改密码（多端云端同步支持） -->
     <div id="modal-changepwd" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-sm w-full space-y-3">
-            <h3 class="text-base sm:text-lg font-bold text-slate-800">修改系统密码</h3>
+            <h3 class="text-base sm:text-lg font-bold text-slate-800"><i class="fa-solid fa-key text-indigo-600"></i> 修改系统密码</h3>
             <form onsubmit="handlePasswordChange(event)" class="space-y-3 text-xs">
                 <div>
-                    <label class="block font-medium mb-1 text-slate-700">输入原密码</label>
-                    <input type="password" id="old-pwd" required class="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="block font-medium mb-1 text-slate-700">当前密码（原密码） *</label>
+                    <input type="password" id="old-pwd" required class="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请输入当前密码">
                 </div>
                 <div>
-                    <label class="block font-medium mb-1 text-slate-700">输入新密码 (至少6位)</label>
-                    <input type="password" id="new-pwd" minlength="6" required class="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="不得少于6位">
+                    <label class="block font-medium mb-1 text-slate-700">新密码 (至少6位) *</label>
+                    <input type="password" id="new-pwd" minlength="6" required class="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请输入新密码">
+                </div>
+                <div>
+                    <label class="block font-medium mb-1 text-slate-700">确认新密码 (二次验证) *</label>
+                    <input type="password" id="confirm-pwd" minlength="6" required class="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请再次输入新密码">
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="document.getElementById('modal-changepwd').classList.add('hidden')" class="px-4 py-2.5 border border-slate-300 text-slate-600 rounded-lg mobile-touch-target">取消</button>
@@ -379,10 +381,10 @@
         </div>
     </div>
 
-    <!-- 弹窗：独立发货记录生成 (已加入防超发校验) -->
+    <!-- 弹窗：独立发货记录生成 -->
     <div id="modal-shipping-action" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-3 sm:p-4">
-        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-sm w-full space-y-4">
-            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-indigo-600"></i> 新增单次发货明细记录</h3>
+        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scroll space-y-4">
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-indigo-600"></i> 新增单次发货记录（支持多型号）</h3>
             <form onsubmit="handleShippingActionSubmit(event)" class="space-y-3 text-xs">
                 <input type="hidden" id="ship-action-id">
                 <div>
@@ -390,18 +392,18 @@
                     <input type="text" id="ship-action-info" readonly class="w-full border border-slate-200 bg-slate-50 p-3 rounded-lg font-mono text-slate-600">
                 </div>
                 <div>
-                    <label class="block font-medium mb-1 text-slate-700">本次发货款式/型号 *</label>
-                    <select id="ship-action-model" onchange="updateShipMaxQtyHint()" class="w-full border border-slate-300 p-3 rounded-lg bg-white font-medium mobile-touch-target"></select>
-                    <div id="ship-max-qty-hint" class="text-[11px] text-indigo-600 mt-1 font-semibold"></div>
-                </div>
-                <div>
-                    <label class="block font-medium mb-1 text-slate-700">本次发货数量 *</label>
-                    <input type="number" id="ship-action-qty" min="1" inputmode="numeric" required class="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="输入发货数">
-                </div>
-                <div>
                     <label class="block font-medium mb-1 text-slate-700">发货时间 *</label>
                     <input type="date" id="ship-action-date" required class="w-full border border-slate-300 p-3 rounded-lg outline-none">
                 </div>
+
+                <div class="border border-indigo-100 rounded-xl p-3 bg-indigo-50/20 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <label class="font-bold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-list-check text-indigo-600"></i> 本次发货明细列表 *</label>
+                        <button type="button" onclick="addShipBatchRow()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1 mobile-touch-target"><i class="fa-solid fa-plus"></i> 增加型号行</button>
+                    </div>
+                    <div id="ship-batch-rows-container" class="space-y-2.5"></div>
+                </div>
+
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="document.getElementById('modal-shipping-action').classList.add('hidden')" class="px-4 py-2.5 border border-slate-300 text-slate-600 rounded-lg mobile-touch-target">取消</button>
                     <button type="submit" class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 mobile-touch-target">确认生成发货记录</button>
@@ -429,6 +431,7 @@
 
         let ordersData = [];
         let inventoryData = [];
+        let systemSettings = { app_pwd: DEFAULT_PWD };
         let chartInstance1 = null;
         let chartInstance2 = null;
         let globalSearchKeyword = '';
@@ -437,7 +440,8 @@
             checkSession();
         });
 
-        function checkSession() {
+        async function checkSession() {
+            await fetchSystemSettings();
             const isSessionLogged = sessionStorage.getItem('chenghui_logged');
             const isPersistentLogged = localStorage.getItem('chenghui_persistent_logged');
 
@@ -516,6 +520,15 @@
             }
         }
 
+        async function fetchSystemSettings() {
+            const settings = await fetchSupabaseRest('settings', 'select=*&key=eq.app_pwd');
+            if (settings && settings.length > 0) {
+                systemSettings.app_pwd = settings[0].value || DEFAULT_PWD;
+            } else {
+                systemSettings.app_pwd = DEFAULT_PWD;
+            }
+        }
+
         async function fetchOrdersForLoginAlert() {
             let orders = await fetchSupabaseRest('orders', 'select=*');
             if (!orders || !Array.isArray(orders)) return;
@@ -580,19 +593,19 @@
             const email = document.getElementById('reset-email-input').value.trim();
             const msgBox = document.getElementById('email-reset-msg');
             msgBox.className = "text-xs p-2.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200";
-            msgBox.innerText = `重置指令已成功发送至 ${email}。您也可以直接使用默认密码：123456 登录。`;
+            msgBox.innerText = `重置指令已成功发送至 ${email}，请通过邮箱验证找回密码。`;
             msgBox.classList.remove('hidden');
         }
 
-        function handleAuthSubmit(e) {
+        async function handleAuthSubmit(e) {
             e.preventDefault();
             const msg = document.getElementById('auth-msg');
             msg.classList.remove('hidden');
 
             const p = document.getElementById('auth-password').value.trim();
-            const currentPwd = localStorage.getItem('app_custom_pwd') || DEFAULT_PWD;
+            await fetchSystemSettings();
 
-            if (p === currentPwd || p === DEFAULT_PWD || p === "123456") {
+            if (p === systemSettings.app_pwd) {
                 const rememberMe = document.getElementById('remember-me-checkbox').checked;
                 sessionStorage.setItem('chenghui_logged', 'true');
                 if (rememberMe) {
@@ -604,7 +617,7 @@
                 checkSession();
             } else {
                 msg.className = "text-xs font-medium text-rose-600 bg-rose-50 border-rose-200 p-2.5 rounded-lg";
-                msg.innerText = "密码错误！初始默认密码为 123456，或使用“邮箱找回密码”。";
+                msg.innerText = "密码错误！请重新输入或使用“邮箱找回密码”。";
             }
         }
 
@@ -618,26 +631,45 @@
         function openChangePwdModal() {
             document.getElementById('old-pwd').value = '';
             document.getElementById('new-pwd').value = '';
+            document.getElementById('confirm-pwd').value = '';
             document.getElementById('modal-changepwd').classList.remove('hidden');
         }
 
-        function handlePasswordChange(e) {
+        async function handlePasswordChange(e) {
             e.preventDefault();
             const oldP = document.getElementById('old-pwd').value;
             const newP = document.getElementById('new-pwd').value;
-            const currentPwd = localStorage.getItem('app_custom_pwd') || DEFAULT_PWD;
+            const confirmP = document.getElementById('confirm-pwd').value;
 
-            if (oldP !== currentPwd && oldP !== DEFAULT_PWD) {
-                alert("原密码输入错误！");
+            await fetchSystemSettings();
+            if (oldP !== systemSettings.app_pwd) {
+                alert("当前原密码输入错误！");
                 return;
             }
             if (newP.length < 6) {
                 alert("新密码长度不能少于 6 位！");
                 return;
             }
+            if (newP !== confirmP) {
+                alert("两次输入的新密码不一致，请重新确认！");
+                return;
+            }
 
-            localStorage.setItem('app_custom_pwd', newP);
-            alert("密码修改成功！下次登录请使用新密码。");
+            const existing = await fetchSupabaseRest('settings', 'select=*&key=eq.app_pwd');
+            let res;
+            if (existing && existing.length > 0) {
+                res = await postSupabaseRest('settings', { value: newP }, 'PATCH', 'key=eq.app_pwd');
+            } else {
+                res = await postSupabaseRest('settings', [{ key: 'app_pwd', value: newP }], 'POST');
+            }
+
+            if (res.error) {
+                alert("云端密码同步失败: " + res.error.message);
+                return;
+            }
+
+            systemSettings.app_pwd = newP;
+            alert("密码修改成功！已同步至云端，手机端与网页端均需使用新密码登录。");
             document.getElementById('modal-changepwd').classList.add('hidden');
         }
 
@@ -774,7 +806,6 @@
                 return;
             }
 
-            // PC 表格渲染
             tbody.innerHTML = filtered.map(o => {
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
@@ -804,12 +835,11 @@
                 `;
             }).join('');
 
-            // 手机端卡片流渲染 (优化视觉与触控体验)
             cardBody.innerHTML = filtered.map(o => {
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
                 let historyList = [];
-                try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e) { historyList = []; }
+                try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
                 const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
                 const remainingQ = Math.max(0, totalQ - shippedQ);
 
@@ -857,61 +887,96 @@
             currentActiveOrder = o;
             document.getElementById('ship-action-id').value = o.id;
             document.getElementById('ship-action-info').value = `${o.order_no || '无单号'} - ${o.customer}`;
-            
-            const models = parseModels(o);
-            const modelSelect = document.getElementById('ship-action-model');
-            modelSelect.innerHTML = models.map(m => `<option value="${m.modelName}">${m.modelName}</option>`).join('');
-
-            updateShipMaxQtyHint();
-            document.getElementById('ship-action-qty').value = '';
             document.getElementById('ship-action-date').value = new Date().toISOString().slice(0, 10);
+            
+            document.getElementById('ship-batch-rows-container').innerHTML = '';
+            addShipBatchRow();
             document.getElementById('modal-shipping-action').classList.remove('hidden');
         }
 
-        function updateShipMaxQtyHint() {
+        function addShipBatchRow(selectedModel = '', inputQty = '') {
             if (!currentActiveOrder) return;
-            const selectedModelName = document.getElementById('ship-action-model').value;
             const models = parseModels(currentActiveOrder);
-            const targetModel = models.find(m => m.modelName === selectedModelName);
-            const totalModelQty = targetModel ? Number(targetModel.qty || 0) : 0;
+            const container = document.getElementById('ship-batch-rows-container');
+            const rowId = 'ship-r-' + Math.random().toString(36).substr(2, 5);
 
             let historyList = [];
             try { historyList = typeof currentActiveOrder.shipping_history === 'string' ? JSON.parse(currentActiveOrder.shipping_history) : (currentActiveOrder.shipping_history || []); } catch(e){ historyList = []; }
 
-            const shippedModelQty = historyList.filter(h => h.model === selectedModelName).reduce((sum, h) => sum + Number(h.qty || 0), 0);
-            const maxAllowed = Math.max(0, totalModelQty - shippedModelQty);
+            const optionsHtml = models.map(m => {
+                const totalQ = Number(m.qty || 0);
+                const shippedQ = historyList.filter(h => h.model === m.modelName).reduce((sum, h) => sum + Number(h.qty || 0), 0);
+                const maxAllowed = Math.max(0, totalQ - shippedQ);
+                return `<option value="${m.modelName}" data-max="${maxAllowed}">${m.modelName} (剩余可发:${maxAllowed}件)</option>`;
+            }).join('');
 
-            document.getElementById('ship-max-qty-hint').innerText = `该型号订购总量: ${totalModelQty}件 | 已发货: ${shippedModelQty}件 | 可发货最大上限: ${maxAllowed}件`;
-            document.getElementById('ship-action-qty').max = maxAllowed;
+            container.insertAdjacentHTML('beforeend', `
+                <div id="${rowId}" class="bg-white p-3 rounded-xl border border-slate-200 space-y-2 ship-batch-row">
+                    <div class="flex items-center gap-2">
+                        <select class="w-full border border-slate-300 p-2.5 rounded-lg text-xs bg-white font-medium ship-model-select outline-none focus:ring-1 focus:ring-indigo-500">
+                            ${optionsHtml}
+                        </select>
+                        <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-rose-500 hover:text-rose-700 p-2"><i class="fa-solid fa-trash text-sm"></i></button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="number" inputmode="numeric" min="1" placeholder="发货数量" value="${inputQty}" class="w-full border border-slate-300 p-2.5 rounded-lg text-xs ship-qty-input outline-none focus:ring-1 focus:ring-indigo-500" required>
+                    </div>
+                </div>
+            `);
         }
 
         async function handleShippingActionSubmit(e) {
             e.preventDefault();
             const id = Number(document.getElementById('ship-action-id').value);
-            const modelName = document.getElementById('ship-action-model').value;
-            const qty = Number(document.getElementById('ship-action-qty').value);
             const date = document.getElementById('ship-action-date').value;
 
             const o = ordersData.find(item => item.id === id);
             if(!o) return;
 
             const models = parseModels(o);
-            const targetModel = models.find(m => m.modelName === modelName);
-            const totalModelQty = targetModel ? Number(targetModel.qty || 0) : 0;
-
             let historyList = [];
-            try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e) { historyList = []; }
+            try { 
+                historyList = typeof o.shipping_history === 'string' 
+                    ? JSON.parse(o.shipping_history) 
+                    : (o.shipping_history || []); 
+            } catch(e) { historyList = []; }
 
-            const shippedModelQty = historyList.filter(h => h.model === modelName).reduce((sum, h) => sum + Number(h.qty || 0), 0);
-            const maxAllowed = Math.max(0, totalModelQty - shippedModelQty);
-
-            // 严格防超发校验
-            if (qty > maxAllowed) {
-                alert(`发货失败！【${modelName}】订购总量为 ${totalModelQty} 件，此前已发货 ${shippedModelQty} 件，剩余可发货仅剩 ${maxAllowed} 件，本次发货数量不能超过最大上限。`);
+            const rows = document.querySelectorAll('.ship-batch-row');
+            if (rows.length === 0) {
+                alert("请至少添加一行发货明细！");
                 return;
             }
 
-            historyList.push({ model: modelName, qty, date });
+            const newBatchItems = [];
+            for (let r of rows) {
+                const modelName = r.querySelector('.ship-model-select').value;
+                const qty = Number(r.querySelector('.ship-qty-input').value || 0);
+                if (qty <= 0) continue;
+
+                const targetModel = models.find(m => m.modelName === modelName);
+                const totalModelQty = targetModel ? Number(targetModel.qty || 0) : 0;
+
+                const shippedModelQty = historyList
+                    .filter(h => h.model === modelName)
+                    .concat(newBatchItems.filter(h => h.model === modelName))
+                    .reduce((sum, h) => sum + Number(h.qty || 0), 0);
+
+                const maxAllowed = Math.max(0, totalModelQty - shippedModelQty);
+
+                if (qty > maxAllowed) {
+                    alert(`发货拦截！【${modelName}】单独订购量为 ${totalModelQty} 件，此前已发货及本次累计超额，该型号剩余最大可发量仅剩 ${maxAllowed} 件！`);
+                    return;
+                }
+
+                newBatchItems.push({ model: modelName, qty, date });
+            }
+
+            if (newBatchItems.length === 0) {
+                alert("发货数量不能为 0！");
+                return;
+            }
+
+            historyList.push(...newBatchItems);
 
             const payload = {
                 shipping_history: JSON.stringify(historyList),
@@ -953,19 +1018,34 @@
         }
 
         function initInventoryBatchRows() { addInventoryRow(); }
+        
+        // 原材料出入库：增加行并绑定数量和单价变动时自动计算总金额
         function addInventoryRow() {
             const container = document.getElementById('batch-rows-container');
             if(!container) return;
+            const rowId = 'inv-row-' + Math.random().toString(36).substr(2, 5);
             container.insertAdjacentHTML('beforeend', `
-                <div class="grid grid-cols-12 gap-2 items-center inv-batch-row bg-slate-50 p-2.5 rounded-lg sm:bg-transparent sm:p-0">
+                <div id="${rowId}" class="grid grid-cols-12 gap-2 items-center inv-batch-row bg-slate-50 p-2.5 rounded-lg sm:bg-transparent sm:p-0">
                     <input type="date" value="${new Date().toISOString().split('T')[0]}" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs" required>
-                    <input type="text" placeholder="原材料名称" class="col-span-6 sm:col-span-3 border border-slate-300 p-2.5 rounded-lg text-xs" required>
-                    <input type="text" placeholder="供应商名称" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs">
+                    <input type="text" placeholder="原材料名称" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs" required>
+                    <input type="text" placeholder="供应商" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs">
                     <select class="col-span-6 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs"><option value="IN">入库</option><option value="OUT">出库</option></select>
-                    <input type="number" inputmode="numeric" placeholder="数量" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs" required>
+                    <input type="number" inputmode="numeric" placeholder="数量" class="col-span-4 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs inv-qty" required oninput="calcInvRowTotal('${rowId}')">
+                    <input type="number" inputmode="decimal" step="0.01" placeholder="单价" class="col-span-4 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs inv-price" required oninput="calcInvRowTotal('${rowId}')">
+                    <input type="text" readonly placeholder="总金额" class="col-span-4 sm:col-span-1 border border-slate-200 bg-slate-100 p-2.5 rounded-lg text-xs font-bold text-emerald-600 inv-total">
                     <input type="text" placeholder="批注" class="col-span-10 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs">
-                    <button type="button" onclick="this.parentElement.remove()" class="col-span-2 sm:col-span-1 text-rose-500 text-center p-2"><i class="fa-solid fa-xmark text-base"></i></button>
+                    <button type="button" onclick="document.getElementById('${rowId}').remove()" class="col-span-2 sm:col-span-1 text-rose-500 text-center p-2"><i class="fa-solid fa-xmark text-base"></i></button>
                 </div>`);
+        }
+
+        // 实时根据数量和单价计算单行总金额
+        function calcInvRowTotal(rowId) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            const qty = Number(row.querySelector('.inv-qty').value || 0);
+            const price = Number(row.querySelector('.inv-price').value || 0);
+            const totalInput = row.querySelector('.inv-total');
+            totalInput.value = (qty * price).toFixed(2);
         }
 
         async function handleBatchInventorySubmit(e) {
@@ -974,13 +1054,17 @@
             const newItems = [];
             rows.forEach(r => {
                 const inputs = r.querySelectorAll('input, select');
+                const qty = Number(inputs[4].value || 0);
+                const price = Number(inputs[5].value || 0);
                 newItems.push({ 
                     date: inputs[0].value, 
                     material: inputs[1].value, 
                     supplier: inputs[2].value || '自主/无',
                     type: inputs[3].value, 
-                    quantity: Number(inputs[4].value), 
-                    remark: inputs[5].value || '无批注' 
+                    quantity: qty, 
+                    price: price,
+                    total_amount: Number((qty * price).toFixed(2)),
+                    remark: inputs[7].value || '无批注' 
                 });
             });
             await postSupabaseRest('inventory', newItems, 'POST');
@@ -997,16 +1081,23 @@
                 return matchStr.includes(globalSearchKeyword);
             });
 
-            tbody.innerHTML = filteredInv.map(i => `
-                <tr class="border-b border-slate-100">
-                    <td class="p-2.5 sm:p-3">${i.date}</td>
-                    <td class="p-2.5 sm:p-3 font-medium">${i.material}</td>
-                    <td class="p-2.5 sm:p-3 text-slate-600">${i.supplier || '自主/无'}</td>
-                    <td class="p-2.5 sm:p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${i.type === 'IN' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}">${i.type === 'IN' ? '入库' : '出库'}</span></td>
-                    <td class="p-2.5 sm:p-3 font-bold">${i.quantity}</td>
-                    <td class="p-2.5 sm:p-3 text-slate-500">${i.remark || '无批注'}</td>
-                    <td class="p-2.5 sm:p-3 text-right"><button type="button" onclick="deleteInventory(${i.id})" class="text-rose-500 hover:text-rose-700 p-2"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>`).join('');
+            tbody.innerHTML = filteredInv.map(i => {
+                const qty = Number(i.quantity || 0);
+                const price = Number(i.price || 0);
+                const totalAmt = i.total_amount !== undefined ? Number(i.total_amount) : (qty * price);
+                return `
+                    <tr class="border-b border-slate-100">
+                        <td class="p-2.5 sm:p-3">${i.date}</td>
+                        <td class="p-2.5 sm:p-3 font-medium">${i.material}</td>
+                        <td class="p-2.5 sm:p-3 text-slate-600">${i.supplier || '自主/无'}</td>
+                        <td class="p-2.5 sm:p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${i.type === 'IN' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}">${i.type === 'IN' ? '入库' : '出库'}</span></td>
+                        <td class="p-2.5 sm:p-3 font-bold">${qty}</td>
+                        <td class="p-2.5 sm:p-3 text-slate-600">¥${price.toFixed(2)}</td>
+                        <td class="p-2.5 sm:p-3 text-emerald-600 font-bold">¥${totalAmt.toFixed(2)}</td>
+                        <td class="p-2.5 sm:p-3 text-slate-500">${i.remark || '无批注'}</td>
+                        <td class="p-2.5 sm:p-3 text-right"><button type="button" onclick="deleteInventory(${i.id})" class="text-rose-500 hover:text-rose-700 p-2"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>`;
+            }).join('');
 
             renderMaterialBalanceCards();
         }
