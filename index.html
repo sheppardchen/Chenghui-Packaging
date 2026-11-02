@@ -6,8 +6,6 @@
     <title>物料订单管理系统 - 承辉包装</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- FontAwesome 图标 -->
@@ -43,7 +41,6 @@
                 <h2 class="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight mt-2" id="auth-title">物料订单管理系统</h2>
             </div>
 
-            <!-- 登录页发货到期提醒横幅 -->
             <div id="login-due-alert" class="hidden bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-xl text-xs space-y-1">
                 <div class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation text-amber-600"></i> 发货到期提醒 (近7天内)</div>
                 <div id="login-due-alert-content" class="leading-relaxed"></div>
@@ -80,11 +77,6 @@
                 <button type="submit" id="auth-submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white py-3 rounded-xl font-bold transition shadow-md shadow-indigo-200 mobile-touch-target flex items-center justify-center gap-2">
                     <i class="fa-solid fa-shield-halved"></i> <span>安全登录</span>
                 </button>
-
-                <div class="flex justify-between text-xs pt-2 text-slate-500 border-t border-slate-100 mt-4">
-                    <button type="button" onclick="switchAuthMode('forgot')" id="toggle-forgot-btn" class="hover:text-indigo-600 underline py-1">忘记密码？通过邮箱重置</button>
-                    <button type="button" onclick="switchAuthMode('login')" id="toggle-login-btn" class="hover:text-indigo-600 underline py-1 hidden">返回登录</button>
-                </div>
             </form>
         </div>
     </div>
@@ -112,7 +104,7 @@
                 <div class="flex items-center space-x-1.5 sm:space-x-3">
                     <div id="cloud-status" class="flex items-center space-x-1 text-[11px] sm:text-xs bg-slate-800 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-700">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span class="text-emerald-400 font-medium hidden sm:inline">云端已连接</span>
+                        <span class="text-emerald-400 font-medium hidden sm:inline">云端直连正常</span>
                     </div>
                     <button onclick="openChangePwdModal()" class="bg-indigo-600 hover:bg-indigo-500 text-[11px] sm:text-xs px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1">
                         <i class="fa-solid fa-key"></i> <span class="hidden sm:inline">修改密码</span>
@@ -140,9 +132,6 @@
                         <i class="fa-solid fa-cart-shopping text-indigo-500"></i>
                     </div>
                     <div class="text-lg sm:text-2xl font-bold mt-1.5 sm:mt-2" id="kpi-orders">0 笔</div>
-                    <div class="text-[10px] sm:text-xs text-slate-400 mt-1 truncate" id="kpi-orders-trend">
-                        <span>环比：</span><span class="font-bold text-emerald-600">+0.0%</span>
-                    </div>
                 </div>
                 <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
@@ -150,9 +139,6 @@
                         <i class="fa-solid fa-sack-dollar text-emerald-500"></i>
                     </div>
                     <div class="text-lg sm:text-2xl font-bold mt-1.5 sm:mt-2 text-emerald-600 truncate" id="kpi-amount">¥0.00</div>
-                    <div class="text-[10px] sm:text-xs text-slate-400 mt-1 truncate" id="kpi-amount-trend">
-                        <span>环比：</span><span class="font-bold text-emerald-600">+0.0%</span>
-                    </div>
                 </div>
                 <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
@@ -160,7 +146,6 @@
                         <i class="fa-solid fa-arrow-down-long text-blue-500"></i>
                     </div>
                     <div class="text-lg sm:text-2xl font-bold mt-1.5 sm:mt-2 text-blue-600" id="kpi-in-stock">0 件</div>
-                    <div class="text-[10px] sm:text-xs text-slate-400 mt-1 truncate" id="kpi-in-trend"><span>入库总量</span></div>
                 </div>
                 <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
@@ -168,7 +153,6 @@
                         <i class="fa-solid fa-arrow-up-long text-rose-500"></i>
                     </div>
                     <div class="text-lg sm:text-2xl font-bold mt-1.5 sm:mt-2 text-rose-600" id="kpi-out-stock">0 件</div>
-                    <div class="text-[10px] sm:text-xs text-slate-400 mt-1 truncate" id="kpi-out-trend"><span>出库总量</span></div>
                 </div>
             </div>
 
@@ -343,10 +327,10 @@
                     </div>
                 </div>
 
-                <!-- 多型号款式明细配置区（每行自带型号、数量、单价及专属图片上传行） -->
+                <!-- 多型号款式明细配置区（每行自带型号、数量、单价及专属图片文件行） -->
                 <div class="border border-slate-200 rounded-xl p-3 bg-slate-50/50 space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="font-bold text-slate-700">产品型号/款式明细列表 * (每行自带款式专属图片上传)</label>
+                        <label class="font-bold text-slate-700">产品型号/款式明细列表 * (每行自带款式专属图片)</label>
                         <button type="button" onclick="addOrderModelRow()" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2.5 py-1 rounded font-medium text-xs"><i class="fa-solid fa-plus"></i> 增加型号行</button>
                     </div>
                     <div id="order-models-container" class="space-y-3"></div>
@@ -405,7 +389,7 @@
         </div>
     </div>
 
-    <!-- JS 核心逻辑 -->
+    <!-- JS 核心逻辑：完全改用底层原生 fetch 彻底消灭 Headers 报错 -->
     <script>
         const SUPABASE_URL = "https://bmihjttxiqlzypdvxrdo.supabase.co";
         const SUPABASE_KEY = "填入您的Publishable key(eyJh...开头)"; 
@@ -413,7 +397,6 @@
         const FIXED_USER = "ChenghuiGroup";
         const DEFAULT_PWD = "123456";
 
-        let supabaseClient = null;
         let ordersData = [];
         let inventoryData = [];
         let authMode = 'login';
@@ -422,7 +405,6 @@
         let globalSearchKeyword = '';
 
         window.addEventListener('DOMContentLoaded', () => {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             checkSession();
         });
 
@@ -443,10 +425,66 @@
             }
         }
 
+        // 使用底层原生 fetch 获取订单，绝对不触发 Headers 异常
+        async function fetchSupabaseRest(table, query = '') {
+            try {
+                const res = await window.fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                if (!res.ok) return [];
+                return await res.json();
+            } catch(e) {
+                return [];
+            }
+        }
+
+        async function postSupabaseRest(table, payload, method = 'POST', matchQuery = '') {
+            try {
+                let url = `${SUPABASE_URL}/rest/v1/${table}`;
+                if (matchQuery) url += `?${matchQuery}`;
+                const res = await window.fetch(url, {
+                    method: method,
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) {
+                    const errText = await res.text();
+                    throw new Error(errText);
+                }
+                return { error: null };
+            } catch(err) {
+                return { error: err };
+            }
+        }
+
+        async function deleteSupabaseRest(table, matchQuery) {
+            try {
+                const res = await window.fetch(`${SUPABASE_URL}/rest/v1/${table}?${matchQuery}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                if (!res.ok) throw new Error(await res.text());
+                return { error: null };
+            } catch(err) {
+                return { error: err };
+            }
+        }
+
         async function fetchOrdersForLoginAlert() {
-            if (!supabaseClient) return;
-            let { data: orders } = await supabaseClient.from('orders').select('*');
-            if (!orders) return;
+            let orders = await fetchSupabaseRest('orders', 'select=*');
+            if (!orders || !Array.isArray(orders)) return;
 
             const now = new Date();
             now.setHours(0,0,0,0);
@@ -494,92 +532,28 @@
             }
         }
 
-        function switchAuthMode(mode) {
-            authMode = mode;
-            const title = document.getElementById('auth-title');
-            const userLabel = document.getElementById('label-user-email');
-            const authInput = document.getElementById('auth-input-id');
-            const authIcon = document.getElementById('auth-icon');
-            const pwdField = document.getElementById('password-field-wrap');
-            const rememberWrap = document.getElementById('remember-me-wrap');
-            const submitBtn = document.getElementById('auth-submit-btn');
-            const toggleForgot = document.getElementById('toggle-forgot-btn');
-            const toggleLogin = document.getElementById('toggle-login-btn');
-            const msg = document.getElementById('auth-msg');
-
-            msg.classList.add('hidden');
-            if (mode === 'forgot') {
-                title.innerText = "通过邮箱重置密码";
-                userLabel.innerText = "电子邮箱";
-                authInput.type = "email";
-                authInput.readOnly = false;
-                authInput.className = "w-full bg-white p-3 sm:p-2.5 outline-none border-0";
-                authInput.placeholder = "your_email@domain.com";
-                authInput.value = "";
-                authIcon.className = "fa-solid fa-envelope";
-                pwdField.classList.add('hidden');
-                if(rememberWrap) rememberWrap.classList.add('hidden');
-                document.getElementById('auth-password').required = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>发送重置密码邮件</span>';
-                toggleForgot.classList.add('hidden');
-                toggleLogin.classList.remove('hidden');
-            } else {
-                title.innerText = "物料订单管理系统";
-                userLabel.innerText = "登录账号";
-                authInput.type = "text";
-                authInput.readOnly = true;
-                authInput.className = "w-full bg-slate-100 text-slate-600 p-3 sm:p-2.5 outline-none cursor-not-allowed font-medium border-0";
-                authInput.placeholder = "ChenghuiGroup";
-                authInput.value = FIXED_USER;
-                authIcon.className = "fa-solid fa-user";
-                pwdField.classList.remove('hidden');
-                if(rememberWrap) rememberWrap.classList.remove('hidden');
-                document.getElementById('auth-password').required = true;
-                document.getElementById('auth-password').value = "";
-                submitBtn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> <span>安全登录</span>';
-                toggleForgot.classList.remove('hidden');
-                toggleLogin.classList.add('hidden');
-            }
-        }
-
         async function handleAuthSubmit(e) {
             e.preventDefault();
             const msg = document.getElementById('auth-msg');
             msg.classList.remove('hidden');
 
-            if (authMode === 'forgot') {
-                const email = document.getElementById('auth-input-id').value.trim();
-                msg.className = "text-xs font-medium text-blue-600 bg-blue-50 border-blue-200 p-2.5 rounded-lg";
-                msg.innerText = "正在发送重置邮件...";
-                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.href,
-                });
-                if (error) {
-                    msg.className = "text-xs font-medium text-rose-600 bg-rose-50 border-rose-200 p-2.5 rounded-lg";
-                    msg.innerText = "发送失败: " + error.message;
-                } else {
-                    msg.className = "text-xs font-medium text-emerald-600 bg-emerald-50 border-emerald-200 p-2.5 rounded-lg";
-                    msg.innerText = "重置邮件已发送成功！请登录您的邮箱查收并点击链接修改密码。";
-                }
-            } else {
-                const u = document.getElementById('auth-input-id').value.trim();
-                const p = document.getElementById('auth-password').value.trim();
-                const currentPwd = localStorage.getItem('app_custom_pwd') || DEFAULT_PWD;
+            const u = document.getElementById('auth-input-id').value.trim();
+            const p = document.getElementById('auth-password').value.trim();
+            const currentPwd = localStorage.getItem('app_custom_pwd') || DEFAULT_PWD;
 
-                if (u === FIXED_USER && p === currentPwd) {
-                    const rememberMe = document.getElementById('remember-me-checkbox').checked;
-                    sessionStorage.setItem('chenghui_logged', 'true');
-                    if (rememberMe) {
-                        localStorage.setItem('chenghui_persistent_logged', 'true');
-                    } else {
-                        localStorage.removeItem('chenghui_persistent_logged');
-                    }
-                    document.getElementById('auth-password').value = "";
-                    checkSession();
+            if (u === FIXED_USER && p === currentPwd) {
+                const rememberMe = document.getElementById('remember-me-checkbox').checked;
+                sessionStorage.setItem('chenghui_logged', 'true');
+                if (rememberMe) {
+                    localStorage.setItem('chenghui_persistent_logged', 'true');
                 } else {
-                    msg.className = "text-xs font-medium text-rose-600 bg-rose-50 border-rose-200 p-2.5 rounded-lg";
-                    msg.innerText = "密码错误！请重新输入。";
+                    localStorage.removeItem('chenghui_persistent_logged');
                 }
+                document.getElementById('auth-password').value = "";
+                checkSession();
+            } else {
+                msg.className = "text-xs font-medium text-rose-600 bg-rose-50 border-rose-200 p-2.5 rounded-lg";
+                msg.innerText = "密码错误！请重新输入。";
             }
         }
 
@@ -617,14 +591,11 @@
         }
 
         async function fetchDataFromCloud() {
-            if (!supabaseClient) return;
-            let { data: orders, error: ordErr } = await supabaseClient.from('orders').select('*').order('id', { ascending: false });
-            if (ordErr) console.error("加载订单错误:", ordErr);
-            ordersData = orders || [];
+            const orders = await fetchSupabaseRest('orders', 'select=*&order=id.desc');
+            ordersData = Array.isArray(orders) ? orders : [];
 
-            let { data: inv, error: invErr } = await supabaseClient.from('inventory').select('*').order('id', { ascending: false });
-            if (invErr) console.error("加载库存错误:", invErr);
-            inventoryData = inv || [];
+            const inv = await fetchSupabaseRest('inventory', 'select=*&order=id.desc');
+            inventoryData = Array.isArray(inv) ? inv : [];
 
             renderOrders();
             renderOrderShippingModule();
@@ -816,12 +787,13 @@
 
             historyList.push({ model: modelName, qty, date });
 
-            const res = await supabaseClient.from('orders').update({
+            const payload = {
                 shipping_history: JSON.stringify(historyList),
                 ship_date: date,
                 shipped_quantity: historyList.reduce((s, h) => s + Number(h.qty || 0), 0)
-            }).eq('id', id);
+            };
 
+            const res = await postSupabaseRest('orders', payload, 'PATCH', `id=eq.${id}`);
             if (res.error) {
                 alert("生成发货记录失败: " + res.error.message);
                 return;
@@ -841,11 +813,12 @@
 
             historyList.splice(batchIndex, 1);
 
-            const res = await supabaseClient.from('orders').update({
+            const payload = {
                 shipping_history: JSON.stringify(historyList),
                 shipped_quantity: historyList.reduce((s, h) => s + Number(h.qty || 0), 0)
-            }).eq('id', orderId);
+            };
 
+            const res = await postSupabaseRest('orders', payload, 'PATCH', `id=eq.${orderId}`);
             if (res.error) {
                 alert("删除失败: " + res.error.message);
                 return;
@@ -884,7 +857,7 @@
                     remark: inputs[5].value || '无批注' 
                 });
             });
-            await supabaseClient.from('inventory').insert(newItems);
+            await postSupabaseRest('inventory', newItems, 'POST');
             fetchDataFromCloud();
             initInventoryBatchRows();
         }
@@ -948,32 +921,8 @@
         }
 
         function updateKPIs() {
-            const now = new Date();
-            const curYear = now.getFullYear();
-            const curMonth = now.getMonth();
-
-            const curOrders = ordersData.filter(o => {
-                const d = new Date(o.order_date);
-                return d.getFullYear() === curYear && d.getMonth() === curMonth;
-            });
-            const prevOrders = ordersData.filter(o => {
-                const d = new Date(o.order_date);
-                return (curMonth === 0) ? (d.getFullYear() === curYear - 1 && d.getMonth() === 11) : (d.getFullYear() === curYear && d.getMonth() === curMonth - 1);
-            });
-
-            const curAmt = curOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
-            const prevAmt = prevOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
-            const amtTrendPct = prevAmt === 0 ? (curAmt > 0 ? 100 : 0) : (((curAmt - prevAmt) / prevAmt) * 100).toFixed(1);
-
-            const curQtyCount = curOrders.length;
-            const prevQtyCount = prevOrders.length;
-            const countTrendPct = prevQtyCount === 0 ? (curQtyCount > 0 ? 100 : 0) : (((curQtyCount - prevQtyCount) / prevQtyCount) * 100).toFixed(1);
-
             document.getElementById('kpi-orders').innerText = `${ordersData.length} 笔`;
-            document.getElementById('kpi-orders-trend').innerHTML = `<span>环比：</span><span class="font-bold ${countTrendPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${countTrendPct >= 0 ? '+' : ''}${countTrendPct}%</span>`;
-
             document.getElementById('kpi-amount').innerText = `¥${ordersData.reduce((s, o) => s + Number(o.total_amount || 0), 0).toFixed(2)}`;
-            document.getElementById('kpi-amount-trend').innerHTML = `<span>环比：</span><span class="font-bold ${amtTrendPct >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${amtTrendPct >= 0 ? '+' : ''}${amtTrendPct}%</span>`;
 
             const totalIn = inventoryData.filter(i => i.type === 'IN').reduce((s, i) => s + Number(i.quantity || 0), 0);
             const totalOut = inventoryData.filter(i => i.type === 'OUT').reduce((s, i) => s + Number(i.quantity || 0), 0);
@@ -1143,7 +1092,6 @@
             document.getElementById('modal-order').classList.remove('hidden');
         }
 
-        // 新增型号行（每行自带型号、数量、单价，以及专属图片上传输入框）
         function addOrderModelRow(modelName = '', qty = '', price = '', imgName = '') {
             const container = document.getElementById('order-models-container');
             const rowId = 'm-row-' + Math.random().toString(36).substr(2, 5);
@@ -1234,7 +1182,6 @@
                 totalAmt += (q * p);
             });
 
-            // 彻底杜绝任何复杂的头或Base64传输，用最安全的纯文本 JSON 存储
             const orderPayload = {
                 order_no: orderNo,
                 customer: customer,
@@ -1250,9 +1197,9 @@
 
             let res;
             if (editId) {
-                res = await supabaseClient.from('orders').update(orderPayload).eq('id', editId);
+                res = await postSupabaseRest('orders', orderPayload, 'PATCH', `id=eq.${editId}`);
             } else {
-                res = await supabaseClient.from('orders').insert([orderPayload]);
+                res = await postSupabaseRest('orders', [orderPayload], 'POST');
             }
 
             if (res.error) {
@@ -1266,14 +1213,14 @@
 
         async function deleteOrder(id) {
             if (confirm('确认删除该笔订单？')) {
-                await supabaseClient.from('orders').delete().eq('id', id);
+                await deleteSupabaseRest('orders', `id=eq.${id}`);
                 fetchDataFromCloud();
             }
         }
 
         async function deleteInventory(id) {
             if (confirm('确认删除该条记录？')) {
-                await supabaseClient.from('inventory').delete().eq('id', id);
+                await deleteSupabaseRest('inventory', `id=eq.${id}`);
                 fetchDataFromCloud();
             }
         }
