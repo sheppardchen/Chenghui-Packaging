@@ -147,10 +147,13 @@
         </header>
 
         <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 flex-1 w-full">
-            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-3">
+            <!-- 全局搜索栏 (带搜索按钮) -->
+            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-2 sm:gap-3">
                 <span class="text-slate-400 text-sm pl-2"><i class="fa-solid fa-magnifying-glass"></i></span>
-                <input type="text" id="global-search-input" oninput="handleGlobalSearch()" placeholder="全局搜索：输入客户名, 订单号, 型号, 供应商..." class="w-full text-xs sm:text-sm outline-none bg-transparent text-slate-700">
-                <button type="button" onclick="clearGlobalSearch()" class="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 mobile-touch-target">清空</button>
+                <input type="text" id="global-search-input" onkeydown="handleGlobalSearchKeyDown(event)" placeholder="全局搜索：输入客户名, 订单号, 型号, 供应商..." class="w-full text-xs sm:text-sm outline-none bg-transparent text-slate-700">
+                <button type="button" onclick="executeGlobalSearch()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm px-3.5 sm:px-4 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 mobile-touch-target cursor-pointer">
+                    <i class="fa-solid fa-magnifying-glass"></i> <span>搜索</span>
+                </button>
             </div>
 
             <!-- KPI 看板 -->
@@ -298,6 +301,65 @@
         </div>
     </div>
 
+    <!-- 弹窗：独立全局搜索结果页（浮在上方，支持返回） -->
+    <div id="modal-global-search-result" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-[150] p-3 sm:p-6">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in duration-200">
+            <!-- 头部标题栏 -->
+            <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-magnifying-glass text-indigo-400"></i>
+                    <h3 class="text-base sm:text-lg font-bold">全局搜索结果</h3>
+                    <span id="search-keyword-badge" class="text-xs bg-indigo-600 text-white px-2.5 py-0.5 rounded-full font-mono"></span>
+                </div>
+                <button onclick="closeGlobalSearchModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition mobile-touch-target cursor-pointer">
+                    <i class="fa-solid fa-arrow-left"></i> 返回主界面
+                </button>
+            </div>
+            
+            <!-- 内容滚动区 -->
+            <div class="p-4 sm:p-6 overflow-y-auto custom-scroll space-y-6 flex-1 bg-slate-50">
+                <!-- 模块 1：客户订单匹配结果 -->
+                <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 space-y-3">
+                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 flex items-center gap-2 border-b border-slate-100 pb-2">
+                        <i class="fa-solid fa-users-viewfinder"></i> 客户订单管理模块匹配结果 (<span id="res-count-orders">0</span>)
+                    </h4>
+                    <div id="search-res-orders" class="space-y-2"></div>
+                </div>
+
+                <!-- 模块 2：独立发货与出库匹配结果 -->
+                <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 space-y-3">
+                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 flex items-center gap-2 border-b border-slate-100 pb-2">
+                        <i class="fa-solid fa-truck-fast"></i> 客户订单出库与发货模块匹配结果 (<span id="res-count-shipping">0</span>)
+                    </h4>
+                    <div id="search-res-shipping" class="space-y-2"></div>
+                </div>
+
+                <!-- 模块 3：原材料出入库与库存联动匹配结果 -->
+                <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 space-y-3">
+                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 flex items-center gap-2 border-b border-slate-100 pb-2">
+                        <i class="fa-solid fa-boxes-packing"></i> 原材料出入库与库存匹配结果 (<span id="res-count-inventory">0</span>)
+                    </h4>
+                    <div id="search-res-inventory" class="space-y-2"></div>
+                </div>
+
+                <!-- 模块 4：月度分析与报表匹配结果 -->
+                <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 space-y-3">
+                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 flex items-center gap-2 border-b border-slate-100 pb-2">
+                        <i class="fa-solid fa-chart-pie"></i> 月度分析与报表匹配结果 (<span id="res-count-report">0</span>)
+                    </h4>
+                    <div id="search-res-report" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- 底部操作栏 -->
+            <div class="bg-white px-5 py-3 border-t border-slate-200 flex justify-end shrink-0">
+                <button onclick="closeGlobalSearchModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-5 py-2.5 rounded-xl font-medium shadow-sm transition mobile-touch-target">
+                    确定并返回
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- 弹窗：修改密码 -->
     <div id="modal-changepwd" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-sm w-full space-y-3">
@@ -434,7 +496,6 @@
         let systemSettings = { app_pwd: DEFAULT_PWD };
         let chartInstance1 = null;
         let chartInstance2 = null;
-        let globalSearchKeyword = '';
 
         window.addEventListener('DOMContentLoaded', () => {
             checkSession();
@@ -682,7 +743,6 @@
             const orders = await fetchSupabaseRest('orders', 'select=*&order=id.desc');
             ordersData = Array.isArray(orders) ? orders.filter(o => o.order_no !== '__SYSTEM_CONFIG_PWD__') : [];
 
-            // 按 id 正序排列，保证新追加的记录排在最下方
             const inv = await fetchSupabaseRest('inventory', 'select=*&order=id.asc');
             inventoryData = Array.isArray(inv) ? inv : [];
 
@@ -708,21 +768,148 @@
             if (tab === 'report') renderDeepReport();
         }
 
-        function handleGlobalSearch() {
-            const searchInput = document.getElementById('global-search-input');
-            globalSearchKeyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            renderOrders();
-            renderOrderShippingModule();
-            renderInventoryTable();
+        function handleGlobalSearchKeyDown(e) {
+            if (e.key === 'Enter') {
+                executeGlobalSearch();
+            }
         }
 
-        function clearGlobalSearch() {
+        // 核心：独立全局搜索弹窗与跨4大模块匹配检索
+        function executeGlobalSearch() {
             const searchInput = document.getElementById('global-search-input');
-            if(searchInput) searchInput.value = '';
-            globalSearchKeyword = '';
-            renderOrders();
-            renderOrderShippingModule();
-            renderInventoryTable();
+            if (!searchInput) return;
+            const keyword = searchInput.value.trim().toLowerCase();
+
+            if (!keyword) {
+                alert("请输入要搜索的关键词！");
+                return;
+            }
+
+            // 1. 设置弹窗标题标签
+            document.getElementById('search-keyword-badge').innerText = `关键词: "${searchInput.value.trim()}"`;
+
+            // 2. 匹配模块 1：客户订单管理
+            const matchedOrders = ordersData.filter(o => {
+                const models = parseModels(o);
+                const modelStr = models.map(m => m.modelName).join(' ');
+                const matchStr = `${o.order_no || ''} ${o.customer || ''} ${modelStr} ${o.remark || ''}`.toLowerCase();
+                return matchStr.includes(keyword);
+            });
+            document.getElementById('res-count-orders').innerText = matchedOrders.length;
+            const resOrdersContainer = document.getElementById('search-res-orders');
+            if (matchedOrders.length === 0) {
+                resOrdersContainer.innerHTML = `<div class="text-xs text-slate-400 py-2">无匹配的客户订单数据</div>`;
+            } else {
+                resOrdersContainer.innerHTML = matchedOrders.map(o => {
+                    const models = parseModels(o);
+                    const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
+                    return `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+                            <div>
+                                <span class="font-mono font-bold text-indigo-600">${o.order_no || '无单号'}</span> | 
+                                <span class="font-bold text-slate-800">${o.customer}</span> | 
+                                <span>总数: ${totalQ}件</span> | 
+                                <span class="text-emerald-600 font-bold">¥${Number(o.total_amount || 0).toFixed(2)}</span>
+                            </div>
+                            <button onclick="closeGlobalSearchModal(); switchTab('orders');" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium">查看详情</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 3. 匹配模块 2：独立发货与出库模块
+            const matchedShipping = ordersData.filter(o => {
+                const models = parseModels(o);
+                const modelStr = models.map(m => m.modelName).join(' ');
+                let historyList = [];
+                try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
+                const histStr = historyList.map(h => `${h.model} ${h.date}`).join(' ');
+                const matchStr = `${o.order_no || ''} ${o.customer || ''} ${modelStr} ${histStr}`.toLowerCase();
+                return matchStr.includes(keyword);
+            });
+            document.getElementById('res-count-shipping').innerText = matchedShipping.length;
+            const resShippingContainer = document.getElementById('search-res-shipping');
+            if (matchedShipping.length === 0) {
+                resShippingContainer.innerHTML = `<div class="text-xs text-slate-400 py-2">无匹配的发货记录数据</div>`;
+            } else {
+                resShippingContainer.innerHTML = matchedShipping.map(o => {
+                    const models = parseModels(o);
+                    const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
+                    let historyList = [];
+                    try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
+                    const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
+                    return `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+                            <div>
+                                <span class="font-mono font-bold text-indigo-600">${o.order_no || '无单号'}</span> | 
+                                <span class="font-bold text-slate-800">${o.customer}</span> | 
+                                <span class="text-blue-600 font-semibold">已发货: ${shippedQ}/${totalQ}件</span>
+                            </div>
+                            <button onclick="closeGlobalSearchModal(); switchTab('order-shipping');" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium">查看详情</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 4. 匹配模块 3：原材料出入库与库存
+            const matchedInventory = inventoryData.filter(i => {
+                const matchStr = `${i.material || ''} ${i.supplier || ''} ${i.remark || ''} ${i.date || ''}`.toLowerCase();
+                return matchStr.includes(keyword);
+            });
+            document.getElementById('res-count-inventory').innerText = matchedInventory.length;
+            const resInvContainer = document.getElementById('search-res-inventory');
+            if (matchedInventory.length === 0) {
+                resInvContainer.innerHTML = `<div class="text-xs text-slate-400 py-2">无匹配的原材料库存记录</div>`;
+            } else {
+                resInvContainer.innerHTML = matchedInventory.map(i => {
+                    return `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-slate-800">${i.material}</span> | 
+                                <span class="text-slate-600">供应商: ${i.supplier || '自主'}</span> | 
+                                <span class="${i.type === 'IN' ? 'text-blue-600' : 'text-rose-600'} font-bold">${i.type === 'IN' ? '入库' : '出库'} ${i.quantity}件</span>
+                            </div>
+                            <button onclick="closeGlobalSearchModal(); switchTab('inventory');" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium">查看详情</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 5. 匹配模块 4：月度分析与报表
+            const curMonth = new Date().toISOString().slice(0, 7);
+            const matchedReportOrders = ordersData.filter(o => {
+                const matchMonth = o.order_date && o.order_date.startsWith(curMonth);
+                if (!matchMonth) return false;
+                const models = parseModels(o);
+                const modelStr = models.map(m => m.modelName).join(' ');
+                return `${o.order_no || ''} ${o.customer || ''} ${modelStr}`.toLowerCase().includes(keyword);
+            });
+            document.getElementById('res-count-report').innerText = matchedReportOrders.length;
+            const resReportContainer = document.getElementById('search-res-report');
+            if (matchedReportOrders.length === 0) {
+                resReportContainer.innerHTML = `<div class="text-xs text-slate-400 py-2">本月报表中无匹配的订单摘要</div>`;
+            } else {
+                resReportContainer.innerHTML = matchedReportOrders.map(o => {
+                    return `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+                            <div>
+                                <span class="font-bold text-slate-800">${o.customer}</span> | 
+                                <span class="font-mono text-indigo-600">${o.order_no}</span> | 
+                                <span class="text-emerald-600 font-bold">金额: ¥${Number(o.total_amount || 0).toFixed(2)}</span>
+                            </div>
+                            <button onclick="closeGlobalSearchModal(); switchTab('report');" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg font-medium">查看报表</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 6. 搜索完成后自动清空输入框并显示悬浮弹窗
+            searchInput.value = '';
+            document.getElementById('modal-global-search-result').classList.remove('hidden');
+        }
+
+        function closeGlobalSearchModal() {
+            document.getElementById('modal-global-search-result').classList.add('hidden');
         }
 
         function parseModels(o) {
@@ -740,18 +927,10 @@
             const container = document.getElementById('orders-grouped-container');
             if(!container) return;
             
-            const filteredOrders = ordersData.filter(o => {
-                if (!globalSearchKeyword) return true;
-                const models = parseModels(o);
-                const modelStr = models.map(m => m.modelName).join(' ');
-                const matchStr = `${o.order_no || ''} ${o.customer || ''} ${modelStr} ${o.remark || ''}`.toLowerCase();
-                return matchStr.includes(globalSearchKeyword);
-            });
-
-            container.innerHTML = filteredOrders.length === 0 ? `<div class="text-center py-10 text-slate-400 text-xs sm:text-sm">暂无匹配的订单数据</div>` : '';
+            container.innerHTML = ordersData.length === 0 ? `<div class="text-center py-10 text-slate-400 text-xs sm:text-sm">暂无订单数据</div>` : '';
             
             const groups = {};
-            filteredOrders.forEach(o => { if (!groups[o.customer]) groups[o.customer] = []; groups[o.customer].push(o); });
+            ordersData.forEach(o => { if (!groups[o.customer]) groups[o.customer] = []; groups[o.customer].push(o); });
             
             Object.keys(groups).forEach((customer, index) => {
                 const list = groups[customer];
@@ -798,21 +977,13 @@
             const cardBody = document.getElementById('order-shipping-card-body');
             if(!tbody || !cardBody) return;
 
-            const filtered = ordersData.filter(o => {
-                if (!globalSearchKeyword) return true;
-                const models = parseModels(o);
-                const modelStr = models.map(m => m.modelName).join(' ');
-                const matchStr = `${o.order_no || ''} ${o.customer || ''} ${modelStr}`.toLowerCase();
-                return matchStr.includes(globalSearchKeyword);
-            });
-
-            if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-slate-400">暂无出库发货记录，请先在“客户订单管理”中新增客户订单</td></tr>`;
-                cardBody.innerHTML = `<div class="text-center py-10 text-slate-400 text-xs">暂无出库发货记录，请点击右下角“+”新增订单</div>`;
+            if(ordersData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-slate-400">暂无出库发货记录</td></tr>`;
+                cardBody.innerHTML = `<div class="text-center py-10 text-slate-400 text-xs">暂无出库发货记录</div>`;
                 return;
             }
 
-            tbody.innerHTML = filtered.map(o => {
+            tbody.innerHTML = ordersData.map(o => {
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
                 
@@ -863,7 +1034,7 @@
                 `;
             }).join('');
 
-            cardBody.innerHTML = filtered.map(o => {
+            cardBody.innerHTML = ordersData.map(o => {
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
                 let historyList = [];
@@ -1130,7 +1301,6 @@
 
             let res = await postSupabaseRest('inventory', newItems, 'POST');
             
-            // 如果因为字段不兼容导致失败，尝试降级兼容提交
             if (res.error) {
                 const fallbacks = newItems.map(item => ({
                     date: item.date,
@@ -1145,7 +1315,7 @@
             }
 
             if (res.error) {
-                alert("提交失败！错误信息:\n" + res.error.message + "\n\n请在 Supabase SQL Editor 中运行补充字段语句：" + "\nALTER TABLE inventory ADD COLUMN IF NOT EXISTS price NUMERIC;");
+                alert("提交失败！错误信息:\n" + res.error.message);
                 return;
             }
 
@@ -1157,16 +1327,11 @@
         function renderInventoryTable() {
             const tbody = document.getElementById('inventory-table-body');
             if(!tbody) return;
-            const filteredInv = inventoryData.filter(i => {
-                if (!globalSearchKeyword) return true;
-                const matchStr = `${i.material || ''} ${i.supplier || ''} ${i.remark || ''} ${i.date || ''}`.toLowerCase();
-                return matchStr.includes(globalSearchKeyword);
-            });
 
-            if (filteredInv.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-400 text-xs">暂无原材料出入库记录</td></tr>`;
+            if (inventoryData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-400 text-xs">暂无原材料记录</td></tr>`;
             } else {
-                tbody.innerHTML = filteredInv.map(i => {
+                tbody.innerHTML = inventoryData.map(i => {
                     const qty = Number(i.quantity || 0);
                     const totalAmt = i.total_amount !== undefined ? Number(i.total_amount) : 0;
                     const price = i.price !== undefined ? Number(i.price) : (qty > 0 ? totalAmt / qty : 0);
@@ -1203,7 +1368,7 @@
 
             const keys = Object.keys(materialMap);
             if (keys.length === 0) {
-                balanceContainer.innerHTML = `<div class="col-span-full text-center py-4 text-slate-400 text-xs">暂无原材料出入库记录</div>`;
+                balanceContainer.innerHTML = `<div class="col-span-full text-center py-4 text-slate-400 text-xs">暂无原材料库存数据</div>`;
                 return;
             }
 
