@@ -682,7 +682,8 @@
             const orders = await fetchSupabaseRest('orders', 'select=*&order=id.desc');
             ordersData = Array.isArray(orders) ? orders.filter(o => o.order_no !== '__SYSTEM_CONFIG_PWD__') : [];
 
-            const inv = await fetchSupabaseRest('inventory', 'select=*&order=id.desc');
+            // 按 id 正序排列，保证新追加的记录排在最下方
+            const inv = await fetchSupabaseRest('inventory', 'select=*&order=id.asc');
             inventoryData = Array.isArray(inv) ? inv : [];
 
             renderOrders();
@@ -1098,7 +1099,7 @@
         async function handleBatchInventorySubmit(e) {
             e.preventDefault();
             if (SUPABASE_KEY === "YOUR_REAL_SUPABASE_KEY_HERE" || !SUPABASE_KEY) {
-                alert("未设置正确的 Supabase Key！请先在代码第 303 行填入您真实的 Supabase anon/public key。");
+                alert("未设置正确的 Supabase Key！请先在代码中填入您真实的 Supabase anon/public key。");
                 return;
             }
 
@@ -1127,9 +1128,24 @@
                 return;
             }
 
-            const res = await postSupabaseRest('inventory', newItems, 'POST');
+            let res = await postSupabaseRest('inventory', newItems, 'POST');
+            
+            // 如果因为字段不兼容导致失败，尝试降级兼容提交
             if (res.error) {
-                alert("提交失败！Supabase 返回错误信息:\n" + res.error.message + "\n\n请检查：\n1. 表名是否为 inventory\n2. 字段名(material, supplier, quantity, price, total_amount, type, remark)是否存在\n3. 是否在 Supabase 开启了 RLS 写入限制。");
+                const fallbacks = newItems.map(item => ({
+                    date: item.date,
+                    material: item.material,
+                    supplier: item.supplier,
+                    type: item.type,
+                    quantity: item.quantity,
+                    total_amount: item.total_amount,
+                    remark: item.remark
+                }));
+                res = await postSupabaseRest('inventory', fallbacks, 'POST');
+            }
+
+            if (res.error) {
+                alert("提交失败！错误信息:\n" + res.error.message + "\n\n请在 Supabase SQL Editor 中运行补充字段语句：" + "\nALTER TABLE inventory ADD COLUMN IF NOT EXISTS price NUMERIC;");
                 return;
             }
 
@@ -1152,15 +1168,15 @@
             } else {
                 tbody.innerHTML = filteredInv.map(i => {
                     const qty = Number(i.quantity || 0);
-                    const price = Number(i.price || 0);
-                    const totalAmt = i.total_amount !== undefined ? Number(i.total_amount) : (qty * price);
+                    const totalAmt = i.total_amount !== undefined ? Number(i.total_amount) : 0;
+                    const price = i.price !== undefined ? Number(i.price) : (qty > 0 ? totalAmt / qty : 0);
                     return `
                         <tr class="border-b border-slate-100">
                             <td class="p-2.5 sm:p-3">${i.date || '-'}</td>
-                            <td class="p-2.5 sm:p-3 font-medium">${i.material || '-'}</td>
+                            <td class="p-2.5 sm:p-3 font-medium text-slate-800">${i.material || '-'}</td>
                             <td class="p-2.5 sm:p-3 text-slate-600">${i.supplier || '自主/无'}</td>
                             <td class="p-2.5 sm:p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${i.type === 'IN' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}">${i.type === 'IN' ? '入库' : '出库'}</span></td>
-                            <td class="p-2.5 sm:p-3 font-bold">${qty}</td>
+                            <td class="p-2.5 sm:p-3 font-bold text-slate-700">${qty}</td>
                             <td class="p-2.5 sm:p-3 text-slate-600">¥${price.toFixed(2)}</td>
                             <td class="p-2.5 sm:p-3 text-emerald-600 font-bold">¥${totalAmt.toFixed(2)}</td>
                             <td class="p-2.5 sm:p-3 text-slate-500">${i.remark || '无批注'}</td>
