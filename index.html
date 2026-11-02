@@ -46,19 +46,17 @@
             <form id="login-form" onsubmit="handleAuthSubmit(event)" class="space-y-4 text-sm" autocomplete="off">
                 <div>
                     <label class="block font-medium text-slate-700 mb-1" id="label-user-email">登录账号</label>
-                    <div class="relative flex items-center">
-                        <!-- 使用 inline style 强制左侧留白 50px，彻底杜绝图标和文字重叠 -->
-                        <span class="absolute left-4 text-slate-400 pointer-events-none z-10"><i class="fa-solid fa-user" id="auth-icon"></i></span>
-                        <input type="text" id="auth-input-id" value="ChenghuiGroup" readonly style="padding-left: 50px;" class="w-full pr-4 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium">
+                    <div class="relative flex items-center border border-slate-300 bg-slate-100 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
+                        <span class="w-12 flex items-center justify-center text-slate-400 bg-slate-100 shrink-0"><i class="fa-solid fa-user" id="auth-icon"></i></span>
+                        <input type="text" id="auth-input-id" value="ChenghuiGroup" readonly class="w-full bg-slate-100 text-slate-600 p-3 sm:p-2.5 outline-none cursor-not-allowed font-medium border-0">
                     </div>
                 </div>
                 <div id="password-field-wrap">
                     <label class="block font-medium text-slate-700 mb-1">密码</label>
-                    <div class="relative flex items-center">
-                        <!-- 钥匙图标绝对定位并强制左侧留白 50px -->
-                        <span class="absolute left-4 text-slate-400 pointer-events-none z-10"><i class="fa-solid fa-key"></i></span>
-                        <input type="password" id="auth-password" autocomplete="new-password" style="padding-left: 50px;" class="w-full pr-10 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white" placeholder="">
-                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-0 inset-y-0 px-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none z-10">
+                    <div class="relative flex items-center border border-slate-300 bg-white rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500">
+                        <span class="w-12 flex items-center justify-center text-slate-400 bg-slate-50 shrink-0"><i class="fa-solid fa-key"></i></span>
+                        <input type="password" id="auth-password" autocomplete="new-password" class="w-full bg-white p-3 sm:p-2.5 outline-none border-0" placeholder="">
+                        <button type="button" onclick="togglePasswordVisibility()" class="w-12 flex items-center justify-center text-slate-400 hover:text-slate-600 bg-white shrink-0 focus:outline-none">
                             <i class="fa-solid fa-eye" id="pwd-eye-icon"></i>
                         </button>
                     </div>
@@ -121,6 +119,14 @@
         </header>
 
         <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 flex-1 w-full">
+            <!-- 全局关键词搜索栏 -->
+            <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-3">
+                <span class="text-slate-400 text-sm pl-2"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" id="global-search-input" oninput="handleGlobalSearch()" placeholder="全局搜索：输入客户名、订单号、材料名称、供应商或批注关键字..." class="w-full text-xs sm:text-sm outline-none bg-transparent text-slate-700">
+                <button type="button" onclick="clearGlobalSearch()" class="text-xs text-slate-400 hover:text-slate-600 px-2 py-1">清空</button>
+            </div>
+
+            <!-- KPI 看板 -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
@@ -144,30 +150,30 @@
                 </div>
                 <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
-                        <span>原材料入库</span>
+                        <span>原材料总入库</span>
                         <i class="fa-solid fa-arrow-down-long text-blue-500"></i>
                     </div>
                     <div class="text-lg sm:text-2xl font-bold mt-1.5 sm:mt-2 text-blue-600" id="kpi-in-stock">0 件</div>
                     <div class="text-[10px] sm:text-xs text-slate-400 mt-1 truncate" id="kpi-in-trend">
-                        <span>环比：</span><span class="font-bold text-blue-600">+0.0%</span>
+                        <span>入库总量</span>
                     </div>
                 </div>
                 <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
-                        <span>原材料出库</span>
+                        <span>原材料总出库</span>
                         <i class="fa-solid fa-arrow-up-long text-rose-500"></i>
                     </div>
                     <div class="text-lg sm:text-2xl font-bold mt-1.5 sm:mt-2 text-rose-600" id="kpi-out-stock">0 件</div>
                     <div class="text-[10px] sm:text-xs text-slate-400 mt-1 truncate" id="kpi-out-trend">
-                        <span>环比：</span><span class="font-bold text-rose-600">+0.0%</span>
+                        <span>出库总量</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab 选项卡导航 (手机端通过 CSS 将客户订单置顶) -->
+            <!-- Tab 选项卡导航 (手机端置顶客户订单) -->
             <div class="flex border-b border-slate-200 bg-white rounded-t-xl px-2 sm:px-4 pt-1.5 overflow-x-auto custom-scroll">
                 <button onclick="switchTab('orders')" id="tab-btn-orders" class="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b-2 border-indigo-600 font-medium text-xs sm:text-sm text-indigo-600 flex items-center gap-1.5 whitespace-nowrap mobile-order-first"><i class="fa-solid fa-users-viewfinder"></i> 客户订单管理</button>
-                <button onclick="switchTab('inventory')" id="tab-btn-inventory" class="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b-2 border-transparent font-medium text-xs sm:text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-boxes-packing"></i> 原材料出入库</button>
+                <button onclick="switchTab('inventory')" id="tab-btn-inventory" class="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b-2 border-transparent font-medium text-xs sm:text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-boxes-packing"></i> 原材料出入库与库存联动</button>
                 <button onclick="switchTab('report')" id="tab-btn-report" class="px-3.5 sm:px-5 py-2.5 sm:py-3 border-b-2 border-transparent font-medium text-xs sm:text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-chart-pie"></i> 月度深度分析与报表</button>
             </div>
 
@@ -180,20 +186,37 @@
                 <div id="orders-grouped-container" class="space-y-3 sm:space-y-4"></div>
             </section>
 
-            <!-- 2. 原材料出入库模块 -->
-            <section id="sec-inventory" class="bg-white p-4 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden">
-                <form id="inventory-batch-form" onsubmit="handleBatchInventorySubmit(event)" class="mb-6 border-b border-slate-100 pb-4">
-                    <h2 class="text-sm sm:text-md font-bold text-slate-800 mb-3">批量出入库录入</h2>
+            <!-- 2. 原材料出入库模块 (含供应商栏及库存联动结余) -->
+            <section id="sec-inventory" class="bg-white p-4 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden space-y-6">
+                <!-- 材料实时库存结余联动看板 -->
+                <div>
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-warehouse text-indigo-500"></i> 原材料实时库存结余（独立联动核算）
+                    </h3>
+                    <div id="material-balance-cards" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+                </div>
+
+                <form id="inventory-batch-form" onsubmit="handleBatchInventorySubmit(event)" class="border-t border-slate-100 pt-4">
+                    <h2 class="text-sm sm:text-md font-bold text-slate-800 mb-3">批量录入出入库记录 (含供应商)</h2>
                     <div id="batch-rows-container" class="space-y-3 mb-4"></div>
                     <div class="flex justify-between items-center flex-wrap gap-2">
                         <button type="button" onclick="addInventoryRow()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm px-3 py-2 rounded-lg border border-slate-300 font-medium mobile-touch-target"><i class="fa-solid fa-plus"></i> 增加一行</button>
                         <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm px-4 py-2 rounded-lg font-medium shadow-sm mobile-touch-target"><i class="fa-solid fa-cloud-arrow-up"></i> 提交云端保存</button>
                     </div>
                 </form>
-                <div class="overflow-x-auto custom-scroll border border-slate-200 rounded-lg">
-                    <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[500px]">
+
+                <div class="overflow-x-auto custom-scroll border border-slate-200 rounded-lg pt-2">
+                    <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[650px]">
                         <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
-                            <tr><th class="p-2.5 sm:p-3">日期</th><th class="p-2.5 sm:p-3">材料名称</th><th class="p-2.5 sm:p-3">类型</th><th class="p-2.5 sm:p-3">数量</th><th class="p-2.5 sm:p-3">批注说明</th><th class="p-2.5 sm:p-3 text-right">操作</th></tr>
+                            <tr>
+                                <th class="p-2.5 sm:p-3">日期</th>
+                                <th class="p-2.5 sm:p-3">材料名称</th>
+                                <th class="p-2.5 sm:p-3">供应商名称</th>
+                                <th class="p-2.5 sm:p-3">类型</th>
+                                <th class="p-2.5 sm:p-3">数量</th>
+                                <th class="p-2.5 sm:p-3">批注说明</th>
+                                <th class="p-2.5 sm:p-3 text-right">操作</th>
+                            </tr>
                         </thead>
                         <tbody id="inventory-table-body"></tbody>
                     </table>
@@ -240,7 +263,7 @@
         </main>
     </div>
 
-    <!-- 弹窗：修改密码 (限制不得少于8位) -->
+    <!-- 弹窗：修改密码 (至少8位) -->
     <div id="modal-changepwd" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-sm w-full">
             <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-3">修改系统密码</h3>
@@ -261,20 +284,53 @@
         </div>
     </div>
 
-    <!-- 弹窗：新建客户订单 -->
+    <!-- 弹窗：新建/编辑客户订单 -->
     <div id="modal-order" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-3 sm:p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scroll">
-            <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-3">新建客户订单</h3>
+            <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-3" id="order-modal-title">新建客户订单</h3>
             <form id="order-form" onsubmit="handleOrderSubmit(event)" class="space-y-3 text-xs">
-                <div><label class="block font-medium mb-1 text-slate-700">产品样品图片上传</label><input type="file" id="ord-image" accept="image/*" onchange="handleImagePreview(event)" class="w-full border border-slate-300 p-2 rounded-lg bg-slate-50"></div>
+                <input type="hidden" id="ord-edit-id">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div><label class="block font-medium mb-1 text-slate-700">客户名称 *</label><input type="text" id="ord-customer" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="如：上海捷科技"></div>
-                    <div><label class="block font-medium mb-1 text-slate-700">下单时间 *</label><input type="date" id="ord-date" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"></div>
+                    <div>
+                        <label class="block font-medium mb-1 text-slate-700">订单号 *</label>
+                        <input type="text" id="ord-no" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-mono" placeholder="自动生成或手动填写">
+                    </div>
+                    <div>
+                        <label class="block font-medium mb-1 text-slate-700">客户名称 *</label>
+                        <input type="text" id="ord-customer" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="如：上海捷科技">
+                    </div>
                 </div>
                 <div class="grid grid-cols-3 gap-2 sm:gap-3">
-                    <div><label class="block font-medium mb-1 text-slate-700">数量 *</label><input type="number" id="ord-qty" oninput="calcOrderTotal()" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none"></div>
-                    <div><label class="block font-medium mb-1 text-slate-700">单价(元) *</label><input type="number" step="0.01" id="ord-price" oninput="calcOrderTotal()" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none"></div>
-                    <div><label class="block font-medium mb-1 text-slate-700">总金额</label><input type="text" id="ord-total" readonly class="w-full border border-slate-100 bg-slate-100 p-2.5 rounded-lg font-bold text-emerald-600" value="¥0.00"></div>
+                    <div>
+                        <label class="block font-medium mb-1 text-slate-700">总数量 *</label>
+                        <input type="number" id="ord-qty" oninput="calcOrderTotal()" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium mb-1 text-slate-700">单价(元) *</label>
+                        <input type="number" step="0.01" id="ord-price" oninput="calcOrderTotal()" required class="w-full border border-slate-300 p-2.5 rounded-lg outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium mb-1 text-slate-700">总金额</label>
+                        <input type="text" id="ord-total" readonly class="w-full border border-slate-100 bg-slate-100 p-2.5 rounded-lg font-bold text-emerald-600" value="¥0.00">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div>
+                        <label class="block font-medium mb-1 text-slate-700">已发货数量</label>
+                        <input type="number" id="ord-shipped-qty" min="0" value="0" class="w-full border border-slate-300 p-2 rounded-lg bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-medium mb-1 text-slate-700">发货时间</label>
+                        <input type="date" id="ord-ship-date" class="w-full border border-slate-300 p-2 rounded-lg bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-medium mb-1 text-slate-700">下单日期 *</label>
+                        <input type="date" id="ord-date" required class="w-full border border-slate-300 p-2 rounded-lg bg-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-medium mb-1 text-slate-700">产品样品图片上传</label>
+                    <input type="file" id="ord-image" accept="image/*" onchange="handleImagePreview(event)" class="w-full border border-slate-300 p-2 rounded-lg bg-slate-50">
                 </div>
                 <div>
                     <label class="block font-medium mb-1 text-slate-700">订单批注 / 备注说明</label>
@@ -302,6 +358,7 @@
         let authMode = 'login';
         let chartInstance1 = null;
         let chartInstance2 = null;
+        let globalSearchKeyword = '';
 
         window.addEventListener('DOMContentLoaded', () => {
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -319,6 +376,7 @@
                 initInventoryBatchRows();
                 fetchDataFromCloud();
                 document.getElementById('ord-date').valueAsDate = new Date();
+                document.getElementById('ord-no').value = 'CH-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(100 + Math.random() * 900);
             } else {
                 document.getElementById('login-overlay').classList.remove('hidden');
                 document.getElementById('main-app').classList.add('hidden');
@@ -357,8 +415,7 @@
                 userLabel.innerText = "电子邮箱";
                 authInput.type = "email";
                 authInput.readOnly = false;
-                authInput.style.paddingLeft = "50px";
-                authInput.className = "w-full pr-4 border border-slate-300 p-3 sm:p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
+                authInput.className = "w-full bg-white p-3 sm:p-2.5 outline-none border-0";
                 authInput.placeholder = "your_email@domain.com";
                 authInput.value = "";
                 authIcon.className = "fa-solid fa-envelope";
@@ -373,8 +430,7 @@
                 userLabel.innerText = "登录账号";
                 authInput.type = "text";
                 authInput.readOnly = true;
-                authInput.style.paddingLeft = "50px";
-                authInput.className = "w-full pr-4 border border-slate-300 bg-slate-100 text-slate-600 p-3 sm:p-2.5 rounded-xl outline-none cursor-not-allowed font-medium";
+                authInput.className = "w-full bg-slate-100 text-slate-600 p-3 sm:p-2.5 outline-none cursor-not-allowed font-medium border-0";
                 authInput.placeholder = "ChenghuiGroup";
                 authInput.value = FIXED_USER;
                 authIcon.className = "fa-solid fa-user";
@@ -484,11 +540,34 @@
             if (tab === 'report') renderDeepReport();
         }
 
+        // 全局搜索触发函数
+        function handleGlobalSearch() {
+            globalSearchKeyword = document.getElementById('global-search-input').value.trim().toLowerCase();
+            renderOrders();
+            renderInventoryTable();
+        }
+
+        function clearGlobalSearch() {
+            document.getElementById('global-search-input').value = '';
+            globalSearchKeyword = '';
+            renderOrders();
+            renderInventoryTable();
+        }
+
         function renderOrders() {
             const container = document.getElementById('orders-grouped-container');
-            container.innerHTML = ordersData.length === 0 ? `<div class="text-center py-10 text-slate-400 text-xs sm:text-sm">暂无订单数据</div>` : '';
+            
+            const filteredOrders = ordersData.filter(o => {
+                if (!globalSearchKeyword) return true;
+                const matchStr = `${o.order_no || ''} ${o.customer || ''} ${o.remark || ''}`.toLowerCase();
+                return matchStr.includes(globalSearchKeyword);
+            });
+
+            container.innerHTML = filteredOrders.length === 0 ? `<div class="text-center py-10 text-slate-400 text-xs sm:text-sm">暂无匹配的订单数据</div>` : '';
+            
             const groups = {};
-            ordersData.forEach(o => { if (!groups[o.customer]) groups[o.customer] = []; groups[o.customer].push(o); });
+            filteredOrders.forEach(o => { if (!groups[o.customer]) groups[o.customer] = []; groups[o.customer].push(o); });
+            
             Object.keys(groups).forEach((customer, index) => {
                 const list = groups[customer];
                 const totalAmt = list.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
@@ -496,23 +575,34 @@
                     <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
                         <div onclick="document.getElementById('acc-${index}').classList.toggle('hidden')" class="bg-slate-50/80 p-3.5 sm:p-4 flex justify-between items-center cursor-pointer hover:bg-slate-100/80 transition">
                             <span class="font-bold text-slate-800 text-xs sm:text-sm">${customer} <span class="font-normal text-slate-500">(${list.length} 笔)</span></span>
-                            <span class="text-xs sm:text-sm font-semibold text-emerald-600">累计: ¥${totalAmt.toFixed(2)}</span>
+                            <span class="text-xs sm:text-sm font-semibold text-emerald-600">累计金额: ¥${totalAmt.toFixed(2)}</span>
                         </div>
-                        <div id="acc-${index}" class="hidden border-t border-slate-200 p-2.5 sm:p-3 text-xs overflow-x-auto custom-scroll">
-                            <table class="w-full text-left text-slate-600 min-w-[460px]">
+                        <div id="acc-${index}" class="border-t border-slate-200 p-2.5 sm:p-3 text-xs overflow-x-auto custom-scroll">
+                            <table class="w-full text-left text-slate-600 min-w-[700px]">
                                 <tr class="bg-slate-100/60 text-slate-500 font-bold">
-                                    <th class="p-2">日期</th><th class="p-2">数量</th><th class="p-2">单价</th><th class="p-2">总额</th><th class="p-2">批注</th><th class="p-2 text-right">操作</th>
+                                    <th class="p-2">订单号</th><th class="p-2">下单日期</th><th class="p-2">总数量</th><th class="p-2">已发货</th><th class="p-2">未发货</th><th class="p-2">发货时间</th><th class="p-2">总额</th><th class="p-2">批注</th><th class="p-2 text-right">操作</th>
                                 </tr>
-                                ${list.map(o => `
-                                    <tr class="border-b border-slate-100">
-                                        <td class="p-2">${o.order_date || '-'}</td>
-                                        <td class="p-2 font-medium">${o.quantity}</td>
-                                        <td class="p-2">¥${Number(o.price || 0).toFixed(2)}</td>
-                                        <td class="p-2 text-emerald-600 font-bold">¥${Number(o.total_amount || 0).toFixed(2)}</td>
-                                        <td class="p-2 text-slate-500">${o.remark || '无批注'}</td>
-                                        <td class="p-2 text-right"><button onclick="deleteOrder(${o.id})" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-trash"></i></button></td>
-                                    </tr>
-                                `).join('')}
+                                ${list.map(o => {
+                                    const totalQ = Number(o.quantity || 0);
+                                    const shippedQ = Number(o.shipped_quantity || 0);
+                                    const unShippedQ = Math.max(0, totalQ - shippedQ);
+                                    return `
+                                        <tr class="border-b border-slate-100">
+                                            <td class="p-2 font-mono font-medium text-indigo-600">${o.order_no || '无单号'}</td>
+                                            <td class="p-2">${o.order_date || '-'}</td>
+                                            <td class="p-2 font-bold">${totalQ}</td>
+                                            <td class="p-2 text-blue-600 font-medium">${shippedQ}</td>
+                                            <td class="p-2 text-amber-600 font-bold">${unShippedQ}</td>
+                                            <td class="p-2 text-slate-500">${o.ship_date || '未发货'}</td>
+                                            <td class="p-2 text-emerald-600 font-bold">¥${Number(o.total_amount || 0).toFixed(2)}</td>
+                                            <td class="p-2 text-slate-500">${o.remark || '无批注'}</td>
+                                            <td class="p-2 text-right space-x-2">
+                                                <button onclick="openEditOrderModal(${o.id})" class="text-indigo-600 hover:text-indigo-800 p-1" title="编辑订单"><i class="fa-solid fa-pen-to-square"></i></button>
+                                                <button onclick="deleteOrder(${o.id})" class="text-rose-500 hover:text-rose-700 p-1" title="删除订单"><i class="fa-solid fa-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
                             </table>
                         </div>
                     </div>`;
@@ -525,10 +615,11 @@
                 <div class="grid grid-cols-12 gap-2 items-center inv-batch-row bg-slate-50 p-2 rounded-lg sm:bg-transparent sm:p-0">
                     <input type="date" value="${new Date().toISOString().split('T')[0]}" class="col-span-6 sm:col-span-2 border border-slate-300 p-2 rounded-lg text-xs" required>
                     <input type="text" placeholder="原材料名称" class="col-span-6 sm:col-span-3 border border-slate-300 p-2 rounded-lg text-xs" required>
-                    <select class="col-span-4 sm:col-span-2 border border-slate-300 p-2 rounded-lg text-xs"><option value="IN">入库</option><option value="OUT">出库</option></select>
-                    <input type="number" placeholder="数量" class="col-span-4 sm:col-span-2 border border-slate-300 p-2 rounded-lg text-xs" required>
-                    <input type="text" placeholder="批注" class="col-span-3 sm:col-span-2 border border-slate-300 p-2 rounded-lg text-xs">
-                    <button type="button" onclick="this.parentElement.remove()" class="col-span-1 text-rose-500 text-center p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+                    <input type="text" placeholder="供应商名称" class="col-span-6 sm:col-span-2 border border-slate-300 p-2 rounded-lg text-xs">
+                    <select class="col-span-6 sm:col-span-1 border border-slate-300 p-2 rounded-lg text-xs"><option value="IN">入库</option><option value="OUT">出库</option></select>
+                    <input type="number" placeholder="数量" class="col-span-6 sm:col-span-2 border border-slate-300 p-2 rounded-lg text-xs" required>
+                    <input type="text" placeholder="批注" class="col-span-10 sm:col-span-1 border border-slate-300 p-2 rounded-lg text-xs">
+                    <button type="button" onclick="this.parentElement.remove()" class="col-span-2 sm:col-span-1 text-rose-500 text-center p-1"><i class="fa-solid fa-xmark text-base"></i></button>
                 </div>`);
         }
 
@@ -541,9 +632,10 @@
                 newItems.push({ 
                     date: inputs[0].value, 
                     material: inputs[1].value, 
-                    type: inputs[2].value, 
-                    quantity: Number(inputs[3].value), 
-                    remark: inputs[4].value || '无批注' 
+                    supplier: inputs[2].value || '自主/无',
+                    type: inputs[3].value, 
+                    quantity: Number(inputs[4].value), 
+                    remark: inputs[5].value || '无批注' 
                 });
             });
             await supabaseClient.from('inventory').insert(newItems);
@@ -551,16 +643,67 @@
             initInventoryBatchRows();
         }
 
+        // 渲染原材料表格及计算独立库存联动结余
         function renderInventoryTable() {
-            document.getElementById('inventory-table-body').innerHTML = inventoryData.map(i => `
+            const tbody = document.getElementById('inventory-table-body');
+            const filteredInv = inventoryData.filter(i => {
+                if (!globalSearchKeyword) return true;
+                const matchStr = `${i.material || ''} ${i.supplier || ''} ${i.remark || ''} ${i.date || ''}`.toLowerCase();
+                return matchStr.includes(globalSearchKeyword);
+            });
+
+            tbody.innerHTML = filteredInv.map(i => `
                 <tr class="border-b border-slate-100">
                     <td class="p-2.5 sm:p-3">${i.date}</td>
                     <td class="p-2.5 sm:p-3 font-medium">${i.material}</td>
+                    <td class="p-2.5 sm:p-3 text-slate-600">${i.supplier || '自主/无'}</td>
                     <td class="p-2.5 sm:p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${i.type === 'IN' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}">${i.type === 'IN' ? '入库' : '出库'}</span></td>
                     <td class="p-2.5 sm:p-3 font-bold">${i.quantity}</td>
                     <td class="p-2.5 sm:p-3 text-slate-500">${i.remark || '无批注'}</td>
                     <td class="p-2.5 sm:p-3 text-right"><button onclick="deleteInventory(${i.id})" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash"></i></button></td>
                 </tr>`).join('');
+
+            // 联动计算每种材料的库存结余并展示
+            renderMaterialBalanceCards();
+        }
+
+        function renderMaterialBalanceCards() {
+            const balanceContainer = document.getElementById('material-balance-cards');
+            const materialMap = {};
+
+            inventoryData.forEach(item => {
+                const mat = item.material || '未知材料';
+                if (!materialMap[mat]) {
+                    materialMap[mat] = { in: 0, out: 0 };
+                }
+                const qty = Number(item.quantity || 0);
+                if (item.type === 'IN') {
+                    materialMap[mat].in += qty;
+                } else if (item.type === 'OUT') {
+                    materialMap[mat].out += qty;
+                }
+            });
+
+            const keys = Object.keys(materialMap);
+            if (keys.length === 0) {
+                balanceContainer.innerHTML = `<div class="col-span-full text-center py-4 text-slate-400 text-xs">暂无原材料出入库记录</div>`;
+                return;
+            }
+
+            balanceContainer.innerHTML = keys.map(mat => {
+                const data = materialMap[mat];
+                const balance = data.in - data.out;
+                return `
+                    <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1">
+                        <div class="font-bold text-slate-800 text-xs truncate" title="${mat}">${mat}</div>
+                        <div class="text-[11px] text-slate-500 flex justify-between"><span>入库: ${data.in}</span><span>出库: ${data.out}</span></div>
+                        <div class="text-xs font-bold pt-1 border-t border-slate-200 flex justify-between items-center">
+                            <span class="text-slate-400">结余库存:</span>
+                            <span class="${balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${balance} 件</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function updateKPIs() {
@@ -642,7 +785,7 @@
             const totalSum = ordersData.reduce((s, o) => s + Number(o.total_amount || 0), 0);
             document.getElementById('smart-report-text').innerHTML = `
                 • 截止目前系统累计服务客户 <strong class="text-indigo-700">${customers.length}</strong> 家，总计完成订单 <strong class="text-indigo-700">${totalOrders}</strong> 笔，总营收额达 <strong class="text-emerald-700">¥${totalSum.toFixed(2)}</strong>。<br>
-                • 采购额最高客户为 <strong class="text-indigo-700">${customers[0] || '无'}</strong>，原材料库存运转保持稳定良好状态。
+                • 采购额最高客户为 <strong class="text-indigo-700">${customers[0] || '无'}</strong>，原材料库存运转保持独立核算。
             `;
 
             renderCharts(customers, customers.map(c => groups[c].count), customers.map(c => groups[c].totalAmt));
@@ -672,18 +815,21 @@
                 alert("暂无数据可导出！");
                 return;
             }
-            let csvContent = "\uFEFF客户名称,订单笔数,采购总数量,累计消费总金额(元),最新交易时间\n";
+            let csvContent = "\uFEFF订单号,客户名称,订单笔数,采购总数量,已发货数量,未发货数量,累计消费总金额(元),最新交易时间\n";
             const groups = {};
             ordersData.forEach(o => {
-                if (!groups[o.customer]) groups[o.customer] = { count: 0, amt: 0, qty: 0, last: '' };
+                if (!groups[o.customer]) groups[o.customer] = { count: 0, amt: 0, qty: 0, shipped: 0, last: '' };
                 groups[o.customer].count += 1;
                 groups[o.customer].amt += Number(o.total_amount || 0);
                 groups[o.customer].qty += Number(o.quantity || 0);
+                groups[o.customer].shipped += Number(o.shipped_quantity || 0);
                 if (o.order_date && o.order_date > groups[o.customer].last) groups[o.customer].last = o.order_date;
             });
 
             Object.keys(groups).forEach(c => {
-                csvContent += `"${c}",${groups[c].count},${groups[c].qty},${groups[c].amt.toFixed(2)},"${groups[c].last}"\n`;
+                const g = groups[c];
+                const un = Math.max(0, g.qty - g.shipped);
+                csvContent += `"${c}",${g.count},${g.qty},${g.shipped},${un},${g.amt.toFixed(2)},"${g.last}"\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -695,29 +841,76 @@
         }
 
         let currentUploadedImageBase64 = '';
-        function openOrderModal() { document.getElementById('modal-order').classList.remove('hidden'); }
+        function openOrderModal() {
+            document.getElementById('order-modal-title').innerText = "新建客户订单";
+            document.getElementById('ord-edit-id').value = "";
+            document.getElementById('ord-form').reset();
+            document.getElementById('ord-date').valueAsDate = new Date();
+            document.getElementById('ord-no').value = 'CH-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(100 + Math.random() * 900);
+            document.getElementById('modal-order').classList.remove('hidden');
+        }
+
+        function openEditOrderModal(id) {
+            const o = ordersData.find(item => item.id === id);
+            if (!o) return;
+            document.getElementById('order-modal-title').innerText = "编辑客户订单";
+            document.getElementById('ord-edit-id').value = o.id;
+            document.getElementById('ord-no').value = o.order_no || '';
+            document.getElementById('ord-customer').value = o.customer || '';
+            document.getElementById('ord-date').value = o.order_date || '';
+            document.getElementById('ord-qty').value = o.quantity || 0;
+            document.getElementById('ord-price').value = o.price || 0;
+            document.getElementById('ord-shipped-qty').value = o.shipped_quantity || 0;
+            document.getElementById('ord-ship-date').value = o.ship_date || '';
+            document.getElementById('ord-remark').value = o.remark || '';
+            calcOrderTotal();
+            document.getElementById('modal-order').classList.remove('hidden');
+        }
+
         function closeOrderModal() { document.getElementById('modal-order').classList.add('hidden'); }
+        
         function calcOrderTotal() {
             const q = Number(document.getElementById('ord-qty').value || 0);
             const p = Number(document.getElementById('ord-price').value || 0);
             document.getElementById('ord-total').value = `¥${(q * p).toFixed(2)}`;
         }
+
         function handleImagePreview(e) {
             const reader = new FileReader();
             reader.onload = (evt) => { currentUploadedImageBase64 = evt.target.result; };
             reader.readAsDataURL(e.target.files[0]);
         }
+
         async function handleOrderSubmit(e) {
             e.preventDefault();
+            const editId = document.getElementById('ord-edit-id').value;
             const q = Number(document.getElementById('ord-qty').value);
             const p = Number(document.getElementById('ord-price').value);
-            await supabaseClient.from('orders').insert([{
-                customer: document.getElementById('ord-customer').value,
+            const shippedQ = Number(document.getElementById('ord-shipped-qty').value || 0);
+            const shipDate = document.getElementById('ord-ship-date').value || null;
+            const orderNo = document.getElementById('ord-no').value;
+            const customer = document.getElementById('ord-customer').value;
+            const remark = document.getElementById('ord-remark').value || '无批注';
+
+            const orderPayload = {
+                order_no: orderNo,
+                customer: customer,
                 order_date: document.getElementById('ord-date').value,
-                quantity: q, price: p, total_amount: q * p,
-                remark: document.getElementById('ord-remark').value || '无批注',
+                quantity: q,
+                price: p,
+                total_amount: q * p,
+                shipped_quantity: shippedQ,
+                ship_date: shipDate,
+                remark: remark,
                 image: currentUploadedImageBase64 || null
-            }]);
+            };
+
+            if (editId) {
+                await supabaseClient.from('orders').update(orderPayload).eq('id', editId);
+            } else {
+                await supabaseClient.from('orders').insert([orderPayload]);
+            }
+
             fetchDataFromCloud();
             closeOrderModal();
         }
