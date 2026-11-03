@@ -786,7 +786,8 @@
             if (existing && existing.length > 0) {
                 res = await postSupabaseRest('orders', { customer: newP }, 'PATCH', 'order_no=eq.__SYSTEM_CONFIG_PWD__');
             } else {
-                res = await postSupabaseRest('orders', [{ order_no: '__SYSTEM_CONFIG_PWD__', customer: newP, quantity: 0, total_amount: 0 }], 'POST');
+                // 修复点：在新增系统配置行时，补全必填字段 price、quantity、total_amount，防止触发 NOT NULL 约束错误
+                res = await postSupabaseRest('orders', [{ order_no: '__SYSTEM_CONFIG_PWD__', customer: newP, quantity: 0, price: 0, total_amount: 0 }], 'POST');
             }
 
             if (res.error) {
@@ -1478,7 +1479,7 @@
 
         async function handleBatchInventorySubmit(e) {
             e.preventDefault();
-            if (SUPABASE_KEY === "YOUR_REAL_SUPABASE_KEY_HERE" || !SUPABASE_KEY) {
+            if (SUPABASE_KEY === "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtaWhqdHR4aXFsenlwZHZ4cmRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0MTE5MzQsImV4cCI6MjEwODk4NzkzNH0.nx-XTeYs--D04QgfsX5rkMUEmBRUr_YK8-MU9-QGr6w" || !SUPABASE_KEY) {
                 alert("未设置正确的 Supabase Key！请先在代码中填入您真实的 Supabase anon/public key。");
                 return;
             }
