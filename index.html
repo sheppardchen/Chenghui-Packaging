@@ -535,9 +535,9 @@
         </div>
     </div>
 
-    <!-- 逻辑处理脚本 -->
+    <!-- 逻辑处理脚本 (含 Key 混淆加密保护) -->
     <script>
-        // 🔒 API Key 保护机制：分段拼装与 Base64 混淆加密
+        // 🔒 API Key 保护机制：使用 Base64 分段混淆加密，防止前端直接明文暴露
         const _P1 = "aHR0cHM6Ly9ibWloaGp0dHhpcWx6eXBkdnhyZG8uc3VwYWJhc2UuY28="; 
         const _K_PART_A = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
         const _K_PART_B = "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtaWhqdHR4aXFsenlwZHZ4cmRvIiwicm9sZSI6ImFub24i";
@@ -571,15 +571,12 @@
             checkSession();
         });
 
-        function isUserAuthenticated() {
-            const isSessionLogged = sessionStorage.getItem('chenghui_logged');
-            const isPersistentLogged = localStorage.getItem('chenghui_persistent_logged');
-            return isSessionLogged === 'true' || isPersistentLogged === 'true';
-        }
-
         async function checkSession() {
             await fetchSystemSettings();
-            if (isUserAuthenticated()) {
+            const isSessionLogged = sessionStorage.getItem('chenghui_logged');
+            const isPersistentLogged = localStorage.getItem('chenghui_persistent_logged');
+
+            if (isSessionLogged === 'true' || isPersistentLogged === 'true') {
                 document.getElementById('login-overlay').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
                 initInventoryBatchRows();
@@ -592,82 +589,57 @@
             }
         }
 
-        // 带自动重试与详细异常捕获的 Supabase 请求封装
-        async function fetchSupabaseRest(table, query = '', retries = 2) {
-            if (!isUserAuthenticated() && table !== 'orders') return [];
-
-            const targetUrl = `${SUPABASE_URL}/rest/v1/${table}?${query}`;
-            for (let i = 0; i <= retries; i++) {
-                try {
-                    const res = await window.fetch(targetUrl, {
-                        method: 'GET',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': 'Bearer ' + SUPABASE_KEY
-                        }
-                    });
-                    if (!res.ok) {
-                        const errText = await res.text();
-                        console.error(`Fetch fail [${table}]:`, errText);
-                        return [];
+        async function fetchSupabaseRest(table, query = '') {
+            try {
+                const res = await window.fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_KEY
                     }
-                    return await res.json();
-                } catch(e) {
-                    console.warn(`Attempt ${i+1} failed to fetch ${table}:`, e.message);
-                    if (i === retries) {
-                        console.error("Cloud fetch network error after retries. Check VPN/network connection.");
-                        return [];
-                    }
-                    await new Promise(r => setTimeout(r, 1000)); // 等待 1 秒后重试
+                });
+                if (!res.ok) {
+                    const errText = await res.text();
+                    console.error(`Fetch fail [${table}]:`, errText);
+                    return [];
                 }
+                return await res.json();
+            } catch(e) {
+                console.error("Cloud fetch fail:", e);
+                return [];
             }
-            return [];
         }
 
-        async function postSupabaseRest(table, payload, method = 'POST', matchQuery = '', retries = 2) {
-            if (!isUserAuthenticated()) {
-                alert("登录状态已失效，请重新登录！");
-                checkSession();
-                return { error: new Error("Unauthorized") };
-            }
+        async function postSupabaseRest(table, payload, method = 'POST', matchQuery = '') {
+            try {
+                let url = `${SUPABASE_URL}/rest/v1/${table}`;
+                if (matchQuery) url += `?${matchQuery}`;
+                
+                const headers = {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': 'Bearer ' + SUPABASE_KEY,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                };
 
-            let url = `${SUPABASE_URL}/rest/v1/${table}`;
-            if (matchQuery) url += `?${matchQuery}`;
-            
-            const headers = {
-                'apikey': SUPABASE_KEY,
-                'Authorization': 'Bearer ' + SUPABASE_KEY,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=representation'
-            };
+                const res = await window.fetch(url, {
+                    method: method,
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
 
-            for (let i = 0; i <= retries; i++) {
-                try {
-                    const res = await window.fetch(url, {
-                        method: method,
-                        headers: headers,
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!res.ok) {
-                        const errText = await res.text();
-                        throw new Error(errText);
-                    }
-                    return { error: null };
-                } catch(err) {
-                    console.warn(`Attempt ${i+1} post error:`, err.message);
-                    if (i === retries) {
-                        return { error: new Error("网络连接失败 (Failed to fetch)。请检查您的 VPN 连接或网络代理设置是否正常。") };
-                    }
-                    await new Promise(r => setTimeout(r, 1000));
+                if (!res.ok) {
+                    const errText = await res.text();
+                    throw new Error(errText);
                 }
+                return { error: null };
+            } catch(err) {
+                console.error("Post Rest error:", err);
+                return { error: err };
             }
-            return { error: new Error("网络连接失败") };
         }
 
         async function deleteSupabaseRest(table, matchQuery) {
-            if (!isUserAuthenticated()) return { error: new Error("Unauthorized") };
-
             try {
                 const res = await window.fetch(`${SUPABASE_URL}/rest/v1/${table}?${matchQuery}`, {
                     method: 'DELETE',
