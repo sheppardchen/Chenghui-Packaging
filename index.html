@@ -1410,13 +1410,10 @@
                         </tbody>
                         <tfoot>
                             <tr class="font-bold bg-slate-50">
-                                <td colspan="8" class="border border-slate-900 p-2.5 text-left text-slate-800">
-                                    人民币大写：<span class="text-indigo-700 font-bold tracking-wider">${chineseAmount}</span>
+                                <td colspan="8" class="border border-slate-900 p-2.5 text-left text-slate-800 flex justify-between items-center">
+                                    <span>人民币大写：<span class="text-indigo-700 font-bold tracking-wider">${chineseAmount}</span></span>
+                                    <span>总计金额：<span class="text-emerald-700 font-bold text-base">¥${batchTotalAmount.toFixed(2)}</span></span>
                                 </td>
-                            </tr>
-                            <tr class="font-bold bg-slate-50">
-                                <td colspan="6" class="border border-slate-900 p-2.5 text-right">总计金额：</td>
-                                <td colspan="2" class="border border-slate-900 p-2.5 text-left text-emerald-700 text-base">¥${batchTotalAmount.toFixed(2)}</td>
                             </tr>
                         </tfoot>
                     </table>
