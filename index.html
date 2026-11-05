@@ -537,8 +537,8 @@
 
     <!-- 逻辑处理脚本 -->
     <script>
-        // 🔒 API Key 保护机制：分段拼装与 Base64 混淆加密，避免明文硬编码和爬虫直接抓取
-        const _P1 = "aHR0cHM6Ly9ibWloaGp0dHhpcWx6eXBkdnhyZG8uc3VwYWJhc2UuY28="; // Base64(URL)
+        // 🔒 API Key 保护机制：分段拼装与 Base64 混淆加密
+        const _P1 = "aHR0cHM6Ly9ibWloaGp0dHhpcWx6eXBkdnhyZG8uc3VwYWJhc2UuY28="; 
         const _K_PART_A = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
         const _K_PART_B = "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtaWhqdHR4aXFsenlwZHZ4cmRvIiwicm9sZSI6ImFub24i";
         const _K_PART_C = "LCJpYXQiOjE3OTM0MTE5MzQsImV4cCI6MjEwODk4NzkzNH0";
@@ -550,7 +550,6 @@
                 const key = `${_K_PART_A}.${_K_PART_B}.${_K_PART_C}.${_K_PART_D}`;
                 return { url, key };
             } catch(e) {
-                console.error("Security decoding error");
                 return { url: "", key: "" };
             }
         }
@@ -572,7 +571,6 @@
             checkSession();
         });
 
-        // 🔒 安全拦截：检查是否已登录系统，未登录拒绝与 Supabase 交互
         function isUserAuthenticated() {
             const isSessionLogged = sessionStorage.getItem('chenghui_logged');
             const isPersistentLogged = localStorage.getItem('chenghui_persistent_logged');
@@ -594,73 +592,81 @@
             }
         }
 
-        async function fetchSupabaseRest(table, query = '') {
-            // 🔒 身份安全校验：未通过登录授权直接拦截请求，保护后端接口与 Anon Key 调用
-            if (!isUserAuthenticated() && table !== 'orders') {
-                console.warn("Unauthorized request blocked.");
-                return [];
-            }
+        // 带自动重试与详细异常捕获的 Supabase 请求封装
+        async function fetchSupabaseRest(table, query = '', retries = 2) {
+            if (!isUserAuthenticated() && table !== 'orders') return [];
 
-            try {
-                const res = await window.fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_KEY
+            const targetUrl = `${SUPABASE_URL}/rest/v1/${table}?${query}`;
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const res = await window.fetch(targetUrl, {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': 'Bearer ' + SUPABASE_KEY
+                        }
+                    });
+                    if (!res.ok) {
+                        const errText = await res.text();
+                        console.error(`Fetch fail [${table}]:`, errText);
+                        return [];
                     }
-                });
-                if (!res.ok) {
-                    const errText = await res.text();
-                    console.error(`Fetch fail [${table}]:`, errText);
-                    return [];
+                    return await res.json();
+                } catch(e) {
+                    console.warn(`Attempt ${i+1} failed to fetch ${table}:`, e.message);
+                    if (i === retries) {
+                        console.error("Cloud fetch network error after retries. Check VPN/network connection.");
+                        return [];
+                    }
+                    await new Promise(r => setTimeout(r, 1000)); // 等待 1 秒后重试
                 }
-                return await res.json();
-            } catch(e) {
-                console.error("Cloud fetch fail:", e);
-                return [];
             }
+            return [];
         }
 
-        async function postSupabaseRest(table, payload, method = 'POST', matchQuery = '') {
+        async function postSupabaseRest(table, payload, method = 'POST', matchQuery = '', retries = 2) {
             if (!isUserAuthenticated()) {
                 alert("登录状态已失效，请重新登录！");
                 checkSession();
                 return { error: new Error("Unauthorized") };
             }
 
-            try {
-                let url = `${SUPABASE_URL}/rest/v1/${table}`;
-                if (matchQuery) url += `?${matchQuery}`;
-                
-                const headers = {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_KEY,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=representation'
-                };
+            let url = `${SUPABASE_URL}/rest/v1/${table}`;
+            if (matchQuery) url += `?${matchQuery}`;
+            
+            const headers = {
+                'apikey': SUPABASE_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_KEY,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            };
 
-                const res = await window.fetch(url, {
-                    method: method,
-                    headers: headers,
-                    body: JSON.stringify(payload)
-                });
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const res = await window.fetch(url, {
+                        method: method,
+                        headers: headers,
+                        body: JSON.stringify(payload)
+                    });
 
-                if (!res.ok) {
-                    const errText = await res.text();
-                    throw new Error(errText);
+                    if (!res.ok) {
+                        const errText = await res.text();
+                        throw new Error(errText);
+                    }
+                    return { error: null };
+                } catch(err) {
+                    console.warn(`Attempt ${i+1} post error:`, err.message);
+                    if (i === retries) {
+                        return { error: new Error("网络连接失败 (Failed to fetch)。请检查您的 VPN 连接或网络代理设置是否正常。") };
+                    }
+                    await new Promise(r => setTimeout(r, 1000));
                 }
-                return { error: null };
-            } catch(err) {
-                console.error("Post Rest error:", err);
-                return { error: err };
             }
+            return { error: new Error("网络连接失败") };
         }
 
         async function deleteSupabaseRest(table, matchQuery) {
-            if (!isUserAuthenticated()) {
-                alert("登录状态已失效，请重新登录！");
-                return { error: new Error("Unauthorized") };
-            }
+            if (!isUserAuthenticated()) return { error: new Error("Unauthorized") };
 
             try {
                 const res = await window.fetch(`${SUPABASE_URL}/rest/v1/${table}?${matchQuery}`, {
@@ -866,7 +872,6 @@
             }
         }
 
-        // 全局搜索并展示匹配记录
         function executeGlobalSearch() {
             const searchInput = document.getElementById('global-search-input');
             if (!searchInput) return;
@@ -879,7 +884,6 @@
 
             document.getElementById('search-keyword-badge').innerText = `关键词: "${searchInput.value.trim()}"`;
 
-            // 1. 匹配客户订单管理模块
             const matchedOrders = ordersData.filter(o => {
                 const models = parseModels(o);
                 const modelStr = models.map(m => m.modelName).join(' ');
@@ -909,7 +913,6 @@
                 }).join('');
             }
 
-            // 2. 匹配独立发货与出库模块
             const matchedShipping = ordersData.filter(o => {
                 const models = parseModels(o);
                 const modelStr = models.map(m => m.modelName).join(' ');
@@ -944,7 +947,6 @@
                 }).join('');
             }
 
-            // 3. 匹配原材料出入库与库存
             const matchedInventory = inventoryData.filter(i => {
                 const matchStr = `${i.material || ''} ${i.supplier || ''} ${i.remark || ''} ${i.date || ''}`.toLowerCase();
                 return matchStr.includes(keyword);
@@ -969,7 +971,6 @@
                 }).join('');
             }
 
-            // 4. 匹配月度分析与报表
             const curMonth = new Date().toISOString().slice(0, 7);
             const matchedReportOrders = ordersData.filter(o => {
                 const matchMonth = o.order_date && o.order_date.startsWith(curMonth);
@@ -1005,7 +1006,6 @@
             document.getElementById('modal-global-search-result').classList.add('hidden');
         }
 
-        // 搜索结果之上的详情弹窗
         function openSearchItemDetail(type, id) {
             const detailModal = document.getElementById('modal-global-search-detail');
             const detailTitle = document.getElementById('search-detail-title');
@@ -1376,17 +1376,12 @@
             `);
         }
 
-        // 导出与上传 Excel 模板格式完全一样的送货送货单 (.xlsx)
         function exportShippingExcelBatch(order, batchItems, shipDate) {
-            if (!window.XLSX) {
-                console.error("XLSX 库未加载");
-                return;
-            }
+            if (!window.XLSX) return;
 
             const docNo = 'XS' + shipDate.replace(/-/g, '') + Math.floor(1000 + Math.random() * 9000);
             const customer = order.customer || '客户';
             
-            // 构建跟上传 Excel 格式一模一样的二维数组数据
             const aoa = [
                 ['温州市新辉包装有限公司', null, null, null, null, null, null, '第1/1页'],
                 ['单据日期：', shipDate, null, null, '单据编号：', docNo, null, null],
@@ -1419,33 +1414,22 @@
             aoa.push(['6228430339412517172 王炳辉 农行天河支行  ·  6228580399085322993 王炳辉 农商行永兴支行  ·  支付宝微信：13777799028', null, null, null, null, null, null, null]);
             aoa.push(['收货人签字：', null, null, null, null, '打印日期：', shipDate, null]);
 
-            // 创建工作表并设置合并单元格
             const ws = XLSX.utils.aoa_to_sheet(aoa);
             const totalRowIndex = 4 + batchItems.length;
 
             ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }, // A1:G1
-                { s: { r: 2, c: 4 }, e: { r: 2, c: 7 } }, // F3:H3 (E3:H3经手人)
-                { s: { r: totalRowIndex, c: 0 }, e: { r: totalRowIndex, c: 5 } }, // A7:F7
-                { s: { r: totalRowIndex + 1, c: 0 }, e: { r: totalRowIndex + 1, c: 7 } } // A8:H8
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+                { s: { r: 2, c: 4 }, e: { r: 2, c: 7 } },
+                { s: { r: totalRowIndex, c: 0 }, e: { r: totalRowIndex, c: 5 } },
+                { s: { r: totalRowIndex + 1, c: 0 }, e: { r: totalRowIndex + 1, c: 7 } }
             ];
 
-            // 列宽设置
             ws['!cols'] = [
-                { wch: 8 },  // 行号
-                { wch: 25 }, // 商品名称
-                { wch: 12 }, // 商品编号
-                { wch: 8 },  // 单位
-                { wch: 10 }, // 数量
-                { wch: 10 }, // 单价
-                { wch: 12 }, // 金额
-                { wch: 15 }  // 单据备注
+                { wch: 8 }, { wch: 25 }, { wch: 12 }, { wch: 8 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 15 }
             ];
 
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, '送货单');
-
-            // 触发自动下载送货单文件
             XLSX.writeFile(wb, `温州市新辉包装有限公司_送货单_${customer}_${shipDate}.xlsx`);
         }
 
@@ -1460,9 +1444,7 @@
             const models = parseModels(o);
             let historyList = [];
             try { 
-                historyList = typeof o.shipping_history === 'string' 
-                    ? JSON.parse(o.shipping_history) 
-                    : (o.shipping_history || []); 
+                historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); 
             } catch(e) { historyList = []; }
 
             const rows = document.querySelectorAll('.ship-batch-row');
@@ -1516,7 +1498,6 @@
                 return;
             }
 
-            // 自动生成并同步下载跟模板格式一致的 Excel 出库送货单
             exportShippingExcelBatch(o, newBatchItems, date);
 
             document.getElementById('modal-shipping-action').classList.add('hidden');
@@ -1586,11 +1567,6 @@
 
         async function handleBatchInventorySubmit(e) {
             e.preventDefault();
-            if (!SUPABASE_KEY) {
-                alert("未设置正确的 Supabase Key！");
-                return;
-            }
-
             const rows = document.querySelectorAll('.inv-batch-row');
             const newItems = [];
             rows.forEach(r => {
@@ -1619,22 +1595,8 @@
             }
 
             let res = await postSupabaseRest('inventory', newItems, 'POST');
-            
             if (res.error) {
-                const fallbacks = newItems.map(item => ({
-                    date: item.date,
-                    material: item.material,
-                    supplier: item.supplier,
-                    type: item.type,
-                    quantity: item.quantity,
-                    total_amount: item.total_amount,
-                    remark: item.remark
-                }));
-                res = await postSupabaseRest('inventory', fallbacks, 'POST');
-            }
-
-            if (res.error) {
-                alert("提交失败！错误信息:\n" + res.error.message);
+                alert("提交失败：" + res.error.message);
                 return;
             }
 
@@ -1753,7 +1715,6 @@
             if(!container) return;
             container.innerHTML = '';
 
-            // 计算选中月份的 5 个统计指标
             const monthTotalAmt = monthOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
             let monthTotalProfit = 0;
             let monthTotalQty = 0;
@@ -1784,7 +1745,6 @@
                 groups[o.customer].unit = unit;
             });
 
-            // 填充报表头部的 5 个统计框
             document.getElementById('rep-kpi-count').innerText = `${monthOrders.length} 笔`;
             document.getElementById('rep-kpi-amount').innerText = `¥${monthTotalAmt.toFixed(2)}`;
             document.getElementById('rep-kpi-profit').innerText = `¥${monthTotalProfit.toFixed(2)}`;
@@ -1797,7 +1757,6 @@
             } else {
                 customers.forEach(c => {
                     const info = groups[c];
-                    const remaining = Math.max(0, info.totalQty - info.shippedQty);
                     container.innerHTML += `
                         <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2.5">
                             <div class="flex justify-between items-center border-b border-slate-200 pb-2">
@@ -1931,9 +1890,7 @@
         function handleModelFileChange(input) {
             if (input.files && input.files[0]) {
                 const fileNameSpan = input.parentElement.querySelector('.model-file-name');
-                if (fileNameSpan) {
-                    fileNameSpan.innerText = input.files[0].name;
-                }
+                if (fileNameSpan) fileNameSpan.innerText = input.files[0].name;
             }
         }
 
