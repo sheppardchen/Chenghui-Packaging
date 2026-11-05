@@ -55,7 +55,7 @@
                         </defs>
                     </svg>
                 </div>
-                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight mt-2" id="auth-title">物料订单管理系统</h2>
+                <h2 class="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight mt-2">物料订单管理系统</h2>
             </div>
 
             <div id="login-due-alert" class="hidden bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-xl text-xs space-y-1">
@@ -153,7 +153,7 @@
         </header>
 
         <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 flex-1 w-full">
-            <!-- 全局搜索栏 (带搜索按钮) -->
+            <!-- 全局搜索栏 -->
             <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-2 sm:gap-3">
                 <span class="text-slate-400 text-sm pl-2"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <input type="text" id="global-search-input" onkeydown="handleGlobalSearchKeyDown(event)" placeholder="全局搜索：输入客户名, 订单号, 型号, 供应商..." class="w-full text-xs sm:text-sm outline-none bg-transparent text-slate-700">
@@ -162,7 +162,7 @@
                 </button>
             </div>
 
-            <!-- KPI 看板 (5块平分宽度) -->
+            <!-- KPI 看板 -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
@@ -212,7 +212,12 @@
             <!-- 1. 客户订单管理模块 -->
             <section id="sec-orders" class="bg-white p-3.5 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200">
                 <div class="flex justify-between items-center mb-4 sm:mb-6">
-                    <h2 class="text-base sm:text-lg font-bold text-slate-800">客户订单分类列表</h2>
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800">客户订单分类列表</h2>
+                        <button onclick="toggleAllSections('orders')" id="toggle-all-orders-btn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg font-medium transition mobile-touch-target">
+                            <i class="fa-solid fa-angles-down"></i> 全部折叠/展开
+                        </button>
+                    </div>
                     <button type="button" onclick="openOrderModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm px-4 py-2.5 rounded-lg font-medium transition flex items-center gap-1.5 shadow-sm mobile-touch-target cursor-pointer z-20"><i class="fa-solid fa-plus"></i> 新增客户订单</button>
                 </div>
                 <div id="orders-grouped-container" class="space-y-3 sm:space-y-4"></div>
@@ -254,15 +259,25 @@
                     </div>
                 </form>
 
-                <div class="overflow-x-auto custom-scroll border border-slate-200 rounded-lg pt-2">
-                    <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[750px]">
-                        <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
-                            <tr>
-                                <th class="p-2.5 sm:p-3">日期</th><th class="p-2.5 sm:p-3">材料名称</th><th class="p-2.5 sm:p-3">供应商名称</th><th class="p-2.5 sm:p-3">类型</th><th class="p-2.5 sm:p-3">数量</th><th class="p-2.5 sm:p-3">单价(元)</th><th class="p-2.5 sm:p-3">总金额(元)</th><th class="p-2.5 sm:p-3">批注说明</th><th class="p-2.5 sm:p-3 text-right">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-table-body"></tbody>
-                    </table>
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <div onclick="toggleSectionCollapse('inventory-table-wrap', 'inv-toggle-icon')" class="bg-slate-50 p-3.5 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition">
+                        <span class="text-xs sm:text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-indigo-500"></i> 原材料出入库历史记录列表
+                        </span>
+                        <span class="text-xs text-slate-500 flex items-center gap-1 font-medium">
+                            <span id="inv-count-badge">0条</span> <i id="inv-toggle-icon" class="fa-solid fa-chevron-down transition-transform duration-200"></i>
+                        </span>
+                    </div>
+                    <div id="inventory-table-wrap" class="overflow-x-auto custom-scroll pt-2">
+                        <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[750px]">
+                            <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-2.5 sm:p-3">日期</th><th class="p-2.5 sm:p-3">材料名称</th><th class="p-2.5 sm:p-3">供应商名称</th><th class="p-2.5 sm:p-3">类型</th><th class="p-2.5 sm:p-3">数量</th><th class="p-2.5 sm:p-3">单价(元)</th><th class="p-2.5 sm:p-3">总金额(元)</th><th class="p-2.5 sm:p-3">批注说明</th><th class="p-2.5 sm:p-3 text-right">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -271,7 +286,7 @@
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-slate-100 pb-4 gap-3">
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-slate-800">月度经营与客户发货分析报告</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">多维度核算每月客户订单营收与多批次出库发货进度</p>
+                        <p class="text-xs text-slate-500 mt-0.5">多维度核算每月客户订单营收、原材料总支出、毛利与环比增长分析</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <select id="report-month-select" onchange="renderDeepReport()" class="border border-slate-300 rounded-lg text-xs p-2.5 bg-slate-50 font-medium mobile-touch-target"></select>
@@ -281,8 +296,8 @@
                     </div>
                 </div>
 
-                <!-- 选定月份的 5 个专属经营指标统计卡片 -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                <!-- 选定月份的 6 个专属经营指标统计卡片 -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                     <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
                         <div class="text-[11px] text-slate-400">本月订单总数</div>
                         <div class="text-sm sm:text-lg font-bold text-slate-800 mt-1" id="rep-kpi-count">0 笔</div>
@@ -290,6 +305,10 @@
                     <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
                         <div class="text-[11px] text-slate-400">本月总营收额</div>
                         <div class="text-sm sm:text-lg font-bold text-emerald-600 mt-1 truncate" id="rep-kpi-amount">¥0.00</div>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
+                        <div class="text-[11px] text-slate-400">原材料总支出</div>
+                        <div class="text-sm sm:text-lg font-bold text-rose-600 mt-1 truncate" id="rep-kpi-material-exp">¥0.00</div>
                     </div>
                     <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
                         <div class="text-[11px] text-slate-400">本月总毛利润</div>
@@ -305,15 +324,21 @@
                     </div>
                 </div>
 
-                <div class="bg-indigo-50/70 border border-indigo-100 p-3.5 sm:p-4 rounded-xl text-xs space-y-1.5 text-indigo-950">
-                    <div class="font-bold text-xs sm:text-sm text-indigo-900 flex items-center gap-1.5">
-                        <i class="fa-solid fa-chart-line text-indigo-600"></i> <span id="report-month-title-label">本月</span> 经营分析结论
+                <!-- 环比分析与智能经营结论看板 -->
+                <div class="bg-indigo-50/70 border border-indigo-100 p-4 rounded-xl text-xs space-y-2 text-indigo-950 shadow-xs">
+                    <div class="font-bold text-xs sm:text-sm text-indigo-900 flex items-center gap-1.5 border-b border-indigo-200 pb-2">
+                        <i class="fa-solid fa-chart-line text-indigo-600"></i> <span id="report-month-title-label">本月</span> 经营分析与环比(MoM)对照
                     </div>
-                    <div id="smart-report-text" class="leading-relaxed">生成中...</div>
+                    <div id="smart-report-text" class="leading-relaxed space-y-1">生成中...</div>
                 </div>
 
                 <div>
-                    <h3 class="text-xs sm:text-sm font-bold text-slate-700 mb-3 sm:mb-4 flex items-center gap-2"><i class="fa-solid fa-user-group text-indigo-500"></i> 本月独立客户订单业绩</h3>
+                    <div class="flex justify-between items-center mb-3 sm:mb-4">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-700 flex items-center gap-2"><i class="fa-solid fa-user-group text-indigo-500"></i> 本月各客户订单分析与毛利统计</h3>
+                        <button onclick="toggleSectionCollapse('customer-cards-container', 'cust-toggle-icon')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 mobile-touch-target">
+                            <span>折叠/展开客户看板</span> <i id="cust-toggle-icon" class="fa-solid fa-chevron-down transition-transform duration-200"></i>
+                        </button>
+                    </div>
                     <div id="customer-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"></div>
                 </div>
 
@@ -340,7 +365,7 @@
 
     <!-- 弹窗：独立全局搜索结果页 -->
     <div id="modal-global-search-result" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-[150] p-3 sm:p-6">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in duration-200">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
             <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-2.5">
                     <i class="fa-solid fa-magnifying-glass text-indigo-400"></i>
@@ -385,7 +410,7 @@
 
     <!-- 弹窗：全局搜索结果之上的详情预览弹窗 -->
     <div id="modal-global-search-detail" class="fixed inset-0 bg-slate-900/85 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-3 sm:p-6">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in duration-200">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
             <div class="bg-indigo-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
                 <h3 class="text-base font-bold flex items-center gap-2"><i class="fa-solid fa-file-lines text-indigo-300"></i> <span id="search-detail-title">记录详细档案</span></h3>
                 <button onclick="closeSearchDetailModal()" class="bg-indigo-800 hover:bg-indigo-700 text-indigo-100 px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition mobile-touch-target cursor-pointer">
@@ -399,12 +424,12 @@
         </div>
     </div>
 
-    <!-- 弹窗：出库单/送货单打印预览视图 -->
+    <!-- 弹窗：完全对齐新辉包装 Excel 模板的出库单/送货单打印预览视图 (每次独立提交一张) -->
     <div id="modal-delivery-note" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-[250] p-3 sm:p-6">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-300">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden border border-slate-300">
             <!-- 头部控制栏 (打印时隐藏) -->
             <div class="bg-slate-900 text-white px-6 py-3.5 flex justify-between items-center shrink-0 no-print">
-                <h3 class="text-base font-bold flex items-center gap-2"><i class="fa-solid fa-print text-indigo-400"></i> 正式出库单 / 送货单打印预览</h3>
+                <h3 class="text-base font-bold flex items-center gap-2"><i class="fa-solid fa-print text-indigo-400"></i> 正式出库单 / 送货单标准预览 (独立批次单据)</h3>
                 <div class="flex items-center gap-2">
                     <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition mobile-touch-target cursor-pointer">
                         <i class="fa-solid fa-print"></i> 打印 / 导出 PDF
@@ -415,8 +440,8 @@
                 </div>
             </div>
             
-            <!-- 出库单据主体内容（包含打印专用样式） -->
-            <div id="delivery-note-content" class="p-8 overflow-y-auto custom-scroll space-y-6 flex-1 bg-white text-slate-800 font-sans">
+            <!-- 出库单据主体 -->
+            <div id="delivery-note-content" class="p-6 sm:p-8 overflow-y-auto custom-scroll space-y-4 flex-1 bg-white text-slate-900 font-sans">
                 <!-- 动态渲染出库单内容 -->
             </div>
         </div>
@@ -516,7 +541,7 @@
     <!-- 弹窗：独立发货记录生成 -->
     <div id="modal-shipping-action" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-3 sm:p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scroll space-y-4">
-            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-indigo-600"></i> 新增单次发货记录（支持多型号）</h3>
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-indigo-600"></i> 新增单次发货记录（每次提交生成独立一张出库单）</h3>
             <form onsubmit="handleShippingActionSubmit(event)" class="space-y-3 text-xs">
                 <input type="hidden" id="ship-action-id">
                 <div>
@@ -530,7 +555,7 @@
 
                 <div class="border border-indigo-100 rounded-xl p-3 bg-indigo-50/20 space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="font-bold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-list-check text-indigo-600"></i> 本次发货明细列表 *</label>
+                        <label class="font-bold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-list-check text-indigo-600"></i> 本次发货明细列表 (合并在同一张出库单) *</label>
                         <button type="button" onclick="addShipBatchRow()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1 mobile-touch-target"><i class="fa-solid fa-plus"></i> 增加型号行</button>
                     </div>
                     <div id="ship-batch-rows-container" class="space-y-2.5"></div>
@@ -538,7 +563,7 @@
 
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="document.getElementById('modal-shipping-action').classList.add('hidden')" class="px-4 py-2.5 border border-slate-300 text-slate-600 rounded-lg mobile-touch-target">取消</button>
-                    <button type="submit" class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 mobile-touch-target">确认生成发货记录</button>
+                    <button type="submit" class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 mobile-touch-target">确认生成独立出库单</button>
                 </div>
             </form>
         </div>
@@ -558,7 +583,7 @@
         const SUPABASE_KEY = sanitizeHeaderString(RAW_SUPABASE_KEY);
         
         const DEFAULT_PWD = "12345678";
-        const UNIT_OPTIONS = ["件", "个", "张", "吨", "箱", "卷", "kg", "米", "套", "包", "盘", "支"];
+        const UNIT_OPTIONS = ["个", "件", "张", "吨", "箱", "卷", "kg", "米", "套", "包", "盘", "支"];
 
         let ordersData = [];
         let inventoryData = [];
@@ -679,7 +704,7 @@
                 try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                const shippedQ = historyList.reduce((s, h) => s + Number(h.qty || 0), 0);
+                const shippedQ = historyList.reduce((s, batch) => s + (batch.items ? batch.items.reduce((bs, item) => bs + Number(item.qty || 0), 0) : Number(batch.qty || 0)), 0);
 
                 if (shippedQ < totalQ) {
                     const dueDateObj = new Date(o.due_date);
@@ -837,6 +862,36 @@
             if (tab === 'report') renderDeepReport();
         }
 
+        function toggleSectionCollapse(contentId, iconId) {
+            const content = document.getElementById(contentId);
+            const icon = document.getElementById(iconId);
+            if (!content) return;
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                if (icon) icon.classList.remove('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                if (icon) icon.classList.add('rotate-180');
+            }
+        }
+
+        function toggleAllSections(type) {
+            if (type === 'orders') {
+                const wrappers = document.querySelectorAll('.order-group-content');
+                const icons = document.querySelectorAll('.order-group-icon');
+                const isAnyHidden = Array.from(wrappers).some(w => w.classList.contains('hidden'));
+                wrappers.forEach((w, idx) => {
+                    if (isAnyHidden) {
+                        w.classList.remove('hidden');
+                        if (icons[idx]) icons[idx].classList.remove('rotate-180');
+                    } else {
+                        w.classList.add('hidden');
+                        if (icons[idx]) icons[idx].classList.add('rotate-180');
+                    }
+                });
+            }
+        }
+
         function handleGlobalSearchKeyDown(e) {
             if (e.key === 'Enter') {
                 executeGlobalSearch();
@@ -869,7 +924,7 @@
                 resOrdersContainer.innerHTML = matchedOrders.map(o => {
                     const models = parseModels(o);
                     const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                    const unit = models[0]?.unit || '件';
+                    const unit = models[0]?.unit || '个';
                     return `
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center gap-2">
                             <div>
@@ -889,7 +944,7 @@
                 const modelStr = models.map(m => m.modelName).join(' ');
                 let historyList = [];
                 try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
-                const histStr = historyList.map(h => `${h.model} ${h.date}`).join(' ');
+                const histStr = historyList.map(b => (b.items ? b.items.map(i => `${i.model} ${b.date}`).join(' ') : `${b.model} ${b.date}`)).join(' ');
                 const matchStr = `${o.order_no || ''} ${o.customer || ''} ${modelStr} ${histStr}`.toLowerCase();
                 return matchStr.includes(keyword);
             });
@@ -901,10 +956,10 @@
                 resShippingContainer.innerHTML = matchedShipping.map(o => {
                     const models = parseModels(o);
                     const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                    const unit = models[0]?.unit || '件';
+                    const unit = models[0]?.unit || '个';
                     let historyList = [];
                     try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
-                    const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
+                    const shippedQ = historyList.reduce((sum, b) => sum + (b.items ? b.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(b.qty || 0)), 0);
                     return `
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center gap-2">
                             <div>
@@ -928,7 +983,7 @@
                 resInvContainer.innerHTML = `<div class="text-xs text-slate-400 py-2">无匹配的原材料库存记录</div>`;
             } else {
                 resInvContainer.innerHTML = matchedInventory.map(i => {
-                    const unit = i.unit || '件';
+                    const unit = i.unit || '个';
                     return `
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center gap-2">
                             <div>
@@ -990,13 +1045,13 @@
 
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                const unit = models[0]?.unit || '件';
+                const unit = models[0]?.unit || '个';
                 const totalCost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
                 const totalProfit = Number(o.total_amount || 0) - totalCost;
                 
                 let historyList = [];
                 try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
-                const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
+                const shippedQ = historyList.reduce((sum, b) => sum + (b.items ? b.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(b.qty || 0)), 0);
                 const remainingQ = Math.max(0, totalQ - shippedQ);
 
                 const modelsHtml = models.map(m => `
@@ -1005,17 +1060,21 @@
                             <div class="font-bold text-slate-800">${m.modelName}</div>
                             <div class="text-slate-500">售价: ¥${m.price || 0} | 成本: ¥${m.costPrice || 0} | 利润: <span class="text-purple-600 font-bold">¥${((Number(m.price || 0) - Number(m.costPrice || 0)) * Number(m.qty || 0)).toFixed(2)}</span> ${m.imgName ? `| 图: ${m.imgName}` : ''}</div>
                         </div>
-                        <div class="text-right font-bold text-indigo-600">${m.qty} ${m.unit || '件'}</div>
+                        <div class="text-right font-bold text-indigo-600">${m.qty} ${m.unit || '个'}</div>
                     </div>
                 `).join('');
 
-                const historyHtml = historyList.length === 0 ? '<div class="text-slate-400 italic">尚无出库批次记录</div>' :
-                    historyList.map(h => `
-                        <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded-lg flex justify-between items-center text-xs">
-                            <div><span class="font-bold text-blue-800">[${h.model}]</span> 发货数量: <span class="font-bold text-blue-600">${h.qty} ${h.unit || unit}</span></div>
-                            <div class="text-slate-500">${h.date}</div>
-                        </div>
-                    `).join('');
+                const historyHtml = historyList.length === 0 ? '<div class="text-slate-400 italic">尚无独立出库批次记录</div>' :
+                    historyList.map((b, idx) => {
+                        const items = b.items || [{ model: b.model, qty: b.qty, unit: b.unit }];
+                        const itemsText = items.map(i => `${i.model}: ${i.qty}${i.unit || unit}`).join(' | ');
+                        return `
+                            <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded-lg flex justify-between items-center text-xs">
+                                <div><span class="font-bold text-blue-800">[独立出库单 #${idx + 1}]</span> ${itemsText}</div>
+                                <div class="text-slate-500">${b.date}</div>
+                            </div>
+                        `;
+                    }).join('');
 
                 detailBody.innerHTML = `
                     <div class="space-y-4">
@@ -1026,7 +1085,7 @@
                             </div>
                             <div class="text-slate-500 flex justify-between pt-1 border-t border-indigo-100">
                                 <span>下单日期: ${o.order_date || '-'}</span>
-                                <span class="text-indigo-700 font-bold">预计发货: ${o.due_date || '未设'}</span>
+                                <span class="text-indigo-700 font-bold">预计发货: ${o.due_date || 'Old'}</span>
                             </div>
                         </div>
                         <div>
@@ -1054,7 +1113,7 @@
                 if (!i) return;
                 detailTitle.innerText = `原材料出入库详细记录 (${i.material})`;
                 const qty = Number(i.quantity || 0);
-                const unit = i.unit || '件';
+                const unit = i.unit || '个';
                 const totalAmt = i.total_amount !== undefined ? Number(i.total_amount) : 0;
                 const price = i.price !== undefined ? Number(i.price) : (qty > 0 ? totalAmt / qty : 0);
 
@@ -1094,7 +1153,7 @@
             document.getElementById('modal-global-search-detail').classList.add('hidden');
         }
 
-        // 打开正式出库单预览弹窗（根据对应订单和批次索引）
+        // 打开严格对齐新辉包装 Excel 模板的独立出库单预览
         function openDeliveryNoteModal(orderId, batchIndex) {
             const o = ordersData.find(item => item.id === orderId);
             if (!o) return;
@@ -1102,93 +1161,109 @@
             try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
             const batch = historyList[batchIndex];
             if (!batch) {
-                alert("未找到该批次发货记录！");
+                alert("未找到该次独立出库批次记录！");
                 return;
             }
 
+            const items = batch.items || [{ model: batch.model, qty: batch.qty, unit: batch.unit }];
             const models = parseModels(o);
-            // 找出本次发货包含的所有款式明细 (如果批次保存的是单行，或者后续扩展)
-            // 在多行批次下，我们可以把同一日期、同一批次的所有项聚合，或者直接取当前 batch
-            // 这里我们检索该日期或直接展示当前 batch 的产品项
-            const targetModel = models.find(m => m.modelName === batch.model);
-            const unitPrice = targetModel ? Number(targetModel.price || 0) : Number(o.price || 0);
-            const batchQty = Number(batch.qty || 0);
-            const batchAmount = batchQty * unitPrice;
 
-            const unit = batch.unit || targetModel?.unit || '件';
-            const deliveryNoteId = `CK-${o.order_no}-${batchIndex + 1}`;
+            let tableRowsHtml = '';
+            let batchTotalAmount = 0;
+            let firstUnit = items[0]?.unit || '个';
 
-            // 数字金额转中文大写
-            function convertCurrency(num) {
-                let chineseNum = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
-                let unit = ['仟', '佰', '拾', '', '仟', '佰', '拾', '', '角', '分'];
-                let s = '';
-                num = Math.round(num * 100).toString();
-                for (let i = 0; i < num.length; i++) {
-                    s += chineseNum[num.charAt(i)] + unit[unit.length - num.length + i];
-                }
-                return s.replace(/零(仟|佰|拾|角)/g, '零').replace(/(零)+/g, '零').replace(/零(角|分)/g, '').replace(/(零)+$/, '') + '整';
+            items.forEach((item, idx) => {
+                const targetModel = models.find(m => m.modelName === item.model);
+                const unitPrice = targetModel ? Number(targetModel.price || 0) : Number(o.price || 0);
+                const q = Number(item.qty || 0);
+                const amt = q * unitPrice;
+                batchTotalAmount += amt;
+                const u = item.unit || targetModel?.unit || '个';
+
+                tableRowsHtml += `
+                    <tr>
+                        <td class="border border-slate-900 p-2.5 font-medium">${idx + 1}</td>
+                        <td class="border border-slate-900 p-2.5 text-left font-bold">${item.model || '标准包装款式'}</td>
+                        <td class="border border-slate-900 p-2.5 font-mono">${o.order_no || '-'}</td>
+                        <td class="border border-slate-900 p-2.5">${u}</td>
+                        <td class="border border-slate-900 p-2.5 text-right font-bold text-indigo-700">${q}</td>
+                        <td class="border border-slate-900 p-2.5 text-right">¥${unitPrice.toFixed(2)}</td>
+                        <td class="border border-slate-900 p-2.5 text-right font-bold text-emerald-700">¥${amt.toFixed(2)}</td>
+                        <td class="border border-slate-900 p-2.5 text-slate-500">${o.remark || '无'}</td>
+                    </tr>
+                `;
+            });
+
+            if (items.length === 1) {
+                tableRowsHtml += `
+                    <tr class="h-10">
+                        <td class="border border-slate-900 p-2">2</td>
+                        <td class="border border-slate-900 p-2 text-left text-slate-300">（以下空白）</td>
+                        <td class="border border-slate-900 p-2"></td>
+                        <td class="border border-slate-900 p-2">${firstUnit}</td>
+                        <td class="border border-slate-900 p-2"></td>
+                        <td class="border border-slate-900 p-2"></td>
+                        <td class="border border-slate-900 p-2"></td>
+                        <td class="border border-slate-900 p-2"></td>
+                    </tr>
+                `;
             }
+
+            const deliveryNoteId = `XHD-${o.order_no ? o.order_no.replace('CH-', '') : '2026'}-${batchIndex + 1}`;
+            const todayStr = batch.date || new Date().toISOString().slice(0, 10);
 
             const contentDiv = document.getElementById('delivery-note-content');
             contentDiv.innerHTML = `
-                <div class="space-y-6">
-                    <!-- 公司抬头 -->
-                    <div class="text-center space-y-1 border-b-2 border-slate-900 pb-4">
-                        <h1 class="text-2xl font-black tracking-wider text-slate-900">承辉包装 (CHENGHUI PACKAGING)</h1>
-                        <h2 class="text-lg font-bold text-indigo-700">销售发货出库单 / 送货单</h2>
-                    </div>
-
-                    <!-- 抬头基础信息 -->
-                    <div class="grid grid-cols-2 text-xs sm:text-sm gap-2">
-                        <div>
-                            <p><strong class="text-slate-500">客户名称：</strong><span class="font-bold text-slate-900 text-base">${o.customer}</span></p>
-                            <p class="mt-1"><strong class="text-slate-500">关联订单号：</strong><span class="font-mono font-bold text-indigo-600">${o.order_no || '-'}</span></p>
-                        </div>
-                        <div class="text-right">
-                            <p><strong class="text-slate-500">出库单编号：</strong><span class="font-mono font-bold">${deliveryNoteId}</span></p>
-                            <p class="mt-1"><strong class="text-slate-500">发货日期：</strong><span class="font-bold text-slate-900">${batch.date || '-'}</span></p>
+                <div class="space-y-4 text-xs sm:text-sm">
+                    <!-- 公司大标题 -->
+                    <div class="text-center space-y-1">
+                        <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-wide">温州市新辉包装有限公司</h1>
+                        <div class="flex justify-between items-end border-b border-slate-900 pb-2 mt-3">
+                            <span class="font-medium">单据日期：${todayStr}</span>
+                            <span class="text-right font-medium">单据编号：${deliveryNoteId}</span>
                         </div>
                     </div>
 
-                    <!-- 明细表格 -->
-                    <table class="w-full text-left text-xs sm:text-sm border-collapse border border-slate-300">
+                    <!-- 购买单位与经手人信息 -->
+                    <div class="flex justify-between items-center py-1 text-xs sm:text-sm font-medium">
+                        <div>购买单位：<span class="font-bold underline decoration-slate-400">${o.customer}</span></div>
+                        <div class="text-right">经手人：王海萍 18858825222 &nbsp;&nbsp;|&nbsp;&nbsp; 电话/传真：0577-86817627</div>
+                    </div>
+
+                    <!-- 表格区 (每次独立提交一张出库单) -->
+                    <table class="w-full text-center border-collapse border border-slate-900 text-xs sm:text-sm">
                         <thead>
-                            <tr class="bg-slate-100 text-slate-700">
-                                <th class="border border-slate-300 p-2.5">序号</th>
-                                <th class="border border-slate-300 p-2.5">产品型号 / 款式名称</th>
-                                <th class="border border-slate-300 p-2.5 text-right">本次发货数量</th>
-                                <th class="border border-slate-300 p-2.5 text-right">单价 (元)</th>
-                                <th class="border border-slate-300 p-2.5 text-right">金额 (元)</th>
+                            <tr class="bg-emerald-100/60 font-bold text-slate-900">
+                                <th class="border border-slate-900 p-2 w-12">行号</th>
+                                <th class="border border-slate-900 p-2 text-left">商品名称</th>
+                                <th class="border border-slate-900 p-2">商品编号</th>
+                                <th class="border border-slate-900 p-2 w-16">单位</th>
+                                <th class="border border-slate-900 p-2 text-right">数量</th>
+                                <th class="border border-slate-900 p-2 text-right">单价</th>
+                                <th class="border border-slate-900 p-2 text-right">金额</th>
+                                <th class="border border-slate-900 p-2">单据备注</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="border border-slate-300 p-2.5 text-center">1</td>
-                                <td class="border border-slate-300 p-2.5 font-medium">${batch.model || '标准款式'}</td>
-                                <td class="border border-slate-300 p-2.5 text-right font-bold text-indigo-600">${batchQty} ${unit}</td>
-                                <td class="border border-slate-300 p-2.5 text-right">¥${unitPrice.toFixed(2)}</td>
-                                <td class="border border-slate-300 p-2.5 text-right font-bold text-emerald-600">¥${batchAmount.toFixed(2)}</td>
-                            </tr>
+                            ${tableRowsHtml}
                         </tbody>
                         <tfoot>
-                            <tr class="bg-slate-50 font-bold">
-                                <td colspan="2" class="border border-slate-300 p-2.5 text-right">合计金额 (大写): <span class="text-indigo-700 font-normal ml-2">${convertCurrency(batchAmount)}</span></td>
-                                <td colspan="3" class="border border-slate-300 p-2.5 text-right text-emerald-700 text-base">总计: ¥${batchAmount.toFixed(2)}</td>
+                            <tr class="font-bold bg-slate-50">
+                                <td colspan="6" class="border border-slate-900 p-2.5 text-right">合集总计金额：</td>
+                                <td colspan="2" class="border border-slate-900 p-2.5 text-left text-emerald-700 text-base">¥${batchTotalAmount.toFixed(2)}</td>
                             </tr>
                         </tfoot>
                     </table>
 
-                    <!-- 备注与签名栏 -->
-                    <div class="space-y-4 pt-2 text-xs sm:text-sm">
-                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                            <strong>备注说明：</strong> 本单据作为承辉包装与贵司核对发货数量及结算的重要凭证，请收货后核对无误并签字盖章。
-                        </div>
-                        <div class="grid grid-cols-3 pt-6 text-center font-medium text-slate-700">
-                            <div>制单人：仓库发货组</div>
-                            <div>仓库主管：________</div>
-                            <div>客户签收 (盖章)：________</div>
-                        </div>
+                    <!-- 银行账户条 -->
+                    <div class="bg-emerald-100/70 border border-slate-900 p-2 text-center text-[11px] sm:text-xs font-mono font-bold tracking-tight text-slate-900">
+                        6228430339412517172 王炳辉 农行天河支行 &nbsp;•&nbsp; 6228580399085322993 王炳辉 农商行永兴支行 &nbsp;•&nbsp; 支付宝微信: 13777799028
+                    </div>
+
+                    <!-- 底部收货人与打印日期 -->
+                    <div class="flex justify-between items-center pt-2 text-xs sm:text-sm font-medium text-slate-800">
+                        <div>收货人签字：____________________</div>
+                        <div>打印日期：${new Date().toISOString().slice(0, 10)}</div>
                     </div>
                 </div>
             `;
@@ -1206,7 +1281,7 @@
                 models = typeof o.models_json === 'string' ? JSON.parse(o.models_json) : (o.models_json || []);
             } catch(e) { models = []; }
             if (models.length === 0 && o.quantity) {
-                models = [{ modelName: '默认款式/型号', qty: Number(o.quantity || 0), unit: '件', price: Number(o.price || 0), costPrice: Number(o.cost_price || 0), imgName: o.image || '' }];
+                models = [{ modelName: '默认款式/型号', qty: Number(o.quantity || 0), unit: '个', price: Number(o.price || 0), costPrice: Number(o.cost_price || 0), imgName: o.image || '' }];
             }
             return models;
         }
@@ -1225,11 +1300,17 @@
                 const totalAmt = list.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
                 container.innerHTML += `
                     <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
-                        <div onclick="document.getElementById('acc-${index}').classList.toggle('hidden')" class="bg-slate-50/80 p-3.5 sm:p-4 flex justify-between items-center cursor-pointer hover:bg-slate-100/80 transition">
-                            <span class="font-bold text-slate-800 text-xs sm:text-sm">${customer} <span class="font-normal text-slate-500">(${list.length} 笔订单)</span></span>
-                            <span class="text-xs sm:text-sm font-semibold text-emerald-600">累计总额: ¥${totalAmt.toFixed(2)}</span>
+                        <div onclick="toggleSectionCollapse('order-grp-${index}', 'ord-icon-${index}')" class="bg-slate-50/85 p-3.5 sm:p-4 flex justify-between items-center cursor-pointer hover:bg-slate-100 transition">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-800 text-xs sm:text-sm">${customer}</span>
+                                <span class="text-[11px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-medium">${list.length} 笔订单</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs sm:text-sm font-semibold text-emerald-600">累计总额: ¥${totalAmt.toFixed(2)}</span>
+                                <i id="ord-icon-${index}" class="fa-solid fa-chevron-down text-xs text-slate-500 transition-transform duration-200"></i>
+                            </div>
                         </div>
-                        <div id="acc-${index}" class="border-t border-slate-200 p-2.5 sm:p-3 text-xs overflow-x-auto custom-scroll">
+                        <div id="order-grp-${index}" class="order-group-content border-t border-slate-200 p-2.5 sm:p-3 text-xs overflow-x-auto custom-scroll">
                             <table class="w-full text-left text-slate-600 min-w-[900px]">
                                 <tr class="bg-slate-100/60 text-slate-500 font-bold">
                                     <th class="p-2">订单号</th><th class="p-2">下单日期</th><th class="p-2">预计发货时间</th><th class="p-2">型号/款式及利润明细</th><th class="p-2">订单总数</th><th class="p-2">总金额</th><th class="p-2">总利润</th><th class="p-2">批注说明</th><th class="p-2 text-right">操作</th>
@@ -1237,13 +1318,13 @@
                                 ${list.map(o => {
                                     const models = parseModels(o);
                                     const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                                    const defaultUnit = models[0]?.unit || '件';
+                                    const defaultUnit = models[0]?.unit || '个';
                                     const totalCost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
                                     const totalProfit = Number(o.total_amount || 0) - totalCost;
 
                                     const modelTags = models.map(m => {
                                         const mProfit = (Number(m.price || 0) - Number(m.costPrice || 0)) * Number(m.qty || 0);
-                                        return `<div class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 mb-1 inline-block mr-1"><span class="font-bold">${m.modelName}</span>: ${m.qty}${m.unit || '件'} (售¥${m.price}/成¥${m.costPrice} | 利:<span class="text-purple-600 font-bold">¥${mProfit.toFixed(2)}</span>)${m.imgName ? ` <span class="text-[10px] text-slate-500">[图: ${m.imgName}]</span>` : ''}</div>`;
+                                        return `<div class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 mb-1 inline-block mr-1"><span class="font-bold">${m.modelName}</span>: ${m.qty}${m.unit || '个'} (售¥${m.price}/成¥${m.costPrice} | 利:<span class="text-purple-600 font-bold">¥${mProfit.toFixed(2)}</span>)${m.imgName ? ` <span class="text-[10px] text-slate-500">[图: ${m.imgName}]</span>` : ''}</div>`;
                                     }).join('');
 
                                     return `
@@ -1283,24 +1364,32 @@
             tbody.innerHTML = ordersData.map(o => {
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                const unit = models[0]?.unit || '件';
+                const unit = models[0]?.unit || '个';
                 
                 let historyList = [];
                 try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e) { historyList = []; }
-                const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
+                
+                const shippedQ = historyList.reduce((sum, batch) => sum + (batch.items ? batch.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(batch.qty || 0)), 0);
                 const remainingQ = Math.max(0, totalQ - shippedQ);
 
                 let shippedTotalAmount = 0;
-                historyList.forEach(h => {
-                    const targetModel = models.find(m => m.modelName === h.model);
-                    const unitPrice = targetModel ? Number(targetModel.price || 0) : Number(o.price || 0);
-                    shippedTotalAmount += (Number(h.qty || 0) * unitPrice);
+                historyList.forEach(batch => {
+                    const items = batch.items || [{ model: batch.model, qty: batch.qty }];
+                    items.forEach(item => {
+                        const targetModel = models.find(m => m.modelName === item.model);
+                        const unitPrice = targetModel ? Number(targetModel.price || 0) : Number(o.price || 0);
+                        shippedTotalAmount += (Number(item.qty || 0) * unitPrice);
+                    });
                 });
 
                 const remainingModelsHtml = models.map(m => {
                     const totalModelQ = Number(m.qty || 0);
-                    const mUnit = m.unit || '件';
-                    const shippedModelQ = historyList.filter(h => h.model === m.modelName).reduce((sum, h) => sum + Number(h.qty || 0), 0);
+                    const mUnit = m.unit || '个';
+                    const shippedModelQ = historyList.reduce((sum, batch) => {
+                        const items = batch.items || [{ model: batch.model, qty: batch.model === m.modelName ? batch.qty : 0 }];
+                        const matchItem = items.find(i => i.model === m.modelName);
+                        return sum + (matchItem ? Number(matchItem.qty || 0) : 0);
+                    }, 0);
                     const remQ = Math.max(0, totalModelQ - shippedModelQ);
                     if (remQ > 0) {
                         return `<div class="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200 text-[11px] font-medium mb-1 inline-block mr-1"><span class="font-bold">${m.modelName}</span>: ${remQ}${mUnit}</div>`;
@@ -1308,17 +1397,20 @@
                     return `<div class="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-100 text-[11px] inline-block mb-1 mr-1"><span class="font-bold">${m.modelName}</span>: 已发完</div>`;
                 }).join('');
 
-                const modelTags = models.map(m => `<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 mr-1 text-[11px] inline-block mb-0.5">${m.modelName}: ${m.qty}${m.unit || '件'}${m.imgName ? `(${m.imgName})` : ''}</span>`).join('');
+                const modelTags = models.map(m => `<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 mr-1 text-[11px] inline-block mb-0.5">${m.modelName}: ${m.qty}${m.unit || '个'}${m.imgName ? `(${m.imgName})` : ''}</span>`).join('');
                 
-                // 历次出库批次明细 (带打印出库单按钮)
-                let historyHtml = historyList.length === 0 ? '<span class="text-slate-400 italic text-[11px]">尚无出库批次</span>' : 
-                    historyList.map((h, idx) => `
-                        <div class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 rounded px-2 py-1 text-[11px] mr-1 mb-1">
-                            <span>[${h.model || '标准'}]: ${h.qty}${unit} (${h.date})</span>
-                            <button onclick="openDeliveryNoteModal(${o.id}, ${idx})" class="text-indigo-600 hover:text-indigo-800 font-bold ml-1 px-1 bg-white rounded border border-indigo-200" title="打印出库单"><i class="fa-solid fa-print"></i> 出库单</button>
-                            <i class="fa-solid fa-xmark cursor-pointer text-rose-500 ml-1" onclick="deleteShippingBatch(${o.id}, ${idx})" title="删除"></i>
-                        </div>
-                    `).join('');
+                let historyHtml = historyList.length === 0 ? '<span class="text-slate-400 italic text-[11px]">尚无出库单</span>' : 
+                    historyList.map((batch, idx) => {
+                        const items = batch.items || [{ model: batch.model, qty: batch.qty, unit: batch.unit }];
+                        const itemsSummary = items.map(i => `${i.model}: ${i.qty}${i.unit || unit}`).join(', ');
+                        return `
+                            <div class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded px-2.5 py-1 text-[11px] mr-1.5 mb-1.5">
+                                <span><strong>[出库单 #${idx + 1}]</strong> ${itemsSummary} (${batch.date})</span>
+                                <button onclick="openDeliveryNoteModal(${o.id}, ${idx})" class="text-indigo-600 hover:text-indigo-800 font-bold ml-1 px-1.5 bg-white rounded border border-indigo-200" title="打印出库单"><i class="fa-solid fa-print"></i> 出库单</button>
+                                <i class="fa-solid fa-xmark cursor-pointer text-rose-500 ml-1" onclick="deleteShippingBatch(${o.id}, ${idx})" title="删除"></i>
+                            </div>
+                        `;
+                    }).join('');
 
                 return `
                     <tr class="border-b border-slate-100 hover:bg-slate-50 align-top">
@@ -1344,37 +1436,49 @@
             cardBody.innerHTML = ordersData.map(o => {
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                const unit = models[0]?.unit || '件';
+                const unit = models[0]?.unit || '个';
                 let historyList = [];
                 try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e) { historyList = []; }
-                const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
+                
+                const shippedQ = historyList.reduce((sum, batch) => sum + (batch.items ? batch.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(batch.qty || 0)), 0);
                 const remainingQ = Math.max(0, totalQ - shippedQ);
 
                 let shippedTotalAmount = 0;
-                historyList.forEach(h => {
-                    const targetModel = models.find(m => m.modelName === h.model);
-                    const unitPrice = targetModel ? Number(targetModel.price || 0) : Number(o.price || 0);
-                    shippedTotalAmount += (Number(h.qty || 0) * unitPrice);
+                historyList.forEach(batch => {
+                    const items = batch.items || [{ model: batch.model, qty: batch.qty }];
+                    items.forEach(item => {
+                        const targetModel = models.find(m => m.modelName === item.model);
+                        const unitPrice = targetModel ? Number(targetModel.price || 0) : Number(o.price || 0);
+                        shippedTotalAmount += (Number(item.qty || 0) * unitPrice);
+                    });
                 });
 
                 const remainingModelsHtml = models.map(m => {
                     const totalModelQ = Number(m.qty || 0);
-                    const mUnit = m.unit || '件';
-                    const shippedModelQ = historyList.filter(h => h.model === m.modelName).reduce((sum, h) => sum + Number(h.qty || 0), 0);
+                    const mUnit = m.unit || '个';
+                    const shippedModelQ = historyList.reduce((sum, batch) => {
+                        const items = batch.items || [{ model: batch.model, qty: batch.model === m.modelName ? batch.qty : 0 }];
+                        const matchItem = items.find(i => i.model === m.modelName);
+                        return sum + (matchItem ? Number(matchItem.qty || 0) : 0);
+                    }, 0);
                     const remQ = Math.max(0, totalModelQ - shippedModelQ);
                     return `<span class="inline-block text-[11px] ${remQ > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'} px-1.5 py-0.5 rounded mr-1 mb-1 font-medium">${m.modelName}: ${remQ > 0 ? `未发${remQ}${mUnit}` : '已完结'}</span>`;
                 }).join('');
 
-                const modelTags = models.map(m => `<div class="text-xs bg-indigo-50 text-indigo-700 p-1.5 rounded mb-1 border border-indigo-100 flex justify-between"><span><strong>${m.modelName}</strong></span><span>订:${m.qty}${m.unit || '件'}</span></div>`).join('');
+                const modelTags = models.map(m => `<div class="text-xs bg-indigo-50 text-indigo-700 p-1.5 rounded mb-1 border border-indigo-100 flex justify-between"><span><strong>${m.modelName}</strong></span><span>订:${m.qty}${m.unit || '个'}</span></div>`).join('');
                 
-                let historyHtml = historyList.length === 0 ? '<span class="text-slate-400 italic text-[11px]">尚无出库批次</span>' : 
-                    historyList.map((h, idx) => `
-                        <div class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 rounded px-2 py-1 text-[11px] mr-1 mb-1">
-                            <span>[${h.model}]: ${h.qty}${unit} (${h.date})</span>
-                            <button onclick="openDeliveryNoteModal(${o.id}, ${idx})" class="text-indigo-600 font-bold ml-1 px-1 bg-white rounded border border-indigo-200"><i class="fa-solid fa-print"></i> 出库单</button>
-                            <i class="fa-solid fa-xmark cursor-pointer text-rose-500 ml-1" onclick="deleteShippingBatch(${o.id}, ${idx})"></i>
-                        </div>
-                    `).join('');
+                let historyHtml = historyList.length === 0 ? '<span class="text-slate-400 italic text-[11px]">尚无出库单</span>' : 
+                    historyList.map((batch, idx) => {
+                        const items = batch.items || [{ model: batch.model, qty: batch.qty, unit: batch.unit }];
+                        const itemsSummary = items.map(i => `${i.model}: ${i.qty}${i.unit || unit}`).join(', ');
+                        return `
+                            <div class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded px-2.5 py-1 text-[11px] mr-1.5 mb-1.5">
+                                <span><strong>[出库单 #${idx + 1}]</strong> ${itemsSummary} (${batch.date})</span>
+                                <button onclick="openDeliveryNoteModal(${o.id}, ${idx})" class="text-indigo-600 font-bold ml-1 px-1 bg-white rounded border border-indigo-200"><i class="fa-solid fa-print"></i> 出库单</button>
+                                <i class="fa-solid fa-xmark cursor-pointer text-rose-500 ml-1" onclick="deleteShippingBatch(${o.id}, ${idx})"></i>
+                            </div>
+                        `;
+                    }).join('');
 
                 return `
                     <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
@@ -1401,11 +1505,11 @@
                             <div>${remainingModelsHtml}</div>
                         </div>
                         <div>
-                            <div class="text-[11px] font-bold text-slate-500 mb-1">历史发货批次 & 出库单:</div>
+                            <div class="text-[11px] font-bold text-slate-500 mb-1">历史出库单记录:</div>
                             <div>${historyHtml}</div>
                         </div>
                         <button type="button" onclick="openQuickShippingModal(${o.id})" class="w-full bg-indigo-600 text-white py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm mobile-touch-target">
-                            <i class="fa-solid fa-truck-fast"></i> 新增单次发货
+                            <i class="fa-solid fa-truck-fast"></i> 新增发货
                         </button>
                     </div>
                 `;
@@ -1438,8 +1542,12 @@
 
             const optionsHtml = models.map(m => {
                 const totalQ = Number(m.qty || 0);
-                const mUnit = m.unit || '件';
-                const shippedQ = historyList.filter(h => h.model === m.modelName).reduce((sum, h) => sum + Number(h.qty || 0), 0);
+                const mUnit = m.unit || '个';
+                const shippedQ = historyList.reduce((sum, batch) => {
+                    const items = batch.items || [{ model: batch.model, qty: batch.model === m.modelName ? batch.qty : 0 }];
+                    const matchItem = items.find(i => i.model === m.modelName);
+                    return sum + (matchItem ? Number(matchItem.qty || 0) : 0);
+                }, 0);
                 const maxAllowed = Math.max(0, totalQ - shippedQ);
                 return `<option value="${m.modelName}" data-max="${maxAllowed}">${m.modelName} (剩余可发:${maxAllowed}${mUnit})</option>`;
             }).join('');
@@ -1495,21 +1603,22 @@
 
                 const targetModel = models.find(m => m.modelName === modelName);
                 const totalModelQty = targetModel ? Number(targetModel.qty || 0) : 0;
-                const mUnit = targetModel?.unit || '件';
+                const mUnit = targetModel?.unit || '个';
 
-                const shippedModelQty = historyList
-                    .filter(h => h.model === modelName)
-                    .concat(newBatchItems.filter(h => h.model === modelName))
-                    .reduce((sum, h) => sum + Number(h.qty || 0), 0);
+                const shippedModelQty = historyList.reduce((sum, batch) => {
+                    const items = batch.items || [{ model: batch.model, qty: batch.model === m.modelName ? batch.qty : 0 }];
+                    const matchItem = items.find(i => i.model === m.modelName);
+                    return sum + (matchItem ? Number(matchItem.qty || 0) : 0);
+                }, 0) + newBatchItems.reduce((sum, item) => sum + (item.model === modelName ? Number(item.qty || 0) : 0), 0);
 
                 const maxAllowed = Math.max(0, totalModelQty - shippedModelQty);
 
                 if (qty > maxAllowed) {
-                    alert(`发货拦截！【${modelName}】单独订购量为 ${totalModelQty}${mUnit}，此前已发货及本次累计超额，该型号剩余最大可发量仅剩 ${maxAllowed}${mUnit}！`);
+                    alert(`发货拦截！【${modelName}】订购总量为 ${totalModelQty}${mUnit}，此前已发货及本次累计超额，该型号剩余最大可发量仅剩 ${maxAllowed}${mUnit}！`);
                     return;
                 }
 
-                newBatchItems.push({ model: modelName, qty, unit, date });
+                newBatchItems.push({ model: modelName, qty, unit });
             }
 
             if (newBatchItems.length === 0) {
@@ -1517,17 +1626,25 @@
                 return;
             }
 
-            historyList.push(...newBatchItems);
+            // 每次点击“新增发货”提交，都作为一个全新的独立批次存入历史记录中（生成一张独立出库单）
+            historyList.push({
+                date: date,
+                items: newBatchItems
+            });
+
+            const totalShippedQty = historyList.reduce((sum, batch) => {
+                return sum + (batch.items ? batch.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(batch.qty || 0));
+            }, 0);
 
             const payload = {
                 shipping_history: JSON.stringify(historyList),
                 ship_date: date,
-                shipped_quantity: historyList.reduce((s, h) => s + Number(h.qty || 0), 0)
+                shipped_quantity: totalShippedQty
             };
 
             const res = await postSupabaseRest('orders', payload, 'PATCH', `id=eq.${id}`);
             if (res.error) {
-                alert("生成发货记录失败: " + res.error.message);
+                alert("生成独立出库单失败: " + res.error.message);
                 return;
             }
 
@@ -1536,7 +1653,7 @@
         }
 
         async function deleteShippingBatch(orderId, batchIndex) {
-            if(!confirm("确定要删除该次独立发货记录吗？")) return;
+            if(!confirm("确定要删除该张独立出库单记录吗？")) return;
             const o = ordersData.find(item => item.id === orderId);
             if(!o) return;
 
@@ -1545,9 +1662,13 @@
 
             historyList.splice(batchIndex, 1);
 
+            const totalShippedQty = historyList.reduce((sum, batch) => {
+                return sum + (batch.items ? batch.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(batch.qty || 0));
+            }, 0);
+
             const payload = {
                 shipping_history: JSON.stringify(historyList),
-                shipped_quantity: historyList.reduce((s, h) => s + Number(h.qty || 0), 0)
+                shipped_quantity: totalShippedQty
             };
 
             const res = await postSupabaseRest('orders', payload, 'PATCH', `id=eq.${orderId}`);
@@ -1652,6 +1773,8 @@
 
         function renderInventoryTable() {
             const tbody = document.getElementById('inventory-table-body');
+            const badge = document.getElementById('inv-count-badge');
+            if(badge) badge.innerText = inventoryData.length + '条';
             if(!tbody) return;
 
             if (inventoryData.length === 0) {
@@ -1659,7 +1782,7 @@
             } else {
                 tbody.innerHTML = inventoryData.map(i => {
                     const qty = Number(i.quantity || 0);
-                    const unit = i.unit || '件';
+                    const unit = i.unit || '个';
                     const totalAmt = i.total_amount !== undefined ? Number(i.total_amount) : 0;
                     const price = i.price !== undefined ? Number(i.price) : (qty > 0 ? totalAmt / qty : 0);
                     return `
@@ -1687,7 +1810,7 @@
 
             inventoryData.forEach(item => {
                 const mat = item.material || '未知材料';
-                const unit = item.unit || '件';
+                const unit = item.unit || '个';
                 if (!materialMap[mat]) { materialMap[mat] = { in: 0, out: 0, unit: unit }; }
                 const qty = Number(item.quantity || 0);
                 if (item.type === 'IN') materialMap[mat].in += qty;
@@ -1703,7 +1826,7 @@
             balanceContainer.innerHTML = keys.map(mat => {
                 const data = materialMap[mat];
                 const balance = data.in - data.out;
-                const unit = data.unit || '件';
+                const unit = data.unit || '个';
                 return `
                     <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl space-y-1">
                         <div class="font-bold text-slate-800 text-xs truncate" title="${mat}">${mat}</div>
@@ -1732,8 +1855,8 @@
 
             const totalIn = inventoryData.filter(i => i.type === 'IN').reduce((s, i) => s + Number(i.quantity || 0), 0);
             const totalOut = inventoryData.filter(i => i.type === 'OUT').reduce((s, i) => s + Number(i.quantity || 0), 0);
-            document.getElementById('kpi-in-stock').innerText = `${totalIn} 件`;
-            document.getElementById('kpi-out-stock').innerText = `${totalOut} 件`;
+            document.getElementById('kpi-in-stock').innerText = `${totalIn} 个`;
+            document.getElementById('kpi-out-stock').innerText = `${totalOut} 个`;
         }
 
         function initReportMonthSelector() {
@@ -1741,12 +1864,61 @@
             if(!select) return;
             const months = new Set();
             ordersData.forEach(o => { if(o.order_date) months.add(o.order_date.slice(0, 7)); });
+            inventoryData.forEach(i => { if(i.date) months.add(i.date.slice(0, 7)); });
             const curMonthStr = new Date().toISOString().slice(0, 7);
             months.add(curMonthStr);
 
             const sortedMonths = Array.from(months).sort().reverse();
             select.innerHTML = sortedMonths.map(m => `<option value="${m}">${m} 月份报表</option>`).join('');
             select.value = curMonthStr;
+        }
+
+        function getPrevMonthStr(ymStr) {
+            const [y, m] = ymStr.split('-').map(Number);
+            let prevY = y;
+            let prevM = m - 1;
+            if (prevM === 0) {
+                prevM = 12;
+                prevY -= 1;
+            }
+            return `${prevY}-${String(prevM).padStart(2, '0')}`;
+        }
+
+        function calcMonthStats(ymStr) {
+            const mOrders = ordersData.filter(o => o.order_date && o.order_date.startsWith(ymStr));
+            const mInvs = inventoryData.filter(i => i.date && i.date.startsWith(ymStr) && i.type === 'IN');
+
+            let revenue = mOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+            let materialExp = mInvs.reduce((s, i) => {
+                const q = Number(i.quantity || 0);
+                const tAmt = i.total_amount !== undefined ? Number(i.total_amount) : (q * Number(i.price || 0));
+                return s + tAmt;
+            }, 0);
+
+            let profit = 0;
+            let totalQty = 0;
+            let shippedQty = 0;
+
+            mOrders.forEach(o => {
+                const models = parseModels(o);
+                const tQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
+                const cost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
+                profit += (Number(o.total_amount || 0) - cost);
+                totalQty += tQ;
+
+                let historyList = [];
+                try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
+                shippedQty += historyList.reduce((sum, batch) => sum + (batch.items ? batch.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(batch.qty || 0)), 0);
+            });
+
+            return {
+                orderCount: mOrders.length,
+                revenue,
+                materialExp,
+                profit,
+                totalQty,
+                shippedQty
+            };
         }
 
         function renderDeepReport() {
@@ -1760,27 +1932,29 @@
             if(!container) return;
             container.innerHTML = '';
 
-            const monthTotalAmt = monthOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
-            let monthTotalProfit = 0;
-            let monthTotalQty = 0;
-            let monthShippedQty = 0;
+            const curStats = calcMonthStats(selectedMonth);
+            const prevMonthStr = getPrevMonthStr(selectedMonth);
+            const prevStats = calcMonthStats(prevMonthStr);
+
+            document.getElementById('rep-kpi-count').innerText = `${curStats.orderCount} 笔`;
+            document.getElementById('rep-kpi-amount').innerText = `¥${curStats.revenue.toFixed(2)}`;
+            document.getElementById('rep-kpi-material-exp').innerText = `¥${curStats.materialExp.toFixed(2)}`;
+            document.getElementById('rep-kpi-profit').innerText = `¥${curStats.profit.toFixed(2)}`;
+            document.getElementById('rep-kpi-qty').innerText = `${curStats.totalQty} 个`;
+            document.getElementById('rep-kpi-shipped').innerText = `${curStats.shippedQty} 个`;
 
             const groups = {};
             monthOrders.forEach(o => {
-                if (!groups[o.customer]) { groups[o.customer] = { count: 0, totalAmt: 0, totalProfit: 0, totalQty: 0, shippedQty: 0, unit: '件' }; }
+                if (!groups[o.customer]) { groups[o.customer] = { count: 0, totalAmt: 0, totalProfit: 0, totalQty: 0, shippedQty: 0, unit: '个' }; }
                 const models = parseModels(o);
                 const tQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                const unit = models[0]?.unit || '件';
+                const unit = models[0]?.unit || '个';
                 const cost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
                 const profit = Number(o.total_amount || 0) - cost;
 
-                monthTotalQty += tQ;
-                monthTotalProfit += profit;
-
                 let historyList = [];
                 try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
-                const shipped = historyList.reduce((s, h) => s + Number(h.qty || 0), 0);
-                monthShippedQty += shipped;
+                const shipped = historyList.reduce((sum, batch) => sum + (batch.items ? batch.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(batch.qty || 0)), 0);
 
                 groups[o.customer].count += 1;
                 groups[o.customer].totalAmt += Number(o.total_amount || 0);
@@ -1789,12 +1963,6 @@
                 groups[o.customer].shippedQty += shipped;
                 groups[o.customer].unit = unit;
             });
-
-            document.getElementById('rep-kpi-count').innerText = `${monthOrders.length} 笔`;
-            document.getElementById('rep-kpi-amount').innerText = `¥${monthTotalAmt.toFixed(2)}`;
-            document.getElementById('rep-kpi-profit').innerText = `¥${monthTotalProfit.toFixed(2)}`;
-            document.getElementById('rep-kpi-qty').innerText = `${monthTotalQty} 件`;
-            document.getElementById('rep-kpi-shipped').innerText = `${monthShippedQty} 件`;
 
             const customers = Object.keys(groups);
             if (customers.length === 0) {
@@ -1812,18 +1980,32 @@
                                 <div><span class="text-slate-400">总订数量：</span><span class="font-bold text-slate-700">${info.totalQty}${info.unit}</span></div>
                                 <div><span class="text-slate-400">已出库数：</span><span class="font-bold text-blue-600">${info.shippedQty}${info.unit}</span></div>
                                 <div><span class="text-slate-400">消费总额：</span><span class="font-bold text-emerald-600">¥${info.totalAmt.toFixed(2)}</span></div>
-                                <div><span class="text-slate-400">毛利润：</span><span class="font-bold text-purple-600">¥${info.totalProfit.toFixed(2)}</span></div>
+                                <div><span class="text-slate-400">总毛利：</span><span class="font-bold text-purple-600">¥${info.totalProfit.toFixed(2)}</span></div>
                             </div>
                         </div>
                     `;
                 });
             }
 
+            function calcMom(cur, prev) {
+                if (prev === 0) return cur > 0 ? '+100.0%' : '0.0%';
+                const rate = ((cur - prev) / prev) * 100;
+                return (rate >= 0 ? '+' : '') + rate.toFixed(1) + '%';
+            }
+
+            const revMom = calcMom(curStats.revenue, prevStats.revenue);
+            const profMom = calcMom(curStats.profit, prevStats.profit);
+            const matMom = calcMom(curStats.materialExp, prevStats.materialExp);
+
             const smartText = document.getElementById('smart-report-text');
             if(smartText) {
                 smartText.innerHTML = `
-                    • <strong class="text-indigo-700">${selectedMonth}</strong> 期间共计录入客户订单 <strong class="text-indigo-700">${monthOrders.length}</strong> 笔，总营收额达 <strong class="text-emerald-700">¥${monthTotalAmt.toFixed(2)}</strong>，总毛利润达 <strong class="text-purple-700">¥${monthTotalProfit.toFixed(2)}</strong>。<br>
-                    • 发货进度追踪：已成功出库发货 <strong class="text-blue-700">${monthShippedQty}</strong> 件，剩余未出库积压量 <strong class="text-amber-700">${Math.max(0, monthTotalQty - monthShippedQty)}</strong> 件。
+                    • <strong class="text-indigo-900">${selectedMonth}</strong> 期间共录入客户订单 <strong class="text-indigo-800">${curStats.orderCount}</strong> 笔，总营收额达 <strong class="text-emerald-700">¥${curStats.revenue.toFixed(2)}</strong>，原材料总支出 <strong class="text-rose-700">¥${curStats.materialExp.toFixed(2)}</strong>，实现总毛利润 <strong class="text-purple-700">¥${curStats.profit.toFixed(2)}</strong>。<br>
+                    • <strong>环比(MoM)分析对比 (${prevMonthStr} vs ${selectedMonth})</strong>：
+                      营收额环比 <span class="${curStats.revenue >= prevStats.revenue ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}">${revMom}</span>，
+                      毛利润环比 <span class="${curStats.profit >= prevStats.profit ? 'text-purple-600 font-bold' : 'text-rose-600 font-bold'}">${profMom}</span>，
+                      原材料支出环比 <span class="${curStats.materialExp <= prevStats.materialExp ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}">${matMom}</span>。<br>
+                    • 发货追踪：本月已成功出库发货 <strong class="text-blue-700">${curStats.shippedQty}</strong> 个，剩余未出库积压量 <strong class="text-amber-700">${Math.max(0, curStats.totalQty - curStats.shippedQty)}</strong> 个。
                 `;
             }
 
@@ -1869,7 +2051,7 @@
                 return;
             }
 
-            let csvContent = `\uFEFF${selectedMonth} 客户订单多型号与毛利月度报表\n`;
+            let csvContent = `\uFEFF${selectedMonth} 客户订单多型号、毛利与环比分析月度报表\n`;
             csvContent += "订单号,客户名称,下单日期,预计发货时间,总数量,已发货总数,总金额(元),毛利润(元),发货批次详情\n";
 
             monthOrders.forEach(o => {
@@ -1879,8 +2061,12 @@
                 const profit = Number(o.total_amount || 0) - cost;
                 let hList = [];
                 try { hList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ hList = []; }
-                const shippedQ = hList.reduce((s, h) => s + Number(h.qty || 0), 0);
-                const hStr = hList.map(h => `[${h.model}:${h.qty}${h.unit || '件'}(${h.date})]`).join(' ');
+                const shippedQ = hList.reduce((sum, batch) => sum + (batch.items ? batch.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(batch.qty || 0)), 0);
+                const hStr = hList.map(b => {
+                    const items = b.items || [{ model: b.model, qty: b.qty, unit: b.unit }];
+                    const itemsText = items.map(i => `${i.model}:${i.qty}${i.unit || '个'}`).join('+');
+                    return `[${itemsText}(${b.date})]`;
+                }).join(' ');
                 csvContent += `"${o.order_no || ''}","${o.customer}","${o.order_date}","${o.due_date || 'Not set'}",${totalQ},${shippedQ},${Number(o.total_amount || 0).toFixed(2)},${profit.toFixed(2)},"${hStr}"\n`;
             });
 
@@ -1888,7 +2074,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `承辉包装_${selectedMonth}_毛利分析报表.csv`;
+            a.download = `新辉包装_${selectedMonth}_经营与环比分析报表.csv`;
             a.click();
         }
 
@@ -1905,7 +2091,7 @@
             document.getElementById('modal-order').classList.remove('hidden');
         }
 
-        function addOrderModelRow(modelName = '', qty = '', unit = '件', price = '', costPrice = '', imgName = '') {
+        function addOrderModelRow(modelName = '', qty = '', unit = '个', price = '', costPrice = '', imgName = '') {
             const container = document.getElementById('order-models-container');
             const rowId = 'm-row-' + Math.random().toString(36).substr(2, 5);
             const unitOptionsHtml = UNIT_OPTIONS.map(u => `<option value="${u}" ${u === unit ? 'selected' : ''}>${u}</option>`).join('');
@@ -1946,7 +2132,7 @@
             let totalQ = 0;
             let totalAmt = 0;
             let totalCost = 0;
-            let firstUnit = '件';
+            let firstUnit = '个';
             rows.forEach((r, idx) => {
                 const q = Number(r.querySelector('.model-qty').value || 0);
                 const u = r.querySelector('.model-unit').value;
@@ -1978,7 +2164,7 @@
             const container = document.getElementById('order-models-container');
             container.innerHTML = '';
             const models = parseModels(o);
-            models.forEach(m => addOrderModelRow(m.modelName, m.qty, m.unit || '件', m.price, m.costPrice || 0, m.imgName));
+            models.forEach(m => addOrderModelRow(m.modelName, m.qty, m.unit || '个', m.price, m.costPrice || 0, m.imgName));
 
             document.getElementById('modal-order').classList.remove('hidden');
         }
