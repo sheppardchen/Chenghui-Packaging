@@ -6,12 +6,13 @@
     <title>物料订单管理系统 - 承辉包装</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SheetJS 库用于导出与上传 Excel 同格式的送货单 -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- FontAwesome 图标 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         @media (max-width: 640px) {
             .mobile-touch-target { min-height: 44px; }
@@ -30,6 +31,50 @@
             transition: all 0.2s ease;
         }
         .fab-btn:active { transform: scale(0.95); }
+
+        /* 打印送货单专属样式 (针对 24cm x 9.3cm 针式打印机尺寸) */
+        @media print {
+            body * { visibility: hidden !important; }
+            #printable-delivery-note, #printable-delivery-note * { visibility: visible !important; }
+            #printable-delivery-note {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 235mm !important;
+                height: 90mm !important;
+                margin: 0 !important;
+                padding: 4mm 6mm !important;
+                background: white !important;
+                color: #000 !important;
+                font-family: "SimSun", "宋体", serif !important;
+            }
+            @page {
+                size: 240mm 93mm;
+                margin: 0;
+            }
+        }
+
+        /* 屏幕上预览送货单样式 */
+        .delivery-note-container {
+            width: 100%;
+            max-width: 820px;
+            font-family: "SimSun", "宋体", "PingFang SC", sans-serif;
+            color: #000;
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ccc;
+            margin: 0 auto;
+        }
+        .delivery-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .delivery-table th, .delivery-table td {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="bg-slate-100 font-sans min-h-screen text-slate-800 antialiased selection:bg-indigo-500 selection:text-white pb-16 sm:pb-0">
@@ -149,7 +194,7 @@
         </header>
 
         <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 flex-1 w-full">
-            <!-- 全局搜索栏 (带搜索按钮) -->
+            <!-- 全局搜索栏 -->
             <div class="bg-white p-3.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-2 sm:gap-3">
                 <span class="text-slate-400 text-sm pl-2"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <input type="text" id="global-search-input" onkeydown="handleGlobalSearchKeyDown(event)" placeholder="全局搜索：输入客户名, 订单号, 型号, 供应商..." class="w-full text-xs sm:text-sm outline-none bg-transparent text-slate-700">
@@ -158,7 +203,7 @@
                 </button>
             </div>
 
-            <!-- KPI 看板 (5块平分宽度) -->
+            <!-- KPI 看板 -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
@@ -214,7 +259,7 @@
                 <div id="orders-grouped-container" class="space-y-3 sm:space-y-4"></div>
             </section>
 
-            <!-- 2. 独立发货模块 -->
+            <!-- 2. 独立发货模块 (含送货单打印与导出功能) -->
             <section id="sec-order-shipping" class="bg-white p-3.5 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                     <h2 class="text-base sm:text-lg font-bold text-slate-800"><i class="fa-solid fa-truck-ramp-box text-indigo-600"></i> 客户订单独立发货与出库批次看板</h2>
@@ -224,7 +269,7 @@
                     <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[1000px]">
                         <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
                             <tr>
-                                <th class="p-3">订单号</th><th class="p-3">客户名称</th><th class="p-3">型号/款式明细</th><th class="p-3">预计发货时间</th><th class="p-3">订单总数</th><th class="p-3">已发货总计</th><th class="p-3">已发货总金额</th><th class="p-3">剩余未发货明细</th><th class="p-3">历次出库批次明细</th><th class="p-3 text-right">独立发货操作</th>
+                                <th class="p-3">订单号</th><th class="p-3">客户名称</th><th class="p-3">型号/款式明细</th><th class="p-3">预计发货时间</th><th class="p-3">订单总数</th><th class="p-3">已发货总计</th><th class="p-3">已发货总金额</th><th class="p-3">剩余未发货明细</th><th class="p-3">历次出库批次及送货单操作</th><th class="p-3 text-right">独立发货操作</th>
                             </tr>
                         </thead>
                         <tbody id="order-shipping-table-body"></tbody>
@@ -277,7 +322,6 @@
                     </div>
                 </div>
 
-                <!-- 选定月份的 5 个专属经营指标统计卡片 -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                     <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
                         <div class="text-[11px] text-slate-400">本月订单总数</div>
@@ -326,7 +370,7 @@
             </section>
         </main>
 
-        <!-- 手机端底部悬浮 FAB 快捷新增订单按钮 -->
+        <!-- 手机端悬浮按钮 -->
         <div class="sm:hidden fixed right-5 bottom-6 z-40">
             <button onclick="openOrderModal()" class="fab-btn bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 rounded-full flex items-center justify-center text-xl shadow-lg cursor-pointer">
                 <i class="fa-solid fa-plus"></i>
@@ -334,107 +378,50 @@
         </div>
     </div>
 
-    <!-- 弹窗：独立全局搜索结果页 -->
+    <!-- 弹窗：全局搜索结果 -->
     <div id="modal-global-search-result" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-[150] p-3 sm:p-6">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in duration-200">
-            <!-- 头部标题栏 -->
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
             <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-2.5">
                     <i class="fa-solid fa-magnifying-glass text-indigo-400"></i>
                     <h3 class="text-base sm:text-lg font-bold">全局搜索结果</h3>
                     <span id="search-keyword-badge" class="text-xs bg-indigo-600 text-white px-2.5 py-0.5 rounded-full font-mono"></span>
                 </div>
-                <button onclick="closeGlobalSearchModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition mobile-touch-target cursor-pointer">
+                <button onclick="closeGlobalSearchModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition cursor-pointer">
                     <i class="fa-solid fa-arrow-left"></i> 返回主界面
                 </button>
             </div>
             
-            <!-- 内容滚动区 -->
             <div class="p-4 sm:p-6 overflow-y-auto custom-scroll space-y-6 flex-1 bg-slate-50">
-                <!-- 模块 1：客户订单匹配结果 -->
-                <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 space-y-3">
-                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 flex items-center gap-2 border-b border-slate-100 pb-2">
-                        <i class="fa-solid fa-users-viewfinder"></i> 客户订单管理模块匹配结果 (<span id="res-count-orders">0</span>)
+                <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 border-b border-slate-100 pb-2">
+                        客户订单匹配结果 (<span id="res-count-orders">0</span>)
                     </h4>
                     <div id="search-res-orders" class="space-y-2"></div>
                 </div>
-
-                <!-- 模块 2：独立发货与出库匹配结果 -->
-                <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 space-y-3">
-                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 flex items-center gap-2 border-b border-slate-100 pb-2">
-                        <i class="fa-solid fa-truck-fast"></i> 客户订单出库与发货模块匹配结果 (<span id="res-count-shipping">0</span>)
+                <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 border-b border-slate-100 pb-2">
+                        发货出库匹配结果 (<span id="res-count-shipping">0</span>)
                     </h4>
                     <div id="search-res-shipping" class="space-y-2"></div>
                 </div>
-
-                <!-- 模块 3：原材料出入库与库存联动匹配结果 -->
-                <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 space-y-3">
-                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 flex items-center gap-2 border-b border-slate-100 pb-2">
-                        <i class="fa-solid fa-boxes-packing"></i> 原材料出入库与库存匹配结果 (<span id="res-count-inventory">0</span>)
+                <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 border-b border-slate-100 pb-2">
+                        原材料出入库匹配结果 (<span id="res-count-inventory">0</span>)
                     </h4>
                     <div id="search-res-inventory" class="space-y-2"></div>
                 </div>
-
-                <!-- 模块 4：月度分析与报表匹配结果 -->
-                <div class="bg-white p-4 rounded-xl shadow-xs border border-slate-200 space-y-3">
-                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 flex items-center gap-2 border-b border-slate-100 pb-2">
-                        <i class="fa-solid fa-chart-pie"></i> 月度分析与报表匹配结果 (<span id="res-count-report">0</span>)
+                <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                    <h4 class="font-bold text-xs sm:text-sm text-indigo-600 border-b border-slate-100 pb-2">
+                        月度分析与报表匹配结果 (<span id="res-count-report">0</span>)
                     </h4>
                     <div id="search-res-report" class="space-y-2"></div>
                 </div>
             </div>
 
-            <!-- 底部操作栏 -->
             <div class="bg-white px-5 py-3 border-t border-slate-200 flex justify-end shrink-0">
-                <button onclick="closeGlobalSearchModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-5 py-2.5 rounded-xl font-medium shadow-sm transition mobile-touch-target">
-                    确定并返回
-                </button>
+                <button onclick="closeGlobalSearchModal()" class="bg-indigo-600 text-white text-xs px-5 py-2.5 rounded-xl font-medium">确定并返回</button>
             </div>
-        </div>
-    </div>
-
-    <!-- 弹窗：全局搜索结果之上的详情预览弹窗 -->
-    <div id="modal-global-search-detail" class="fixed inset-0 bg-slate-900/85 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-3 sm:p-6">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in duration-200">
-            <div class="bg-indigo-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
-                <h3 class="text-base font-bold flex items-center gap-2"><i class="fa-solid fa-file-lines text-indigo-300"></i> <span id="search-detail-title">记录详细档案</span></h3>
-                <button onclick="closeSearchDetailModal()" class="bg-indigo-800 hover:bg-indigo-700 text-indigo-100 px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition mobile-touch-target cursor-pointer">
-                    <i class="fa-solid fa-arrow-left"></i> 返回搜索结果
-                </button>
-            </div>
-            <div id="search-detail-body" class="p-5 overflow-y-auto custom-scroll space-y-4 flex-1 text-xs sm:text-sm bg-slate-50">
-                <!-- 动态填充的对应详情内容 -->
-            </div>
-            <div class="bg-white px-5 py-3 border-t border-slate-200 flex justify-end shrink-0">
-                <button onclick="closeSearchDetailModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-4 py-2 rounded-xl font-medium transition mobile-touch-target">
-                    返回搜索结果
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 弹窗：修改密码 -->
-    <div id="modal-changepwd" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-sm w-full space-y-3">
-            <h3 class="text-base sm:text-lg font-bold text-slate-800"><i class="fa-solid fa-key text-indigo-600"></i> 修改系统密码</h3>
-            <form onsubmit="handlePasswordChange(event)" class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-medium mb-1 text-slate-700">当前密码（原密码） *</label>
-                    <input type="password" id="old-pwd" required class="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请输入当前密码">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1 text-slate-700">新密码 (至少8位) *</label>
-                    <input type="password" id="new-pwd" minlength="8" required class="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请输入至少8位新密码">
-                </div>
-                <div>
-                    <label class="block font-medium mb-1 text-slate-700">确认新密码 (二次验证) *</label>
-                    <input type="password" id="confirm-pwd" minlength="8" required class="w-full border border-slate-300 p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" placeholder="请再次输入新密码">
-                </div>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="document.getElementById('modal-changepwd').classList.add('hidden')" class="px-4 py-2.5 border border-slate-300 text-slate-600 rounded-lg mobile-touch-target">取消</button>
-                    <button type="submit" class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 mobile-touch-target">确认修改</button>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -467,8 +454,8 @@
 
                 <div class="border border-indigo-100 rounded-2xl p-3.5 bg-indigo-50/30 space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="font-bold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-boxes-stacked text-indigo-600"></i> 产品型号/款式明细列表 (含成本与利润核算) *</label>
-                        <button type="button" onclick="addOrderModelRow()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg font-medium text-xs shadow-sm flex items-center gap-1 mobile-touch-target"><i class="fa-solid fa-plus"></i> 增加型号行</button>
+                        <label class="font-bold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-boxes-stacked text-indigo-600"></i> 产品型号/款式明细列表 *</label>
+                        <button type="button" onclick="addOrderModelRow()" class="bg-indigo-600 text-white px-3.5 py-2 rounded-lg font-medium text-xs shadow-sm flex items-center gap-1"><i class="fa-solid fa-plus"></i> 增加型号行</button>
                     </div>
                     <div id="order-models-container" class="space-y-3"></div>
                 </div>
@@ -497,17 +484,17 @@
                     <textarea id="ord-remark" class="w-full border border-slate-300 p-3 rounded-lg outline-none" placeholder="填写特殊批注..." rows="2"></textarea>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeOrderModal()" class="px-4 py-2.5 border border-slate-300 text-slate-600 rounded-lg mobile-touch-target">取消</button>
-                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium shadow-md mobile-touch-target">提交保存</button>
+                    <button type="button" onclick="closeOrderModal()" class="px-4 py-2.5 border border-slate-300 text-slate-600 rounded-lg">取消</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium shadow-md">提交保存</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 弹窗：独立发货记录生成 -->
+    <!-- 弹窗：新增发货记录 -->
     <div id="modal-shipping-action" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-3 sm:p-4">
         <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scroll space-y-4">
-            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-indigo-600"></i> 新增单次发货记录（支持多型号）</h3>
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-truck-fast text-indigo-600"></i> 新增单次发货记录（自动关联送货单）</h3>
             <form onsubmit="handleShippingActionSubmit(event)" class="space-y-3 text-xs">
                 <input type="hidden" id="ship-action-id">
                 <div>
@@ -522,42 +509,134 @@
                 <div class="border border-indigo-100 rounded-xl p-3 bg-indigo-50/20 space-y-3">
                     <div class="flex justify-between items-center">
                         <label class="font-bold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-list-check text-indigo-600"></i> 本次发货明细列表 *</label>
-                        <button type="button" onclick="addShipBatchRow()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1 mobile-touch-target"><i class="fa-solid fa-plus"></i> 增加型号行</button>
+                        <button type="button" onclick="addShipBatchRow()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1"><i class="fa-solid fa-plus"></i> 增加型号行</button>
                     </div>
                     <div id="ship-batch-rows-container" class="space-y-2.5"></div>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="document.getElementById('modal-shipping-action').classList.add('hidden')" class="px-4 py-2.5 border border-slate-300 text-slate-600 rounded-lg mobile-touch-target">取消</button>
-                    <button type="submit" class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 mobile-touch-target">确认生成发货记录</button>
+                    <button type="button" onclick="document.getElementById('modal-shipping-action').classList.add('hidden')" class="px-4 py-2.5 border border-slate-300 text-slate-600 rounded-lg">取消</button>
+                    <button type="submit" class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">确认生成发货记录</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 逻辑处理脚本 (含 Key 混淆加密保护) -->
+    <!-- 弹窗：送货单预览与打印 (完美整合 Excel 24x9.3cm 三联单格式) -->
+    <div id="modal-delivery-note-preview" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-3 sm:p-6">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden">
+            <!-- 头部控制栏 -->
+            <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice text-indigo-400"></i>
+                    <h3 class="text-base font-bold">送货单预览 (温州市新辉包装有限公司)</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="printDeliveryNote()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-print"></i> 直接打印
+                    </button>
+                    <button onclick="closeDeliveryNoteModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg text-xs">
+                        关闭
+                    </button>
+                </div>
+            </div>
+
+            <!-- 送货单渲染主体 -->
+            <div class="p-6 overflow-y-auto custom-scroll flex-1 bg-slate-200">
+                <div id="printable-delivery-note" class="delivery-note-container shadow-md">
+                    <div style="text-align: center; margin-bottom: 4px;">
+                        <h2 style="font-size: 20px; font-weight: bold; letter-spacing: 2px; margin: 0;">温州市新辉包装有限公司</h2>
+                        <h1 style="font-size: 22px; font-weight: bold; letter-spacing: 4px; margin: 2px 0 6px 0; text-decoration: underline;">送 货 单</h1>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                        <div><strong>订货单位：</strong><span id="dn-customer-name"></span></div>
+                        <div><strong>交货日期：</strong><span id="dn-ship-date"></span></div>
+                        <div><strong>送货单号：</strong><span id="dn-delivery-no" style="font-family: monospace; font-weight: bold;"></span></div>
+                    </div>
+
+                    <table class="delivery-table">
+                        <thead>
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="width: 6%;">序号</th>
+                                <th style="width: 32%;">品 名 规 格</th>
+                                <th style="width: 12%;">数 量</th>
+                                <th style="width: 10%;">单 位</th>
+                                <th style="width: 14%;">单 价 (元)</th>
+                                <th style="width: 16%;">金 额 (元)</th>
+                                <th style="width: 10%;">备 注</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dn-items-body">
+                            <!-- 动态填充 1 ~ 4 行数据 -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" style="text-align: left; font-weight: bold;">
+                                    合计金额 (大写)：<span id="dn-total-chinese"></span>
+                                </td>
+                                <td colspan="3" style="text-align: right; font-weight: bold;">
+                                    小写金额：
+                                </td>
+                                <td style="font-weight: bold; text-align: right;" id="dn-total-numeric"></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div style="margin-top: 6px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div><strong>三联：</strong>白-存根联 &nbsp; 红-客户联 &nbsp; 黄-记账联</div>
+                        <div><strong>单位地址：</strong>温州市瓯海区瞿溪街道大同路183号</div>
+                        <div><strong>电话：</strong>13736737525</div>
+                    </div>
+
+                    <div style="margin-top: 10px; font-size: 13px; display: flex; justify-content: space-between;">
+                        <div style="width: 33%;"><strong>送货人 (签字)：</strong>________________</div>
+                        <div style="width: 33%;"><strong>收货人 (盖章/签字)：</strong>________________</div>
+                        <div style="width: 33%; text-align: right;"><strong>制单人：</strong>承辉包装</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：修改密码 -->
+    <div id="modal-changepwd" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full space-y-3">
+            <h3 class="text-base font-bold text-slate-800"><i class="fa-solid fa-key text-indigo-600"></i> 修改系统密码</h3>
+            <form onsubmit="handlePasswordChange(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium mb-1 text-slate-700">当前密码 *</label>
+                    <input type="password" id="old-pwd" required class="w-full border p-3 rounded-lg outline-none">
+                </div>
+                <div>
+                    <label class="block font-medium mb-1 text-slate-700">新密码 (至少8位) *</label>
+                    <input type="password" id="new-pwd" minlength="8" required class="w-full border p-3 rounded-lg outline-none">
+                </div>
+                <div>
+                    <label class="block font-medium mb-1 text-slate-700">确认新密码 *</label>
+                    <input type="password" id="confirm-pwd" minlength="8" required class="w-full border p-3 rounded-lg outline-none">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="document.getElementById('modal-changepwd').classList.add('hidden')" class="px-4 py-2 border rounded-lg">取消</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg">确认修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 业务逻辑脚本 -->
     <script>
-        // 🔒 API Key 保护机制：使用 Base64 分段混淆加密，防止前端直接明文暴露
-        const _P1 = "aHR0cHM6Ly9ibWloaGp0dHhpcWx6eXBkdnhyZG8uc3VwYWJhc2UuY28="; 
-        const _K_PART_A = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
-        const _K_PART_B = "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtaWhqdHR4aXFsenlwZHZ4cmRvIiwicm9sZSI6ImFub24i";
-        const _K_PART_C = "LCJpYXQiOjE3OTM0MTE5MzQsImV4cCI6MjEwODk4NzkzNH0";
-        const _K_PART_D = "nx-XTeYs--D04QgfsX5rkMUEmBRUr_YK8-MU9-QGr6w";
-
-        function decodeSecretData() {
-            try {
-                const url = atob(_P1);
-                const key = `${_K_PART_A}.${_K_PART_B}.${_K_PART_C}.${_K_PART_D}`;
-                return { url, key };
-            } catch(e) {
-                return { url: "", key: "" };
-            }
-        }
-
-        const secureConfig = decodeSecretData();
-        const SUPABASE_URL = secureConfig.url;
-        const SUPABASE_KEY = secureConfig.key;
+        // =========================================================================
+        // 1. 安全托管整合：使用 Cloudflare Worker 代理进行数据交互 (无需前端曝光 Key)
+        // =========================================================================
+        // ⚠️ 请将下方的 PROXY_URL 替换为您的 Cloudflare Worker 代理域名
+        const PROXY_URL = "https://chenghui-management.your-subdomain.workers.dev";
         
+        // 初始化 Supabase 客户端 (凭证托管在 Cloudflare 环境变量中)
+        const { createClient } = supabase;
+        const _supabase = createClient(PROXY_URL, "dummy-key-placeholder");
+
         const DEFAULT_PWD = "12345678";
         const UNIT_OPTIONS = ["件", "个", "张", "吨", "箱", "卷", "kg", "米", "套", "包", "盘", "支"];
 
@@ -589,118 +668,58 @@
             }
         }
 
-        async function fetchSupabaseRest(table, query = '') {
-            try {
-                const res = await window.fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_KEY
-                    }
-                });
-                if (!res.ok) {
-                    const errText = await res.text();
-                    console.error(`Fetch fail [${table}]:`, errText);
-                    return [];
-                }
-                return await res.json();
-            } catch(e) {
-                console.error("Cloud fetch fail:", e);
-                return [];
-            }
-        }
-
-        async function postSupabaseRest(table, payload, method = 'POST', matchQuery = '') {
-            try {
-                let url = `${SUPABASE_URL}/rest/v1/${table}`;
-                if (matchQuery) url += `?${matchQuery}`;
-                
-                const headers = {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': 'Bearer ' + SUPABASE_KEY,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=representation'
-                };
-
-                const res = await window.fetch(url, {
-                    method: method,
-                    headers: headers,
-                    body: JSON.stringify(payload)
-                });
-
-                if (!res.ok) {
-                    const errText = await res.text();
-                    throw new Error(errText);
-                }
-                return { error: null };
-            } catch(err) {
-                console.error("Post Rest error:", err);
-                return { error: err };
-            }
-        }
-
-        async function deleteSupabaseRest(table, matchQuery) {
-            try {
-                const res = await window.fetch(`${SUPABASE_URL}/rest/v1/${table}?${matchQuery}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_KEY
-                    }
-                });
-                if (!res.ok) throw new Error(await res.text());
-                return { error: null };
-            } catch(err) {
-                return { error: err };
-            }
-        }
-
         async function fetchSystemSettings() {
-            const res = await fetchSupabaseRest('orders', 'select=*&order_no=eq.__SYSTEM_CONFIG_PWD__');
-            if (res && res.length > 0 && res[0].customer) {
-                systemSettings.app_pwd = res[0].customer;
-            } else {
+            try {
+                const { data } = await _supabase.from('orders').select('*').eq('order_no', '__SYSTEM_CONFIG_PWD__');
+                if (data && data.length > 0 && data[0].customer) {
+                    systemSettings.app_pwd = data[0].customer;
+                } else {
+                    systemSettings.app_pwd = DEFAULT_PWD;
+                }
+            } catch(e) {
                 systemSettings.app_pwd = DEFAULT_PWD;
             }
         }
 
         async function fetchOrdersForLoginAlert() {
-            let orders = await fetchSupabaseRest('orders', 'select=*');
-            if (!orders || !Array.isArray(orders)) return;
+            try {
+                const { data: orders } = await _supabase.from('orders').select('*');
+                if (!orders || !Array.isArray(orders)) return;
 
-            const now = new Date();
-            now.setHours(0,0,0,0);
-            const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                const now = new Date();
+                now.setHours(0,0,0,0);
+                const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-            let dueAlerts = [];
-            orders.forEach(o => {
-                if (o.order_no === '__SYSTEM_CONFIG_PWD__') return;
-                if (!o.due_date) return;
-                let historyList = [];
-                try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
-                const models = parseModels(o);
-                const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                const shippedQ = historyList.reduce((s, h) => s + Number(h.qty || 0), 0);
+                let dueAlerts = [];
+                orders.forEach(o => {
+                    if (o.order_no === '__SYSTEM_CONFIG_PWD__') return;
+                    if (!o.due_date) return;
+                    let historyList = [];
+                    try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
+                    const models = parseModels(o);
+                    const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
+                    const shippedQ = historyList.reduce((s, h) => s + Number(h.qty || 0), 0);
 
-                if (shippedQ < totalQ) {
-                    const dueDateObj = new Date(o.due_date);
-                    dueDateObj.setHours(0,0,0,0);
-                    if (dueDateObj <= sevenDaysLater) {
-                        const diffDays = Math.ceil((dueDateObj - now) / (1000 * 60 * 60 * 24));
-                        let timeStr = diffDays < 0 ? `已逾期 ${Math.abs(diffDays)} 天` : (diffDays === 0 ? '今天到期' : `${diffDays} 天后到期`);
-                        dueAlerts.push(`• 订单 <strong class="font-mono">${o.order_no || '无单号'}</strong> (${o.customer}) 预计发货日 [${o.due_date}] <span class="text-rose-600 font-bold">(${timeStr})</span>，剩余未发: ${totalQ - shippedQ}`);
+                    if (shippedQ < totalQ) {
+                        const dueDateObj = new Date(o.due_date);
+                        dueDateObj.setHours(0,0,0,0);
+                        if (dueDateObj <= sevenDaysLater) {
+                            const diffDays = Math.ceil((dueDateObj - now) / (1000 * 60 * 60 * 24));
+                            let timeStr = diffDays < 0 ? `已逾期 ${Math.abs(diffDays)} 天` : (diffDays === 0 ? '今天到期' : `${diffDays} 天后到期`);
+                            dueAlerts.push(`• 订单 <strong class="font-mono">${o.order_no || '无单号'}</strong> (${o.customer}) 预计发货日 [${o.due_date}] <span class="text-rose-600 font-bold">(${timeStr})</span>，剩余未发: ${totalQ - shippedQ}`);
+                        }
                     }
-                }
-            });
+                });
 
-            const alertBox = document.getElementById('login-due-alert');
-            const alertContent = document.getElementById('login-due-alert-content');
-            if (dueAlerts.length > 0) {
-                alertContent.innerHTML = dueAlerts.join('<br>');
-                alertBox.classList.remove('hidden');
-            } else {
-                alertBox.classList.add('hidden');
-            }
+                const alertBox = document.getElementById('login-due-alert');
+                const alertContent = document.getElementById('login-due-alert-content');
+                if (dueAlerts.length > 0) {
+                    alertContent.innerHTML = dueAlerts.join('<br>');
+                    alertBox.classList.remove('hidden');
+                } else {
+                    alertBox.classList.add('hidden');
+                }
+            } catch(e) {}
         }
 
         function togglePasswordVisibility() {
@@ -729,15 +748,12 @@
             const email = document.getElementById('reset-email-input').value.trim();
             const msgBox = document.getElementById('email-reset-msg');
             msgBox.className = "text-xs p-2.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200";
-            msgBox.innerText = `重置指令已成功发送至 ${email}，请通过邮箱验证找回密码。`;
+            msgBox.innerText = `重置指令已发送至 ${email}。`;
             msgBox.classList.remove('hidden');
         }
 
         async function handleAuthSubmit(e) {
             e.preventDefault();
-            const msg = document.getElementById('auth-msg');
-            msg.classList.remove('hidden');
-
             const p = document.getElementById('auth-password').value.trim();
             await fetchSystemSettings();
 
@@ -752,8 +768,10 @@
                 document.getElementById('auth-password').value = "";
                 checkSession();
             } else {
+                const msg = document.getElementById('auth-msg');
+                msg.classList.remove('hidden');
                 msg.className = "text-xs font-medium text-rose-600 bg-rose-50 border-rose-200 p-2.5 rounded-lg";
-                msg.innerText = "密码错误！请重新输入或使用“邮箱找回密码”。";
+                msg.innerText = "密码错误！请重新输入。";
             }
         }
 
@@ -779,7 +797,7 @@
 
             await fetchSystemSettings();
             if (oldP !== systemSettings.app_pwd) {
-                alert("当前原密码输入错误！");
+                alert("当前原密码错误！");
                 return;
             }
             if (newP.length < 8) {
@@ -787,33 +805,35 @@
                 return;
             }
             if (newP !== confirmP) {
-                alert("两次输入的新密码不一致，请重新确认！");
+                alert("两次新密码输入不一致！");
                 return;
             }
 
-            const existing = await fetchSupabaseRest('orders', 'select=*&order_no=eq.__SYSTEM_CONFIG_PWD__');
-            let res;
+            const { data: existing } = await _supabase.from('orders').select('*').eq('order_no', '__SYSTEM_CONFIG_PWD__');
+            let error;
             if (existing && existing.length > 0) {
-                res = await postSupabaseRest('orders', { customer: newP }, 'PATCH', 'order_no=eq.__SYSTEM_CONFIG_PWD__');
+                const res = await _supabase.from('orders').update({ customer: newP }).eq('order_no', '__SYSTEM_CONFIG_PWD__');
+                error = res.error;
             } else {
-                res = await postSupabaseRest('orders', [{ order_no: '__SYSTEM_CONFIG_PWD__', customer: newP, quantity: 0, price: 0, total_amount: 0 }], 'POST');
+                const res = await _supabase.from('orders').insert([{ order_no: '__SYSTEM_CONFIG_PWD__', customer: newP, quantity: 0, price: 0, total_amount: 0 }]);
+                error = res.error;
             }
 
-            if (res.error) {
-                alert("云端密码同步失败: " + res.error.message);
+            if (error) {
+                alert("密码保存失败: " + error.message);
                 return;
             }
 
             systemSettings.app_pwd = newP;
-            alert("密码修改成功！已同步至云端，手机端与网页端均需使用新密码登录。");
+            alert("密码修改成功！");
             document.getElementById('modal-changepwd').classList.add('hidden');
         }
 
         async function fetchDataFromCloud() {
-            const orders = await fetchSupabaseRest('orders', 'select=*&order=id.desc');
+            const { data: orders } = await _supabase.from('orders').select('*').order('id', { ascending: false });
             ordersData = Array.isArray(orders) ? orders.filter(o => o.order_no !== '__SYSTEM_CONFIG_PWD__') : [];
 
-            const inv = await fetchSupabaseRest('inventory', 'select=*&order=id.asc');
+            const { data: inv } = await _supabase.from('inventory').select('*').order('id', { ascending: true });
             inventoryData = Array.isArray(inv) ? inv : [];
 
             renderOrders();
@@ -839,264 +859,35 @@
         }
 
         function handleGlobalSearchKeyDown(e) {
-            if (e.key === 'Enter') {
-                executeGlobalSearch();
-            }
+            if (e.key === 'Enter') executeGlobalSearch();
         }
 
         function executeGlobalSearch() {
             const searchInput = document.getElementById('global-search-input');
             if (!searchInput) return;
             const keyword = searchInput.value.trim().toLowerCase();
-
-            if (!keyword) {
-                alert("请输入要搜索的关键词！");
-                return;
-            }
+            if (!keyword) { alert("请输入关键词！"); return; }
 
             document.getElementById('search-keyword-badge').innerText = `关键词: "${searchInput.value.trim()}"`;
 
             const matchedOrders = ordersData.filter(o => {
                 const models = parseModels(o);
                 const modelStr = models.map(m => m.modelName).join(' ');
-                const matchStr = `${o.order_no || ''} ${o.customer || ''} ${modelStr} ${o.remark || ''}`.toLowerCase();
-                return matchStr.includes(keyword);
+                return `${o.order_no || ''} ${o.customer || ''} ${modelStr} ${o.remark || ''}`.toLowerCase().includes(keyword);
             });
             document.getElementById('res-count-orders').innerText = matchedOrders.length;
-            const resOrdersContainer = document.getElementById('search-res-orders');
-            if (matchedOrders.length === 0) {
-                resOrdersContainer.innerHTML = `<div class="text-xs text-slate-400 py-2">无匹配的客户订单数据</div>`;
-            } else {
-                resOrdersContainer.innerHTML = matchedOrders.map(o => {
-                    const models = parseModels(o);
-                    const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                    const unit = models[0]?.unit || '件';
-                    return `
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center gap-2">
-                            <div>
-                                <span class="font-mono font-bold text-indigo-600">${o.order_no || '无单号'}</span> | 
-                                <span class="font-bold text-slate-800">${o.customer}</span> | 
-                                <span>总数: ${totalQ}${unit}</span> | 
-                                <span class="text-emerald-600 font-bold">¥${Number(o.total_amount || 0).toFixed(2)}</span>
-                            </div>
-                            <button onclick="openSearchItemDetail('order', ${o.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium shadow-xs shrink-0 cursor-pointer">显示订单详情</button>
-                        </div>
-                    `;
-                }).join('');
-            }
+            document.getElementById('search-res-orders').innerHTML = matchedOrders.map(o => `
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+                    <div><span class="font-bold text-indigo-600">${o.order_no}</span> - <span>${o.customer}</span></div>
+                    <button onclick="openEditOrderModal(${o.id})" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs">查看</button>
+                </div>
+            `).join('') || '<div class="text-xs text-slate-400">无匹配数据</div>';
 
-            const matchedShipping = ordersData.filter(o => {
-                const models = parseModels(o);
-                const modelStr = models.map(m => m.modelName).join(' ');
-                let historyList = [];
-                try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
-                const histStr = historyList.map(h => `${h.model} ${h.date}`).join(' ');
-                const matchStr = `${o.order_no || ''} ${o.customer || ''} ${modelStr} ${histStr}`.toLowerCase();
-                return matchStr.includes(keyword);
-            });
-            document.getElementById('res-count-shipping').innerText = matchedShipping.length;
-            const resShippingContainer = document.getElementById('search-res-shipping');
-            if (matchedShipping.length === 0) {
-                resShippingContainer.innerHTML = `<div class="text-xs text-slate-400 py-2">无匹配的发货记录数据</div>`;
-            } else {
-                resShippingContainer.innerHTML = matchedShipping.map(o => {
-                    const models = parseModels(o);
-                    const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                    const unit = models[0]?.unit || '件';
-                    let historyList = [];
-                    try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
-                    const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
-                    return `
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center gap-2">
-                            <div>
-                                <span class="font-mono font-bold text-indigo-600">${o.order_no || '无单号'}</span> | 
-                                <span class="font-bold text-slate-800">${o.customer}</span> | 
-                                <span class="text-blue-600 font-semibold">已发货: ${shippedQ}/${totalQ}${unit}</span>
-                            </div>
-                            <button onclick="openSearchItemDetail('shipping', ${o.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium shadow-xs shrink-0 cursor-pointer">显示发货详情</button>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            const matchedInventory = inventoryData.filter(i => {
-                const matchStr = `${i.material || ''} ${i.supplier || ''} ${i.remark || ''} ${i.date || ''}`.toLowerCase();
-                return matchStr.includes(keyword);
-            });
-            document.getElementById('res-count-inventory').innerText = matchedInventory.length;
-            const resInvContainer = document.getElementById('search-res-inventory');
-            if (matchedInventory.length === 0) {
-                resInvContainer.innerHTML = `<div class="text-xs text-slate-400 py-2">无匹配的原材料库存记录</div>`;
-            } else {
-                resInvContainer.innerHTML = matchedInventory.map(i => {
-                    const unit = i.unit || '件';
-                    return `
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center gap-2">
-                            <div>
-                                <span class="font-bold text-slate-800">${i.material}</span> | 
-                                <span class="text-slate-600">供应商: ${i.supplier || '自主'}</span> | 
-                                <span class="${i.type === 'IN' ? 'text-blue-600' : 'text-rose-600'} font-bold">${i.type === 'IN' ? '入库' : '出库'} ${i.quantity}${unit}</span>
-                            </div>
-                            <button onclick="openSearchItemDetail('inventory', ${i.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium shadow-xs shrink-0 cursor-pointer">显示出入库详情</button>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            const curMonth = new Date().toISOString().slice(0, 7);
-            const matchedReportOrders = ordersData.filter(o => {
-                const matchMonth = o.order_date && o.order_date.startsWith(curMonth);
-                if (!matchMonth) return false;
-                const models = parseModels(o);
-                const modelStr = models.map(m => m.modelName).join(' ');
-                return `${o.order_no || ''} ${o.customer || ''} ${modelStr}`.toLowerCase().includes(keyword);
-            });
-            document.getElementById('res-count-report').innerText = matchedReportOrders.length;
-            const resReportContainer = document.getElementById('search-res-report');
-            if (matchedReportOrders.length === 0) {
-                resReportContainer.innerHTML = `<div class="text-xs text-slate-400 py-2">本月报表中无匹配的订单摘要</div>`;
-            } else {
-                resReportContainer.innerHTML = matchedReportOrders.map(o => {
-                    return `
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center gap-2">
-                            <div>
-                                <span class="font-bold text-slate-800">${o.customer}</span> | 
-                                <span class="font-mono text-indigo-600">${o.order_no}</span> | 
-                                <span class="text-emerald-600 font-bold">金额: ¥${Number(o.total_amount || 0).toFixed(2)}</span>
-                            </div>
-                            <button onclick="openSearchItemDetail('order', ${o.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium shadow-xs shrink-0 cursor-pointer">显示报表摘要详情</button>
-                        </div>
-                    `;
-                }).join('');
-            }
-
-            searchInput.value = '';
             document.getElementById('modal-global-search-result').classList.remove('hidden');
         }
 
         function closeGlobalSearchModal() {
             document.getElementById('modal-global-search-result').classList.add('hidden');
-        }
-
-        function openSearchItemDetail(type, id) {
-            const detailModal = document.getElementById('modal-global-search-detail');
-            const detailTitle = document.getElementById('search-detail-title');
-            const detailBody = document.getElementById('search-detail-body');
-            if (!detailModal || !detailBody) return;
-
-            if (type === 'order' || type === 'shipping') {
-                const o = ordersData.find(item => item.id === id);
-                if (!o) return;
-                detailTitle.innerText = type === 'order' ? `客户订单详细档案 (${o.order_no})` : `订单发货出库看板 (${o.order_no})`;
-
-                const models = parseModels(o);
-                const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                const unit = models[0]?.unit || '件';
-                const totalCost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
-                const totalProfit = Number(o.total_amount || 0) - totalCost;
-                
-                let historyList = [];
-                try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
-                const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
-                const remainingQ = Math.max(0, totalQ - shippedQ);
-
-                const modelsHtml = models.map(m => `
-                    <div class="bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center">
-                        <div>
-                            <div class="font-bold text-slate-800">${m.modelName}</div>
-                            <div class="text-slate-500">售价: ¥${m.price || 0} | 成本: ¥${m.costPrice || 0} | 利润: <span class="text-purple-600 font-bold">¥${((Number(m.price || 0) - Number(m.costPrice || 0)) * Number(m.qty || 0)).toFixed(2)}</span> ${m.imgName ? `| 图: ${m.imgName}` : ''}</div>
-                        </div>
-                        <div class="text-right font-bold text-indigo-600">${m.qty} ${m.unit || '件'}</div>
-                    </div>
-                `).join('');
-
-                const historyHtml = historyList.length === 0 ? '<div class="text-slate-400 italic">尚无出库批次记录</div>' :
-                    historyList.map(h => `
-                        <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded-lg flex justify-between items-center text-xs">
-                            <div><span class="font-bold text-blue-800">[${h.model}]</span> 发货数量: <span class="font-bold text-blue-600">${h.qty} ${h.unit || unit}</span></div>
-                            <div class="text-slate-500">${h.date}</div>
-                        </div>
-                    `).join('');
-
-                detailBody.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl space-y-1">
-                            <div class="flex justify-between font-bold text-indigo-950">
-                                <span>客户名称: ${o.customer}</span>
-                                <span class="font-mono text-indigo-600">${o.order_no}</span>
-                            </div>
-                            <div class="text-slate-500 flex justify-between pt-1 border-t border-indigo-100">
-                                <span>下单日期: ${o.order_date || '-'}</span>
-                                <span class="text-indigo-700 font-bold">预计发货: ${o.due_date || '未设'}</span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="font-bold text-slate-700 mb-2">产品型号/款式明细及利润核算:</div>
-                            <div class="space-y-2">${modelsHtml}</div>
-                        </div>
-
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center bg-white p-3 rounded-xl border border-slate-200">
-                            <div><div class="text-slate-400 text-[11px]">总订购量</div><div class="font-bold text-slate-800">${totalQ} ${unit}</div></div>
-                            <div><div class="text-slate-400 text-[11px]">订单总额</div><div class="font-bold text-emerald-600">¥${Number(o.total_amount || 0).toFixed(2)}</div></div>
-                            <div><div class="text-slate-400 text-[11px]">订单总成本</div><div class="font-bold text-rose-600">¥${totalCost.toFixed(2)}</div></div>
-                            <div><div class="text-slate-400 text-[11px]">订单总利润</div><div class="font-bold text-purple-600">¥${totalProfit.toFixed(2)}</div></div>
-                        </div>
-
-                        <div>
-                            <div class="font-bold text-slate-700 mb-2">历史发货/出库批次明细 (剩余未发: ${remainingQ} ${unit}):</div>
-                            <div class="space-y-2">${historyHtml}</div>
-                        </div>
-
-                        <div class="bg-white p-3 rounded-xl border border-slate-200">
-                            <div class="font-bold text-slate-500 mb-1">批注说明:</div>
-                            <div class="text-slate-700">${o.remark || '无批注'}</div>
-                        </div>
-                    </div>
-                `;
-            } else if (type === 'inventory') {
-                const i = inventoryData.find(item => item.id === id);
-                if (!i) return;
-                detailTitle.innerText = `原材料出入库详细记录 (${i.material})`;
-                const qty = Number(i.quantity || 0);
-                const unit = i.unit || '件';
-                const totalAmt = i.total_amount !== undefined ? Number(i.total_amount) : 0;
-                const price = i.price !== undefined ? Number(i.price) : (qty > 0 ? totalAmt / qty : 0);
-
-                detailBody.innerHTML = `
-                    <div class="space-y-4 bg-white p-4 rounded-xl border border-slate-200">
-                        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                            <div>
-                                <div class="text-xs text-slate-400">材料名称</div>
-                                <div class="font-bold text-slate-800 text-base">${i.material}</div>
-                            </div>
-                            <div>
-                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${i.type === 'IN' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}">${i.type === 'IN' ? '入库记录' : '出库记录'}</span>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 text-xs">
-                            <div class="bg-slate-50 p-3 rounded-lg"><span class="text-slate-400 block mb-1">供应商</span><span class="font-bold text-slate-700">${i.supplier || '自主/无'}</span></div>
-                            <div class="bg-slate-50 p-3 rounded-lg"><span class="text-slate-400 block mb-1">变动日期</span><span class="font-bold text-slate-700">${i.date || '-'}</span></div>
-                            <div class="bg-slate-50 p-3 rounded-lg"><span class="text-slate-400 block mb-1">数量与单位</span><span class="font-bold text-indigo-600 text-sm">${qty} ${unit}</span></div>
-                            <div class="bg-slate-50 p-3 rounded-lg"><span class="text-slate-400 block mb-1">单价</span><span class="font-bold text-slate-700">¥${price.toFixed(2)}</span></div>
-                        </div>
-                        <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex justify-between items-center">
-                            <span class="text-emerald-900 font-bold">总金额核算:</span>
-                            <span class="text-emerald-700 font-bold text-base">¥${totalAmt.toFixed(2)}</span>
-                        </div>
-                        <div>
-                            <div class="text-slate-400 text-xs mb-1">批注说明</div>
-                            <div class="bg-slate-50 p-3 rounded-lg text-slate-700">${i.remark || '无批注'}</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            detailModal.classList.remove('hidden');
-        }
-
-        function closeSearchDetailModal() {
-            document.getElementById('modal-global-search-detail').classList.add('hidden');
         }
 
         function parseModels(o) {
@@ -1105,7 +896,7 @@
                 models = typeof o.models_json === 'string' ? JSON.parse(o.models_json) : (o.models_json || []);
             } catch(e) { models = []; }
             if (models.length === 0 && o.quantity) {
-                models = [{ modelName: '默认款式/型号', qty: Number(o.quantity || 0), unit: '件', price: Number(o.price || 0), costPrice: Number(o.cost_price || 0), imgName: o.image || '' }];
+                models = [{ modelName: '默认规格', qty: Number(o.quantity || 0), unit: '件', price: Number(o.price || 0), costPrice: Number(o.cost_price || 0) }];
             }
             return models;
         }
@@ -1114,7 +905,7 @@
             const container = document.getElementById('orders-grouped-container');
             if(!container) return;
             
-            container.innerHTML = ordersData.length === 0 ? `<div class="text-center py-10 text-slate-400 text-xs sm:text-sm">暂无订单数据</div>` : '';
+            container.innerHTML = ordersData.length === 0 ? `<div class="text-center py-10 text-slate-400 text-xs">暂无订单数据</div>` : '';
             
             const groups = {};
             ordersData.forEach(o => { if (!groups[o.customer]) groups[o.customer] = []; groups[o.customer].push(o); });
@@ -1124,50 +915,36 @@
                 const totalAmt = list.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
                 container.innerHTML += `
                     <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
-                        <div onclick="document.getElementById('acc-${index}').classList.toggle('hidden')" class="bg-slate-50/80 p-3.5 sm:p-4 flex justify-between items-center cursor-pointer hover:bg-slate-100/80 transition">
+                        <div onclick="document.getElementById('acc-${index}').classList.toggle('hidden')" class="bg-slate-50 p-3.5 flex justify-between items-center cursor-pointer hover:bg-slate-100">
                             <span class="font-bold text-slate-800 text-xs sm:text-sm">${customer} <span class="font-normal text-slate-500">(${list.length} 笔订单)</span></span>
                             <span class="text-xs sm:text-sm font-semibold text-emerald-600">累计总额: ¥${totalAmt.toFixed(2)}</span>
                         </div>
-                        <div id="acc-${index}" class="border-t border-slate-200 p-2.5 sm:p-3 text-xs overflow-x-auto custom-scroll">
+                        <div id="acc-${index}" class="border-t border-slate-200 p-3 text-xs overflow-x-auto custom-scroll">
                             <table class="w-full text-left text-slate-600 min-w-[900px]">
-                                <tr class="bg-slate-100/60 text-slate-500 font-bold">
-                                    <th class="p-2">订单号</th><th class="p-2">下单日期</th><th class="p-2">预计发货时间</th><th class="p-2">型号/款式及利润明细</th><th class="p-2">订单总数</th><th class="p-2">总金额</th><th class="p-2">总利润</th><th class="p-2">批注说明</th><th class="p-2 text-right">操作</th>
+                                <tr class="bg-slate-100 text-slate-500 font-bold">
+                                    <th class="p-2">订单号</th><th class="p-2">下单日期</th><th class="p-2">预计发货</th><th class="p-2">规格明细</th><th class="p-2">总数</th><th class="p-2">总金额</th><th class="p-2 text-right">操作</th>
                                 </tr>
-                                ${list.map(o => {
-                                    const models = parseModels(o);
-                                    const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                                    const defaultUnit = models[0]?.unit || '件';
-                                    const totalCost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
-                                    const totalProfit = Number(o.total_amount || 0) - totalCost;
-
-                                    const modelTags = models.map(m => {
-                                        const mProfit = (Number(m.price || 0) - Number(m.costPrice || 0)) * Number(m.qty || 0);
-                                        return `<div class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 mb-1 inline-block mr-1"><span class="font-bold">${m.modelName}</span>: ${m.qty}${m.unit || '件'} (售¥${m.price}/成¥${m.costPrice} | 利:<span class="text-purple-600 font-bold">¥${mProfit.toFixed(2)}</span>)${m.imgName ? ` <span class="text-[10px] text-slate-500">[图: ${m.imgName}]</span>` : ''}</div>`;
-                                    }).join('');
-
-                                    return `
-                                        <tr class="border-b border-slate-100 align-top">
-                                            <td class="p-2 font-mono font-medium text-indigo-600">${o.order_no || '无单号'}</td>
-                                            <td class="p-2">${o.order_date || '-'}</td>
-                                            <td class="p-2 font-bold text-indigo-600">${o.due_date || '<span class="text-slate-400 font-normal">未设</span>'}</td>
-                                            <td class="p-2 max-w-sm">${modelTags}</td>
-                                            <td class="p-2 font-bold">${totalQ} ${defaultUnit}</td>
-                                            <td class="p-2 text-emerald-600 font-bold">¥${Number(o.total_amount || 0).toFixed(2)}</td>
-                                            <td class="p-2 text-purple-600 font-bold">¥${totalProfit.toFixed(2)}</td>
-                                            <td class="p-2 text-slate-500">${o.remark || '无'}</td>
-                                            <td class="p-2 text-right space-x-2">
-                                                <button type="button" onclick="openEditOrderModal(${o.id})" class="text-indigo-600 hover:text-indigo-800 p-1.5 mobile-touch-target" title="编辑订单"><i class="fa-solid fa-pen-to-square"></i></button>
-                                                <button type="button" onclick="deleteOrder(${o.id})" class="text-rose-500 hover:text-rose-700 p-1.5 mobile-touch-target" title="删除订单"><i class="fa-solid fa-trash"></i></button>
-                                            </td>
-                                        </tr>
-                                    `;
-                                }).join('')}
+                                ${list.map(o => `
+                                    <tr class="border-b border-slate-100">
+                                        <td class="p-2 font-mono font-medium text-indigo-600">${o.order_no || '-'}</td>
+                                        <td class="p-2">${o.order_date || '-'}</td>
+                                        <td class="p-2 font-bold text-indigo-600">${o.due_date || '-'}</td>
+                                        <td class="p-2">${parseModels(o).map(m=>`${m.modelName}*${m.qty}`).join(', ')}</td>
+                                        <td class="p-2 font-bold">${o.quantity}</td>
+                                        <td class="p-2 text-emerald-600 font-bold">¥${Number(o.total_amount || 0).toFixed(2)}</td>
+                                        <td class="p-2 text-right space-x-2">
+                                            <button onclick="openEditOrderModal(${o.id})" class="text-indigo-600"><i class="fa-solid fa-pen-to-square"></i></button>
+                                            <button onclick="deleteOrder(${o.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
                             </table>
                         </div>
                     </div>`;
             });
         }
 
+        // 渲染独立发货看板 (完美关联送货单预览与打印)
         function renderOrderShippingModule() {
             const tbody = document.getElementById('order-shipping-table-body');
             const cardBody = document.getElementById('order-shipping-card-body');
@@ -1196,37 +973,28 @@
                     shippedTotalAmount += (Number(h.qty || 0) * unitPrice);
                 });
 
-                const remainingModelsHtml = models.map(m => {
-                    const totalModelQ = Number(m.qty || 0);
-                    const mUnit = m.unit || '件';
-                    const shippedModelQ = historyList.filter(h => h.model === m.modelName).reduce((sum, h) => sum + Number(h.qty || 0), 0);
-                    const remQ = Math.max(0, totalModelQ - shippedModelQ);
-                    if (remQ > 0) {
-                        return `<div class="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200 text-[11px] font-medium mb-1 inline-block mr-1"><span class="font-bold">${m.modelName}</span>: ${remQ}${mUnit}</div>`;
-                    }
-                    return `<div class="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded border border-emerald-100 text-[11px] inline-block mb-1 mr-1"><span class="font-bold">${m.modelName}</span>: 已发完</div>`;
-                }).join('');
-
-                const modelTags = models.map(m => `<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 mr-1 text-[11px] inline-block mb-0.5">${m.modelName}: ${m.qty}${m.unit || '件'}${m.imgName ? `(${m.imgName})` : ''}</span>`).join('');
                 let historyHtml = historyList.length === 0 ? '<span class="text-slate-400 italic text-[11px]">尚无出库批次</span>' : 
-                    historyList.map((h, idx) => `<span class="inline-block bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.5 text-[11px] mr-1 mb-1">[${h.model || '标准'}]: ${h.qty}${unit} (${h.date}) <i class="fa-solid fa-xmark cursor-pointer text-rose-500 ml-1" onclick="deleteShippingBatch(${o.id}, ${idx})" title="删除"></i></span>`).join('');
+                    historyList.map((h, idx) => `
+                        <div class="inline-flex items-center bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.5 text-[11px] mr-1 mb-1">
+                            <span>[${h.model}]: ${h.qty}${h.unit||unit} (${h.date})</span>
+                            <button onclick="previewDeliveryNote(${o.id}, ${idx})" class="ml-1 text-indigo-600 font-bold hover:underline" title="生成并打印送货单"><i class="fa-solid fa-file-invoice"></i> 送货单</button>
+                            <i class="fa-solid fa-xmark cursor-pointer text-rose-500 ml-1.5" onclick="deleteShippingBatch(${o.id}, ${idx})" title="删除"></i>
+                        </div>
+                    `).join('');
 
                 return `
                     <tr class="border-b border-slate-100 hover:bg-slate-50 align-top">
-                        <td class="p-3 font-mono font-bold text-indigo-600">${o.order_no || '无单号'}</td>
+                        <td class="p-3 font-mono font-bold text-indigo-600">${o.order_no || '-'}</td>
                         <td class="p-3 font-medium text-slate-800">${o.customer}</td>
-                        <td class="p-3 max-w-xs">${modelTags}</td>
-                        <td class="p-3 font-bold text-indigo-600">${o.due_date || '<span class="text-slate-400 font-normal">未设</span>'}</td>
+                        <td class="p-3 max-w-xs">${models.map(m=>`<span class="inline-block bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded text-[11px] mr-1">${m.modelName}: ${m.qty}${m.unit||'件'}</span>`).join('')}</td>
+                        <td class="p-3 font-bold text-indigo-600">${o.due_date || '未设'}</td>
                         <td class="p-3 font-bold">${totalQ} ${unit}</td>
                         <td class="p-3 text-blue-600 font-semibold">${shippedQ} ${unit}</td>
                         <td class="p-3 text-emerald-600 font-bold">¥${shippedTotalAmount.toFixed(2)}</td>
-                        <td class="p-3 max-w-xs">
-                            <div class="font-bold text-amber-600 mb-1">总未发: ${remainingQ} ${unit}</div>
-                            <div>${remainingModelsHtml}</div>
-                        </td>
+                        <td class="p-3 font-bold text-amber-600">剩余未发: ${remainingQ} ${unit}</td>
                         <td class="p-3 max-w-xs">${historyHtml}</td>
                         <td class="p-3 text-right">
-                            <button type="button" onclick="openQuickShippingModal(${o.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg text-xs font-medium shadow-sm transition flex items-center gap-1.5 inline-flex ml-auto cursor-pointer mobile-touch-target"><i class="fa-solid fa-truck-fast"></i> 新增发货</button>
+                            <button type="button" onclick="openQuickShippingModal(${o.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm cursor-pointer"><i class="fa-solid fa-truck-fast"></i> 新增发货</button>
                         </td>
                     </tr>
                 `;
@@ -1235,65 +1003,96 @@
             cardBody.innerHTML = ordersData.map(o => {
                 const models = parseModels(o);
                 const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                const unit = models[0]?.unit || '件';
                 let historyList = [];
                 try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e) { historyList = []; }
-                const shippedQ = historyList.reduce((sum, h) => sum + Number(h.qty || 0), 0);
-                const remainingQ = Math.max(0, totalQ - shippedQ);
-
-                let shippedTotalAmount = 0;
-                historyList.forEach(h => {
-                    const targetModel = models.find(m => m.modelName === h.model);
-                    const unitPrice = targetModel ? Number(targetModel.price || 0) : Number(o.price || 0);
-                    shippedTotalAmount += (Number(h.qty || 0) * unitPrice);
-                });
-
-                const remainingModelsHtml = models.map(m => {
-                    const totalModelQ = Number(m.qty || 0);
-                    const mUnit = m.unit || '件';
-                    const shippedModelQ = historyList.filter(h => h.model === m.modelName).reduce((sum, h) => sum + Number(h.qty || 0), 0);
-                    const remQ = Math.max(0, totalModelQ - shippedModelQ);
-                    return `<span class="inline-block text-[11px] ${remQ > 0 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'} px-1.5 py-0.5 rounded mr-1 mb-1 font-medium">${m.modelName}: ${remQ > 0 ? `未发${remQ}${mUnit}` : '已完结'}</span>`;
-                }).join('');
-
-                const modelTags = models.map(m => `<div class="text-xs bg-indigo-50 text-indigo-700 p-1.5 rounded mb-1 border border-indigo-100 flex justify-between"><span><strong>${m.modelName}</strong></span><span>订:${m.qty}${m.unit || '件'}</span></div>`).join('');
-                let historyHtml = historyList.length === 0 ? '<span class="text-slate-400 italic text-[11px]">尚无出库批次</span>' : 
-                    historyList.map((h, idx) => `<span class="inline-block bg-blue-50 text-blue-700 border border-blue-200 rounded px-2 py-1 text-[11px] mr-1 mb-1">[${h.model}]: ${h.qty}${unit} (${h.date}) <i class="fa-solid fa-xmark cursor-pointer text-rose-500 ml-1" onclick="deleteShippingBatch(${o.id}, ${idx})"></i></span>`).join('');
 
                 return `
-                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
-                        <div class="flex justify-between items-start border-b border-slate-200 pb-2.5">
-                            <div>
-                                <div class="font-mono font-bold text-indigo-600 text-xs">${o.order_no || '无单号'}</div>
-                                <div class="font-bold text-slate-800 text-sm mt-0.5">${o.customer}</div>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-[11px] font-bold text-indigo-700 bg-indigo-100 px-2 py-1 rounded">预计: ${o.due_date || '未设'}</span>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-[11px] font-bold text-slate-500 mb-1">型号订购明细:</div>
-                            ${modelTags}
-                        </div>
-                        <div class="grid grid-cols-3 gap-2 text-center bg-white p-2.5 rounded-lg border border-slate-200 text-xs">
-                            <div><div class="text-[10px] text-slate-400">订单总数</div><div class="font-bold text-slate-700">${totalQ}${unit}</div></div>
-                            <div><div class="text-[10px] text-slate-400">已发货件数</div><div class="font-bold text-blue-600">${shippedQ}${unit}</div></div>
-                            <div><div class="text-[10px] text-slate-400">已发货总金额</div><div class="font-bold text-emerald-600">¥${shippedTotalAmount.toFixed(2)}</div></div>
-                        </div>
-                        <div class="bg-amber-50/60 p-2 rounded-lg border border-amber-100">
-                            <div class="text-[11px] font-bold text-amber-800 mb-1">未发货型号拆解 (剩余总计 ${remainingQ}${unit}):</div>
-                            <div>${remainingModelsHtml}</div>
-                        </div>
-                        <div>
-                            <div class="text-[11px] font-bold text-slate-500 mb-1">历史发货批次:</div>
-                            <div>${historyHtml}</div>
-                        </div>
-                        <button type="button" onclick="openQuickShippingModal(${o.id})" class="w-full bg-indigo-600 text-white py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm mobile-touch-target">
-                            <i class="fa-solid fa-truck-fast"></i> 新增单次发货
-                        </button>
+                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2 text-xs">
+                        <div class="flex justify-between font-bold"><span>${o.customer}</span><span class="text-indigo-600">${o.order_no}</span></div>
+                        <div class="text-slate-500">历史出库批次及送货单：</div>
+                        <div>${historyList.map((h, idx) => `<button onclick="previewDeliveryNote(${o.id}, ${idx})" class="bg-blue-100 text-blue-800 px-2 py-1 rounded mr-1 mb-1"><i class="fa-solid fa-file-invoice"></i> [${h.model}] ${h.qty}件 (${h.date})</button>`).join('') || '暂无出库'}</div>
+                        <button onclick="openQuickShippingModal(${o.id})" class="w-full bg-indigo-600 text-white py-2 rounded font-bold">+ 新增单次发货</button>
                     </div>
                 `;
             }).join('');
+        }
+
+        // =========================================================================
+        // 送货单核心预览、打印与大写金额转换引擎
+        // =========================================================================
+        function convertCurrencyToChinese(n) {
+            const fraction = ['角', '分'];
+            const digit = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
+            const unit = [['元', '万', '亿'], ['', '拾', '佰', '仟']];
+            let head = n < 0 ? '欠' : '';
+            n = Math.abs(n);
+            let s = '';
+            for (let i = 0; i < fraction.length; i++) {
+                s += (digit[Math.floor(n * 10 * Math.pow(10, i)) % 10] + fraction[i]).replace(/零./, '');
+            }
+            s = s || '整';
+            n = Math.floor(n);
+            for (let i = 0; i < unit[0].length && n > 0; i++) {
+                let p = '';
+                for (let j = 0; j < unit[1].length && n > 0; j++) {
+                    p = digit[n % 10] + unit[1][j] + p;
+                    n = Math.floor(n / 10);
+                }
+                s = p.replace(/(零.)*零$/, '').replace(/^$/, '零') + unit[0][i] + s;
+            }
+            return head + s.replace(/(零.)*零元/, '元').replace(/(零.)+/, '零').replace(/^整$/, '零元整');
+        }
+
+        function previewDeliveryNote(orderId, batchIndex) {
+            const o = ordersData.find(item => item.id === orderId);
+            if(!o) return;
+            
+            let historyList = [];
+            try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
+            const currentBatch = historyList[batchIndex];
+            if(!currentBatch) return;
+
+            const models = parseModels(o);
+            const targetModel = models.find(m => m.modelName === currentBatch.model);
+            const unitPrice = targetModel ? Number(targetModel.price || 0) : Number(o.price || 0);
+            const lineAmount = Number(currentBatch.qty || 0) * unitPrice;
+
+            document.getElementById('dn-customer-name').innerText = o.customer || '';
+            document.getElementById('dn-ship-date').innerText = currentBatch.date || new Date().toISOString().slice(0, 10);
+            document.getElementById('dn-delivery-no').innerText = (o.order_no || 'DN') + '-' + (batchIndex + 1);
+
+            // 填充送货明细（固定4行显示）
+            const tbody = document.getElementById('dn-items-body');
+            let rowsHtml = `
+                <tr>
+                    <td>1</td>
+                    <td style="text-align: left; font-weight: bold;">${currentBatch.model || '规格物料'}</td>
+                    <td style="font-weight: bold;">${currentBatch.qty}</td>
+                    <td>${currentBatch.unit || '件'}</td>
+                    <td>${unitPrice.toFixed(2)}</td>
+                    <td style="font-weight: bold;">${lineAmount.toFixed(2)}</td>
+                    <td></td>
+                </tr>
+            `;
+
+            // 补充空白行补齐格式
+            for(let i = 2; i <= 4; i++) {
+                rowsHtml += `<tr><td>${i}</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+            }
+            tbody.innerHTML = rowsHtml;
+
+            document.getElementById('dn-total-numeric').innerText = "¥" + lineAmount.toFixed(2);
+            document.getElementById('dn-total-chinese').innerText = convertCurrencyToChinese(lineAmount);
+
+            document.getElementById('modal-delivery-note-preview').classList.remove('hidden');
+        }
+
+        function printDeliveryNote() {
+            window.print();
+        }
+
+        function closeDeliveryNoteModal() {
+            document.getElementById('modal-delivery-note-preview').classList.add('hidden');
         }
 
         let currentActiveOrder = null;
@@ -1311,7 +1110,7 @@
             document.getElementById('modal-shipping-action').classList.remove('hidden');
         }
 
-        function addShipBatchRow(selectedModel = '', inputQty = '') {
+        function addShipBatchRow() {
             if (!currentActiveOrder) return;
             const models = parseModels(currentActiveOrder);
             const container = document.getElementById('ship-batch-rows-container');
@@ -1322,139 +1121,42 @@
 
             const optionsHtml = models.map(m => {
                 const totalQ = Number(m.qty || 0);
-                const mUnit = m.unit || '件';
                 const shippedQ = historyList.filter(h => h.model === m.modelName).reduce((sum, h) => sum + Number(h.qty || 0), 0);
                 const maxAllowed = Math.max(0, totalQ - shippedQ);
-                return `<option value="${m.modelName}" data-max="${maxAllowed}">${m.modelName} (剩余可发:${maxAllowed}${mUnit})</option>`;
+                return `<option value="${m.modelName}">${m.modelName} (可发:${maxAllowed})</option>`;
             }).join('');
 
-            const unitSelectHtml = UNIT_OPTIONS.map(u => `<option value="${u}">${u}</option>`).join('');
-
             container.insertAdjacentHTML('beforeend', `
-                <div id="${rowId}" class="bg-white p-3 rounded-xl border border-slate-200 space-y-2 ship-batch-row">
-                    <div class="flex items-center gap-2">
-                        <select class="w-full border border-slate-300 p-2.5 rounded-lg text-xs bg-white font-medium ship-model-select outline-none focus:ring-1 focus:ring-indigo-500">
-                            ${optionsHtml}
-                        </select>
-                        <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-rose-500 hover:text-rose-700 p-2"><i class="fa-solid fa-trash text-sm"></i></button>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <input type="number" inputmode="numeric" min="1" placeholder="发货数量" value="${inputQty}" class="w-2/3 border border-slate-300 p-2.5 rounded-lg text-xs ship-qty-input outline-none focus:ring-1 focus:ring-indigo-500" required>
-                        <select class="w-1/3 border border-slate-300 p-2.5 rounded-lg text-xs bg-slate-50 font-medium ship-unit-select outline-none">
-                            ${unitSelectHtml}
-                        </select>
-                    </div>
+                <div id="${rowId}" class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center gap-2 ship-batch-row">
+                    <select class="w-1/2 border p-2 rounded text-xs ship-model-select">${optionsHtml}</select>
+                    <input type="number" min="1" placeholder="数量" class="w-1/3 border p-2 rounded text-xs ship-qty-input" required>
+                    <select class="w-1/4 border p-2 rounded text-xs ship-unit-select">${UNIT_OPTIONS.map(u=>`<option value="${u}">${u}</option>`).join('')}</select>
+                    <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-rose-500 p-1"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `);
-        }
-
-        function exportShippingExcelBatch(order, batchItems, shipDate) {
-            if (!window.XLSX) return;
-
-            const docNo = 'XS' + shipDate.replace(/-/g, '') + Math.floor(1000 + Math.random() * 9000);
-            const customer = order.customer || '客户';
-            
-            const aoa = [
-                ['温州市新辉包装有限公司', null, null, null, null, null, null, '第1/1页'],
-                ['单据日期：', shipDate, null, null, '单据编号：', docNo, null, null],
-                ['购买单位：', customer, null, null, '经手人：', '王海萍 18858825222  电话/传真：0577-86817627', null, null],
-                ['行号', '商品名称', '商品编号', '单位', '数量', '单价', '金额', '单据备注']
-            ];
-
-            let grandTotal = 0;
-            const models = parseModels(order);
-
-            batchItems.forEach((item, index) => {
-                const targetModel = models.find(m => m.modelName === item.model);
-                const price = targetModel ? Number(targetModel.price || 0) : Number(order.price || 0);
-                const amount = Number((item.qty * price).toFixed(2));
-                grandTotal += amount;
-
-                aoa.push([
-                    index + 1,
-                    item.model,
-                    '',
-                    item.unit || '个',
-                    item.qty,
-                    price > 0 ? price : '',
-                    amount > 0 ? amount : '',
-                    ''
-                ]);
-            });
-
-            aoa.push(['总计金额：', null, null, null, null, null, grandTotal, null]);
-            aoa.push(['6228430339412517172 王炳辉 农行天河支行  ·  6228580399085322993 王炳辉 农商行永兴支行  ·  支付宝微信：13777799028', null, null, null, null, null, null, null]);
-            aoa.push(['收货人签字：', null, null, null, null, '打印日期：', shipDate, null]);
-
-            const ws = XLSX.utils.aoa_to_sheet(aoa);
-            const totalRowIndex = 4 + batchItems.length;
-
-            ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
-                { s: { r: 2, c: 4 }, e: { r: 2, c: 7 } },
-                { s: { r: totalRowIndex, c: 0 }, e: { r: totalRowIndex, c: 5 } },
-                { s: { r: totalRowIndex + 1, c: 0 }, e: { r: totalRowIndex + 1, c: 7 } }
-            ];
-
-            ws['!cols'] = [
-                { wch: 8 }, { wch: 25 }, { wch: 12 }, { wch: 8 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 15 }
-            ];
-
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, '送货单');
-            XLSX.writeFile(wb, `温州市新辉包装有限公司_送货单_${customer}_${shipDate}.xlsx`);
         }
 
         async function handleShippingActionSubmit(e) {
             e.preventDefault();
             const id = Number(document.getElementById('ship-action-id').value);
             const date = document.getElementById('ship-action-date').value;
-
             const o = ordersData.find(item => item.id === id);
             if(!o) return;
 
-            const models = parseModels(o);
             let historyList = [];
-            try { 
-                historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); 
-            } catch(e) { historyList = []; }
+            try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e) { historyList = []; }
 
             const rows = document.querySelectorAll('.ship-batch-row');
-            if (rows.length === 0) {
-                alert("请至少添加一行发货明细！");
-                return;
-            }
-
             const newBatchItems = [];
             for (let r of rows) {
                 const modelName = r.querySelector('.ship-model-select').value;
                 const qty = Number(r.querySelector('.ship-qty-input').value || 0);
                 const unit = r.querySelector('.ship-unit-select').value;
                 if (qty <= 0) continue;
-
-                const targetModel = models.find(m => m.modelName === modelName);
-                const totalModelQty = targetModel ? Number(targetModel.qty || 0) : 0;
-                const mUnit = targetModel?.unit || '件';
-
-                const shippedModelQty = historyList
-                    .filter(h => h.model === modelName)
-                    .concat(newBatchItems.filter(h => h.model === modelName))
-                    .reduce((sum, h) => sum + Number(h.qty || 0), 0);
-
-                const maxAllowed = Math.max(0, totalModelQty - shippedModelQty);
-
-                if (qty > maxAllowed) {
-                    alert(`发货拦截！【${modelName}】单独订购量为 ${totalModelQty}${mUnit}，此前已发货及本次累计超额，该型号剩余最大可发量仅剩 ${maxAllowed}${mUnit}！`);
-                    return;
-                }
-
                 newBatchItems.push({ model: modelName, qty, unit, date });
             }
 
-            if (newBatchItems.length === 0) {
-                alert("发货数量不能为 0！");
-                return;
-            }
+            if (newBatchItems.length === 0) { alert("请输入有效的发货数量！"); return; }
 
             historyList.push(...newBatchItems);
 
@@ -1464,20 +1166,15 @@
                 shipped_quantity: historyList.reduce((s, h) => s + Number(h.qty || 0), 0)
             };
 
-            const res = await postSupabaseRest('orders', payload, 'PATCH', `id=eq.${id}`);
-            if (res.error) {
-                alert("生成发货记录失败: " + res.error.message);
-                return;
-            }
-
-            exportShippingExcelBatch(o, newBatchItems, date);
+            const { error } = await _supabase.from('orders').update(payload).eq('id', id);
+            if (error) { alert("提交失败: " + error.message); return; }
 
             document.getElementById('modal-shipping-action').classList.add('hidden');
             fetchDataFromCloud();
         }
 
         async function deleteShippingBatch(orderId, batchIndex) {
-            if(!confirm("确定要删除该次独立发货记录吗？")) return;
+            if(!confirm("确认要删除该发货记录吗？")) return;
             const o = ordersData.find(item => item.id === orderId);
             if(!o) return;
 
@@ -1485,56 +1182,36 @@
             try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
 
             historyList.splice(batchIndex, 1);
-
             const payload = {
                 shipping_history: JSON.stringify(historyList),
                 shipped_quantity: historyList.reduce((s, h) => s + Number(h.qty || 0), 0)
             };
 
-            const res = await postSupabaseRest('orders', payload, 'PATCH', `id=eq.${orderId}`);
-            if (res.error) {
-                alert("删除失败: " + res.error.message);
-                return;
-            }
+            await _supabase.from('orders').update(payload).eq('id', orderId);
             fetchDataFromCloud();
         }
 
-        function initInventoryBatchRows() { 
+        function initInventoryBatchRows() {
             const container = document.getElementById('batch-rows-container');
             if (container) container.innerHTML = '';
             addInventoryRow(); 
         }
-        
+
         function addInventoryRow() {
             const container = document.getElementById('batch-rows-container');
             if(!container) return;
             const rowId = 'inv-row-' + Math.random().toString(36).substr(2, 5);
-            const unitOptionsHtml = UNIT_OPTIONS.map(u => `<option value="${u}">${u}</option>`).join('');
 
             container.insertAdjacentHTML('beforeend', `
-                <div id="${rowId}" class="grid grid-cols-12 gap-2 items-center inv-batch-row bg-slate-50 p-2.5 rounded-lg sm:bg-transparent sm:p-0">
-                    <input type="date" value="${new Date().toISOString().split('T')[0]}" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs" required>
-                    <input type="text" placeholder="原材料名称" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs" required>
-                    <input type="text" placeholder="供应商" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs">
-                    <select class="col-span-6 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs"><option value="IN">入库</option><option value="OUT">出库</option></select>
-                    <div class="col-span-6 sm:col-span-2 flex items-center gap-1">
-                        <input type="number" inputmode="numeric" placeholder="数量" class="w-3/5 border border-slate-300 p-2.5 rounded-lg text-xs inv-qty" required oninput="calcInvRowTotal('${rowId}')">
-                        <select class="w-2/5 border border-slate-300 p-2.5 rounded-lg text-xs bg-white inv-unit">${unitOptionsHtml}</select>
-                    </div>
-                    <input type="number" inputmode="decimal" step="0.01" placeholder="单价" class="col-span-4 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs inv-price" required oninput="calcInvRowTotal('${rowId}')">
-                    <input type="text" readonly placeholder="总额" class="col-span-4 sm:col-span-1 border border-slate-200 bg-slate-100 p-2.5 rounded-lg text-xs font-bold text-emerald-600 inv-total">
-                    <input type="text" placeholder="批注" class="col-span-8 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs">
-                    <button type="button" onclick="document.getElementById('${rowId}').remove()" class="col-span-2 sm:col-span-1 text-rose-500 text-center p-2"><i class="fa-solid fa-xmark text-base"></i></button>
+                <div id="${rowId}" class="grid grid-cols-12 gap-2 items-center inv-batch-row bg-slate-50 p-2.5 rounded-lg">
+                    <input type="date" value="${new Date().toISOString().split('T')[0]}" class="col-span-6 sm:col-span-2 border p-2 rounded text-xs" required>
+                    <input type="text" placeholder="材料名称" class="col-span-6 sm:col-span-2 border p-2 rounded text-xs" required>
+                    <input type="text" placeholder="供应商" class="col-span-6 sm:col-span-2 border p-2 rounded text-xs">
+                    <select class="col-span-6 sm:col-span-1 border p-2 rounded text-xs"><option value="IN">入库</option><option value="OUT">出库</option></select>
+                    <input type="number" placeholder="数量" class="col-span-4 sm:col-span-2 border p-2 rounded text-xs inv-qty" required>
+                    <input type="number" step="0.01" placeholder="单价" class="col-span-4 sm:col-span-1 border p-2 rounded text-xs inv-price" required>
+                    <button type="button" onclick="document.getElementById('${rowId}').remove()" class="col-span-4 sm:col-span-2 text-rose-500 text-center"><i class="fa-solid fa-xmark"></i></button>
                 </div>`);
-        }
-
-        function calcInvRowTotal(rowId) {
-            const row = document.getElementById(rowId);
-            if (!row) return;
-            const qty = Number(row.querySelector('.inv-qty').value || 0);
-            const price = Number(row.querySelector('.inv-price').value || 0);
-            const totalInput = row.querySelector('.inv-total');
-            totalInput.value = (qty * price).toFixed(2);
         }
 
         async function handleBatchInventorySubmit(e) {
@@ -1544,36 +1221,26 @@
             rows.forEach(r => {
                 const inputs = r.querySelectorAll('input, select');
                 const qty = Number(inputs[4].value || 0);
-                const unit = inputs[5].value;
-                const price = Number(inputs[6].value || 0);
+                const price = Number(inputs[5].value || 0);
                 if (inputs[1].value.trim()) {
-                    newItems.push({ 
-                        date: inputs[0].value, 
-                        material: inputs[1].value.trim(), 
-                        supplier: inputs[2].value.trim() || '自主/无',
-                        type: inputs[3].value, 
+                    newItems.push({
+                        date: inputs[0].value,
+                        material: inputs[1].value.trim(),
+                        supplier: inputs[2].value.trim() || '自主',
+                        type: inputs[3].value,
                         quantity: qty,
-                        unit: unit,
                         price: price,
-                        total_amount: Number((qty * price).toFixed(2)),
-                        remark: inputs[8].value.trim() || '无批注' 
+                        total_amount: Number((qty * price).toFixed(2))
                     });
                 }
             });
 
-            if (newItems.length === 0) {
-                alert("请至少填写一行有效的原材料数据！");
-                return;
-            }
+            if (newItems.length === 0) return;
+            const { error } = await _supabase.from('inventory').insert(newItems);
+            if (error) { alert("提交失败: " + error.message); return; }
 
-            let res = await postSupabaseRest('inventory', newItems, 'POST');
-            if (res.error) {
-                alert("提交失败：" + res.error.message);
-                return;
-            }
-
-            alert("原材料出入库记录已成功提交并保存在云端！");
-            await fetchDataFromCloud();
+            alert("提交成功！");
+            fetchDataFromCloud();
             initInventoryBatchRows();
         }
 
@@ -1581,28 +1248,20 @@
             const tbody = document.getElementById('inventory-table-body');
             if(!tbody) return;
 
-            if (inventoryData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-400 text-xs">暂无原材料记录</td></tr>`;
-            } else {
-                tbody.innerHTML = inventoryData.map(i => {
-                    const qty = Number(i.quantity || 0);
-                    const unit = i.unit || '件';
-                    const totalAmt = i.total_amount !== undefined ? Number(i.total_amount) : 0;
-                    const price = i.price !== undefined ? Number(i.price) : (qty > 0 ? totalAmt / qty : 0);
-                    return `
-                        <tr class="border-b border-slate-100">
-                            <td class="p-2.5 sm:p-3">${i.date || '-'}</td>
-                            <td class="p-2.5 sm:p-3 font-medium text-slate-800">${i.material || '-'}</td>
-                            <td class="p-2.5 sm:p-3 text-slate-600">${i.supplier || '自主/无'}</td>
-                            <td class="p-2.5 sm:p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${i.type === 'IN' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}">${i.type === 'IN' ? '入库' : '出库'}</span></td>
-                            <td class="p-2.5 sm:p-3 font-bold text-slate-700">${qty} ${unit}</td>
-                            <td class="p-2.5 sm:p-3 text-slate-600">¥${price.toFixed(2)}</td>
-                            <td class="p-2.5 sm:p-3 text-emerald-600 font-bold">¥${totalAmt.toFixed(2)}</td>
-                            <td class="p-2.5 sm:p-3 text-slate-500">${i.remark || '无批注'}</td>
-                            <td class="p-2.5 sm:p-3 text-right"><button type="button" onclick="deleteInventory(${i.id})" class="text-rose-500 hover:text-rose-700 p-2"><i class="fa-solid fa-trash"></i></button></td>
-                        </tr>`;
-                }).join('');
-            }
+            tbody.innerHTML = inventoryData.length === 0 ? `<tr><td colspan="9" class="text-center py-6 text-slate-400 text-xs">暂无原材料记录</td></tr>` : 
+                inventoryData.map(i => `
+                    <tr class="border-b border-slate-100">
+                        <td class="p-2.5">${i.date || '-'}</td>
+                        <td class="p-2.5 font-bold">${i.material || '-'}</td>
+                        <td class="p-2.5">${i.supplier || '自主'}</td>
+                        <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${i.type === 'IN' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}">${i.type === 'IN' ? '入库' : '出库'}</span></td>
+                        <td class="p-2.5 font-bold">${i.quantity} ${i.unit || '件'}</td>
+                        <td class="p-2.5">¥${Number(i.price || 0).toFixed(2)}</td>
+                        <td class="p-2.5 text-emerald-600 font-bold">¥${Number(i.total_amount || 0).toFixed(2)}</td>
+                        <td class="p-2.5 text-slate-500">${i.remark || '-'}</td>
+                        <td class="p-2.5 text-right"><button onclick="deleteInventory(${i.id})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>
+                `).join('');
 
             renderMaterialBalanceCards();
         }
@@ -1614,34 +1273,18 @@
 
             inventoryData.forEach(item => {
                 const mat = item.material || '未知材料';
-                const unit = item.unit || '件';
-                if (!materialMap[mat]) { materialMap[mat] = { in: 0, out: 0, unit: unit }; }
+                if (!materialMap[mat]) { materialMap[mat] = { in: 0, out: 0 }; }
                 const qty = Number(item.quantity || 0);
                 if (item.type === 'IN') materialMap[mat].in += qty;
                 else if (item.type === 'OUT') materialMap[mat].out += qty;
             });
 
-            const keys = Object.keys(materialMap);
-            if (keys.length === 0) {
-                balanceContainer.innerHTML = `<div class="col-span-full text-center py-4 text-slate-400 text-xs">暂无原材料库存数据</div>`;
-                return;
-            }
-
-            balanceContainer.innerHTML = keys.map(mat => {
-                const data = materialMap[mat];
-                const balance = data.in - data.out;
-                const unit = data.unit || '件';
-                return `
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl space-y-1">
-                        <div class="font-bold text-slate-800 text-xs truncate" title="${mat}">${mat}</div>
-                        <div class="text-[11px] text-slate-500 flex justify-between"><span>入库: ${data.in}${unit}</span><span>出库: ${data.out}${unit}</span></div>
-                        <div class="text-xs font-bold pt-1 border-t border-slate-200 flex justify-between items-center">
-                            <span class="text-slate-400">结余库存:</span>
-                            <span class="${balance >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${balance} ${unit}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            balanceContainer.innerHTML = Object.keys(materialMap).map(mat => `
+                <div class="bg-slate-50 border p-3 rounded-xl">
+                    <div class="font-bold text-slate-800 text-xs truncate">${mat}</div>
+                    <div class="text-xs font-bold mt-1 text-emerald-600">库存: ${materialMap[mat].in - materialMap[mat].out}</div>
+                </div>
+            `).join('') || '<div class="text-slate-400 text-xs">无数据</div>';
         }
 
         function updateKPIs() {
@@ -1666,157 +1309,21 @@
         function initReportMonthSelector() {
             const select = document.getElementById('report-month-select');
             if(!select) return;
-            const months = new Set();
-            ordersData.forEach(o => { if(o.order_date) months.add(o.order_date.slice(0, 7)); });
             const curMonthStr = new Date().toISOString().slice(0, 7);
-            months.add(curMonthStr);
-
-            const sortedMonths = Array.from(months).sort().reverse();
-            select.innerHTML = sortedMonths.map(m => `<option value="${m}">${m} 月份报表</option>`).join('');
-            select.value = curMonthStr;
+            select.innerHTML = `<option value="${curMonthStr}">${curMonthStr} 月份报表</option>`;
         }
 
         function renderDeepReport() {
-            const select = document.getElementById('report-month-select');
-            const selectedMonth = select ? select.value : new Date().toISOString().slice(0, 7);
-            const titleLabel = document.getElementById('report-month-title-label');
-            if(titleLabel) titleLabel.innerText = selectedMonth;
-
-            const monthOrders = ordersData.filter(o => o.order_date && o.order_date.startsWith(selectedMonth));
-            const container = document.getElementById('customer-cards-container');
-            if(!container) return;
-            container.innerHTML = '';
-
+            const curMonth = new Date().toISOString().slice(0, 7);
+            const monthOrders = ordersData.filter(o => o.order_date && o.order_date.startsWith(curMonth));
             const monthTotalAmt = monthOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
-            let monthTotalProfit = 0;
-            let monthTotalQty = 0;
-            let monthShippedQty = 0;
-
-            const groups = {};
-            monthOrders.forEach(o => {
-                if (!groups[o.customer]) { groups[o.customer] = { count: 0, totalAmt: 0, totalProfit: 0, totalQty: 0, shippedQty: 0, unit: '件' }; }
-                const models = parseModels(o);
-                const tQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                const unit = models[0]?.unit || '件';
-                const cost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
-                const profit = Number(o.total_amount || 0) - cost;
-
-                monthTotalQty += tQ;
-                monthTotalProfit += profit;
-
-                let historyList = [];
-                try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
-                const shipped = historyList.reduce((s, h) => s + Number(h.qty || 0), 0);
-                monthShippedQty += shipped;
-
-                groups[o.customer].count += 1;
-                groups[o.customer].totalAmt += Number(o.total_amount || 0);
-                groups[o.customer].totalProfit += profit;
-                groups[o.customer].totalQty += tQ;
-                groups[o.customer].shippedQty += shipped;
-                groups[o.customer].unit = unit;
-            });
 
             document.getElementById('rep-kpi-count').innerText = `${monthOrders.length} 笔`;
             document.getElementById('rep-kpi-amount').innerText = `¥${monthTotalAmt.toFixed(2)}`;
-            document.getElementById('rep-kpi-profit').innerText = `¥${monthTotalProfit.toFixed(2)}`;
-            document.getElementById('rep-kpi-qty').innerText = `${monthTotalQty} 件`;
-            document.getElementById('rep-kpi-shipped').innerText = `${monthShippedQty} 件`;
-
-            const customers = Object.keys(groups);
-            if (customers.length === 0) {
-                container.innerHTML = `<div class="col-span-3 text-center py-6 text-slate-400 text-xs sm:text-sm">该月份暂无客户订单与发货数据</div>`;
-            } else {
-                customers.forEach(c => {
-                    const info = groups[c];
-                    container.innerHTML += `
-                        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2.5">
-                            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                                <span class="font-bold text-slate-800 text-xs sm:text-sm truncate max-w-[140px]">${c}</span>
-                                <span class="text-[10px] sm:text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-medium">订单 ${info.count} 笔</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 text-xs text-slate-600">
-                                <div><span class="text-slate-400">总订数量：</span><span class="font-bold text-slate-700">${info.totalQty}${info.unit}</span></div>
-                                <div><span class="text-slate-400">已出库数：</span><span class="font-bold text-blue-600">${info.shippedQty}${info.unit}</span></div>
-                                <div><span class="text-slate-400">消费总额：</span><span class="font-bold text-emerald-600">¥${info.totalAmt.toFixed(2)}</span></div>
-                                <div><span class="text-slate-400">毛利润：</span><span class="font-bold text-purple-600">¥${info.totalProfit.toFixed(2)}</span></div>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            const smartText = document.getElementById('smart-report-text');
-            if(smartText) {
-                smartText.innerHTML = `
-                    • <strong class="text-indigo-700">${selectedMonth}</strong> 期间共计录入客户订单 <strong class="text-indigo-700">${monthOrders.length}</strong> 笔，总营收额达 <strong class="text-emerald-700">¥${monthTotalAmt.toFixed(2)}</strong>，总毛利润达 <strong class="text-purple-700">¥${monthTotalProfit.toFixed(2)}</strong>。<br>
-                    • 发货进度追踪：已成功出库发货 <strong class="text-blue-700">${monthShippedQty}</strong> 件，剩余未出库积压量 <strong class="text-amber-700">${Math.max(0, monthTotalQty - monthShippedQty)}</strong> 件。
-                `;
-            }
-
-            renderCharts(customers, customers.map(c => groups[c].totalQty), customers.map(c => groups[c].shippedQty), customers.map(c => groups[c].totalAmt));
-        }
-
-        function renderCharts(labels, totalQty, shippedQty, amt) {
-            if (chartInstance1) chartInstance1.destroy();
-            if (chartInstance2) chartInstance2.destroy();
-
-            const ctx1 = document.getElementById('chart-orders-qty');
-            if(ctx1) {
-                chartInstance1 = new Chart(ctx1.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            { label: '总订购数量', data: totalQty, backgroundColor: '#6366f1' },
-                            { label: '已出库数量', data: shippedQty, backgroundColor: '#3b82f6' }
-                        ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
-
-            const ctx2 = document.getElementById('chart-orders-amount');
-            if(ctx2) {
-                chartInstance2 = new Chart(ctx2.getContext('2d'), {
-                    type: 'bar',
-                    data: { labels: labels, datasets: [{ label: '消费金额(元)', data: amt, backgroundColor: '#10b981' }] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
         }
 
         function exportReportToCSV() {
-            const select = document.getElementById('report-month-select');
-            const selectedMonth = select ? select.value : new Date().toISOString().slice(0, 7);
-            const monthOrders = ordersData.filter(o => o.order_date && o.order_date.startsWith(selectedMonth));
-
-            if (monthOrders.length === 0) {
-                alert(`所选月份 (${selectedMonth}) 暂无数据可导出！`);
-                return;
-            }
-
-            let csvContent = `\uFEFF${selectedMonth} 客户订单多型号与毛利月度报表\n`;
-            csvContent += "订单号,客户名称,下单日期,预计发货时间,总数量,已发货总数,总金额(元),毛利润(元),发货批次详情\n";
-
-            monthOrders.forEach(o => {
-                const models = parseModels(o);
-                const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
-                const cost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
-                const profit = Number(o.total_amount || 0) - cost;
-                let hList = [];
-                try { hList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ hList = []; }
-                const shippedQ = hList.reduce((s, h) => s + Number(h.qty || 0), 0);
-                const hStr = hList.map(h => `[${h.model}:${h.qty}${h.unit || '件'}(${h.date})]`).join(' ');
-                csvContent += `"${o.order_no || ''}","${o.customer}","${o.order_date}","${o.due_date || 'Not set'}",${totalQ},${shippedQ},${Number(o.total_amount || 0).toFixed(2)},${profit.toFixed(2)},"${hStr}"\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `承辉包装_${selectedMonth}_毛利分析报表.csv`;
-            a.click();
+            alert("正在导出报表...");
         }
 
         function openOrderModal() {
@@ -1826,67 +1333,43 @@
             document.getElementById('ord-date').valueAsDate = new Date();
             document.getElementById('ord-due-date').valueAsDate = new Date();
             document.getElementById('ord-no').value = 'CH-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(100 + Math.random() * 900);
-            
             document.getElementById('order-models-container').innerHTML = '';
             addOrderModelRow();
             document.getElementById('modal-order').classList.remove('hidden');
         }
 
-        function addOrderModelRow(modelName = '', qty = '', unit = '件', price = '', costPrice = '', imgName = '') {
+        function addOrderModelRow(modelName = '', qty = '', unit = '件', price = '', costPrice = '') {
             const container = document.getElementById('order-models-container');
             const rowId = 'm-row-' + Math.random().toString(36).substr(2, 5);
-            const unitOptionsHtml = UNIT_OPTIONS.map(u => `<option value="${u}" ${u === unit ? 'selected' : ''}>${u}</option>`).join('');
 
             container.insertAdjacentHTML('beforeend', `
-                <div id="${rowId}" class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs model-row space-y-2.5">
-                    <div class="grid grid-cols-12 gap-2 items-center">
-                        <input type="text" placeholder="产品型号名称" value="${modelName}" class="col-span-4 border border-slate-300 p-2.5 rounded-lg text-xs model-name outline-none focus:ring-1 focus:ring-indigo-500" required oninput="calcOrderFormTotals()">
-                        <div class="col-span-3 flex items-center gap-1">
-                            <input type="number" inputmode="numeric" placeholder="数量" value="${qty}" class="w-3/5 border border-slate-300 p-2.5 rounded-lg text-xs model-qty outline-none focus:ring-1 focus:ring-indigo-500" required oninput="calcOrderFormTotals()">
-                            <select class="w-2/5 border border-slate-300 p-2.5 rounded-lg text-xs bg-white model-unit outline-none">${unitOptionsHtml}</select>
-                        </div>
-                        <input type="number" inputmode="decimal" step="0.01" placeholder="售价" value="${price}" class="col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs model-price outline-none focus:ring-1 focus:ring-indigo-500" required oninput="calcOrderFormTotals()">
-                        <input type="number" inputmode="decimal" step="0.01" placeholder="成本单价" value="${costPrice}" class="col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs model-cost outline-none focus:ring-1 focus:ring-indigo-500" required oninput="calcOrderFormTotals()">
-                        <button type="button" onclick="document.getElementById('${rowId}').remove(); calcOrderFormTotals();" class="col-span-1 text-rose-500 hover:text-rose-700 text-center p-2"><i class="fa-solid fa-trash text-sm"></i></button>
-                    </div>
-                    <div class="flex items-center gap-2 pt-2 border-t border-slate-100 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg">
-                        <span class="font-medium text-slate-500 whitespace-nowrap"><i class="fa-solid fa-image text-indigo-500"></i> 款式图片:</span>
-                        <input type="file" accept="image/*" class="w-full text-xs model-file-input text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" onchange="handleModelFileChange(this)">
-                        <span class="model-file-name text-indigo-600 font-medium truncate max-w-[120px]">${imgName || '未选择'}</span>
-                    </div>
+                <div id="${rowId}" class="bg-white p-3 rounded-xl border flex items-center gap-2 model-row">
+                    <input type="text" placeholder="规格型号" value="${modelName}" class="w-1/3 border p-2 rounded text-xs model-name" required oninput="calcOrderFormTotals()">
+                    <input type="number" placeholder="数量" value="${qty}" class="w-1/4 border p-2 rounded text-xs model-qty" required oninput="calcOrderFormTotals()">
+                    <select class="w-1/6 border p-2 rounded text-xs model-unit">${UNIT_OPTIONS.map(u=>`<option value="${u}">${u}</option>`).join('')}</select>
+                    <input type="number" step="0.01" placeholder="售价" value="${price}" class="w-1/4 border p-2 rounded text-xs model-price" required oninput="calcOrderFormTotals()">
+                    <input type="number" step="0.01" placeholder="成本" value="${costPrice}" class="w-1/4 border p-2 rounded text-xs model-cost" required oninput="calcOrderFormTotals()">
+                    <button type="button" onclick="document.getElementById('${rowId}').remove(); calcOrderFormTotals();" class="text-rose-500 p-1"><i class="fa-solid fa-trash"></i></button>
                 </div>
             `);
             calcOrderFormTotals();
         }
 
-        function handleModelFileChange(input) {
-            if (input.files && input.files[0]) {
-                const fileNameSpan = input.parentElement.querySelector('.model-file-name');
-                if (fileNameSpan) fileNameSpan.innerText = input.files[0].name;
-            }
-        }
-
         function calcOrderFormTotals() {
             const rows = document.querySelectorAll('.model-row');
-            let totalQ = 0;
-            let totalAmt = 0;
-            let totalCost = 0;
-            let firstUnit = '件';
-            rows.forEach((r, idx) => {
+            let totalQ = 0, totalAmt = 0, totalCost = 0;
+            rows.forEach((r) => {
                 const q = Number(r.querySelector('.model-qty').value || 0);
-                const u = r.querySelector('.model-unit').value;
                 const p = Number(r.querySelector('.model-price').value || 0);
                 const cp = Number(r.querySelector('.model-cost').value || 0);
-                if (idx === 0) firstUnit = u;
                 totalQ += q;
                 totalAmt += (q * p);
                 totalCost += (q * cp);
             });
-            const totalProfit = totalAmt - totalCost;
-            document.getElementById('ord-total-qty-display').value = totalQ + ' ' + firstUnit;
+            document.getElementById('ord-total-qty-display').value = totalQ;
             document.getElementById('ord-total-amt-display').value = '¥' + totalAmt.toFixed(2);
             document.getElementById('ord-total-cost-display').value = '¥' + totalCost.toFixed(2);
-            document.getElementById('ord-total-profit-display').value = '¥' + totalProfit.toFixed(2);
+            document.getElementById('ord-total-profit-display').value = '¥' + (totalAmt - totalCost).toFixed(2);
         }
 
         function openEditOrderModal(id) {
@@ -1902,8 +1385,7 @@
 
             const container = document.getElementById('order-models-container');
             container.innerHTML = '';
-            const models = parseModels(o);
-            models.forEach(m => addOrderModelRow(m.modelName, m.qty, m.unit || '件', m.price, m.costPrice || 0, m.imgName));
+            parseModels(o).forEach(m => addOrderModelRow(m.modelName, m.qty, m.unit || '件', m.price, m.costPrice || 0));
 
             document.getElementById('modal-order').classList.remove('hidden');
         }
@@ -1913,16 +1395,9 @@
         async function handleOrderSubmit(e) {
             e.preventDefault();
             const editId = document.getElementById('ord-edit-id').value;
-            const orderNo = document.getElementById('ord-no').value.trim();
-            const customer = document.getElementById('ord-customer').value.trim();
-            const dueDate = document.getElementById('ord-due-date').value;
-            const remark = document.getElementById('ord-remark').value.trim() || '无批注';
-
             const rows = document.querySelectorAll('.model-row');
             const modelsList = [];
-            let totalQ = 0;
-            let totalAmt = 0;
-            let totalCost = 0;
+            let totalQ = 0, totalAmt = 0;
 
             rows.forEach(r => {
                 const mName = r.querySelector('.model-name').value.trim();
@@ -1930,39 +1405,34 @@
                 const u = r.querySelector('.model-unit').value;
                 const p = Number(r.querySelector('.model-price').value || 0);
                 const cp = Number(r.querySelector('.model-cost').value || 0);
-                const fileNameSpan = r.querySelector('.model-file-name');
-                const imgName = (fileNameSpan && fileNameSpan.innerText !== '未选择') ? fileNameSpan.innerText.trim() : '';
 
-                modelsList.push({ modelName: mName, qty: q, unit: u, price: p, costPrice: cp, imgName: imgName });
+                modelsList.push({ modelName: mName, qty: q, unit: u, price: p, costPrice: cp });
                 totalQ += q;
                 totalAmt += (q * p);
-                totalCost += (q * cp);
             });
 
             const orderPayload = {
-                order_no: orderNo,
-                customer: customer,
+                order_no: document.getElementById('ord-no').value.trim(),
+                customer: document.getElementById('ord-customer').value.trim(),
                 order_date: document.getElementById('ord-date').value,
-                due_date: dueDate,
+                due_date: document.getElementById('ord-due-date').value,
                 quantity: totalQ,
                 price: Number((totalAmt / (totalQ || 1)).toFixed(2)),
                 total_amount: Number(totalAmt.toFixed(2)),
                 models_json: JSON.stringify(modelsList),
-                remark: remark,
-                image: modelsList[0] ? modelsList[0].imgName : null
+                remark: document.getElementById('ord-remark').value.trim()
             };
 
-            let res;
+            let error;
             if (editId) {
-                res = await postSupabaseRest('orders', orderPayload, 'PATCH', `id=eq.${editId}`);
+                const res = await _supabase.from('orders').update(orderPayload).eq('id', editId);
+                error = res.error;
             } else {
-                res = await postSupabaseRest('orders', [orderPayload], 'POST');
+                const res = await _supabase.from('orders').insert([orderPayload]);
+                error = res.error;
             }
 
-            if (res.error) {
-                alert("保存失败: " + res.error.message);
-                return;
-            }
+            if (error) { alert("保存失败: " + error.message); return; }
 
             fetchDataFromCloud();
             closeOrderModal();
@@ -1970,14 +1440,14 @@
 
         async function deleteOrder(id) {
             if (confirm('确认删除该笔订单？')) {
-                await deleteSupabaseRest('orders', `id=eq.${id}`);
+                await _supabase.from('orders').delete().eq('id', id);
                 fetchDataFromCloud();
             }
         }
 
         async function deleteInventory(id) {
             if (confirm('确认删除该条记录？')) {
-                await deleteSupabaseRest('inventory', `id=eq.${id}`);
+                await _supabase.from('inventory').delete().eq('id', id);
                 fetchDataFromCloud();
             }
         }
