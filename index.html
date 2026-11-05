@@ -272,7 +272,7 @@
                         <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[750px]">
                             <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
                                 <tr>
-                                    <th class="p-2.5 sm:p-3">日期</th><th class="p-2.5 sm:p-3">材料名称</th><th class="p-2.5 sm:p-3">供应商名称</th><th class="p-2.5 sm:p-3">类型</th><th class="p-2.5 sm:p-3">数量</th><th class="p-2.5 sm:p-3">单价(元)</th><th class="p-2.5 sm:p-3">总金额(元)</th><th class="p-2.5 sm:p-3">批注说明</th><th class="p-2.5 sm:p-3 text-right">操作</th>
+                                    <th class="p-2.5 sm:p-3">日期</th><th class="p-2.5 sm:p-3">材料名称</th><th class="p-2.5 sm:p-3">供应商名称</th><th class="p-2.5 sm:p-3">类型</th><th class="p-2.5 sm:p-3">数量</th><th class="p-2.5 sm:p-3">单位</th><th class="p-2.5 sm:p-3">单价(元)</th><th class="p-2.5 sm:p-3">总金额(元)</th><th class="p-2.5 sm:p-3">批注说明</th><th class="p-2.5 sm:p-3 text-right">操作</th>
                                 </tr>
                             </thead>
                             <tbody id="inventory-table-body"></tbody>
@@ -286,7 +286,7 @@
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-slate-100 pb-4 gap-3">
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-slate-800">月度经营与客户发货分析报告</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">多维度核算每月客户订单营收、原材料总支出、毛利与环比增长分析</p>
+                        <p class="text-xs text-slate-500 mt-0.5">多维度核算每月客户订单营收、总成本、毛利与环比增长分析</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <select id="report-month-select" onchange="renderDeepReport()" class="border border-slate-300 rounded-lg text-xs p-2.5 bg-slate-50 font-medium mobile-touch-target"></select>
@@ -306,20 +306,20 @@
                         <div class="text-[11px] text-slate-400">本月总营收额</div>
                         <div class="text-sm sm:text-lg font-bold text-emerald-600 mt-1 truncate" id="rep-kpi-amount">¥0.00</div>
                     </div>
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
-                        <div class="text-[11px] text-slate-400">原材料总支出</div>
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl cursor-pointer hover:bg-slate-100 transition" onclick="openReportDetailModal('cost')">
+                        <div class="text-[11px] text-slate-400 flex justify-between items-center"><span>本月总成本</span><i class="fa-solid fa-circle-info text-indigo-500"></i></div>
                         <div class="text-sm sm:text-lg font-bold text-rose-600 mt-1 truncate" id="rep-kpi-material-exp">¥0.00</div>
                     </div>
                     <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
                         <div class="text-[11px] text-slate-400">本月总毛利润</div>
                         <div class="text-sm sm:text-lg font-bold text-purple-600 mt-1 truncate" id="rep-kpi-profit">¥0.00</div>
                     </div>
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
-                        <div class="text-[11px] text-slate-400">本月订购总件数</div>
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl cursor-pointer hover:bg-slate-100 transition" onclick="openReportDetailModal('qty')">
+                        <div class="text-[11px] text-slate-400 flex justify-between items-center"><span>本月订单总量</span><i class="fa-solid fa-circle-info text-indigo-500"></i></div>
                         <div class="text-sm sm:text-lg font-bold text-indigo-600 mt-1" id="rep-kpi-qty">0 件</div>
                     </div>
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
-                        <div class="text-[11px] text-slate-400">本月已出库数</div>
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl cursor-pointer hover:bg-slate-100 transition" onclick="openReportDetailModal('shipped')">
+                        <div class="text-[11px] text-slate-400 flex justify-between items-center"><span>本月订单出库数</span><i class="fa-solid fa-circle-info text-indigo-500"></i></div>
                         <div class="text-sm sm:text-lg font-bold text-blue-600 mt-1" id="rep-kpi-shipped">0 件</div>
                     </div>
                 </div>
@@ -360,6 +360,22 @@
             <button onclick="openOrderModal()" class="fab-btn bg-indigo-600 hover:bg-indigo-700 text-white w-14 h-14 rounded-full flex items-center justify-center text-xl shadow-lg cursor-pointer">
                 <i class="fa-solid fa-plus"></i>
             </button>
+        </div>
+    </div>
+
+    <!-- 弹窗：报表 KPI 点击查看详情弹窗 -->
+    <div id="modal-report-detail" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-[220] p-3 sm:p-6">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="bg-indigo-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
+                <h3 class="text-base font-bold flex items-center gap-2"><i class="fa-solid fa-list-check text-indigo-300"></i> <span id="report-detail-modal-title">指标明细详情</span></h3>
+                <button onclick="closeReportDetailModal()" class="bg-indigo-800 hover:bg-indigo-700 text-indigo-100 px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i> 关闭
+                </button>
+            </div>
+            <div id="report-detail-modal-body" class="p-5 overflow-y-auto custom-scroll space-y-3 flex-1 text-xs sm:text-sm bg-slate-50"></div>
+            <div class="bg-white px-5 py-3 border-t border-slate-200 flex justify-end shrink-0">
+                <button onclick="closeReportDetailModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-5 py-2.5 rounded-xl font-medium transition">确定</button>
+            </div>
         </div>
     </div>
 
@@ -1153,6 +1169,116 @@
             document.getElementById('modal-global-search-detail').classList.add('hidden');
         }
 
+        // 打开报表 KPI 点击详情弹窗
+        function openReportDetailModal(type) {
+            const select = document.getElementById('report-month-select');
+            const selectedMonth = select ? select.value : new Date().toISOString().slice(0, 7);
+            const monthOrders = ordersData.filter(o => o.order_date && o.order_date.startsWith(selectedMonth));
+            
+            const modalTitle = document.getElementById('report-detail-modal-title');
+            const modalBody = document.getElementById('report-detail-modal-body');
+            if(!modalTitle || !modalBody) return;
+
+            if (type === 'cost') {
+                modalTitle.innerText = `[${selectedMonth}] 总成本明细及订单拆解`;
+                let totalCostSum = 0;
+                let html = monthOrders.length === 0 ? `<div class="text-slate-400 py-4 text-center">本月暂无订单成本数据</div>` : monthOrders.map(o => {
+                    const models = parseModels(o);
+                    const orderCost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
+                    totalCostSum += orderCost;
+                    const modelDetails = models.map(m => `<div>• ${m.modelName}: 数量 ${m.qty}${m.unit || '个'} × 成本单价 ¥${m.costPrice || 0} = <strong class="text-rose-600">¥${(Number(m.qty || 0) * Number(m.costPrice || 0)).toFixed(2)}</strong></div>`).join('');
+                    return `
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2">
+                            <div class="flex justify-between font-bold text-slate-800">
+                                <span>订单: <span class="font-mono text-indigo-600">${o.order_no}</span> (${o.customer})</span>
+                                <span class="text-rose-600">订单成本: ¥${orderCost.toFixed(2)}</span>
+                            </div>
+                            <div class="text-slate-500 pl-2 space-y-1">${modelDetails}</div>
+                        </div>
+                    `;
+                }).join('');
+                modalBody.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="bg-rose-50 border border-rose-100 p-3 rounded-xl flex justify-between font-bold text-rose-900">
+                            <span>本月订单总成本合计:</span>
+                            <span class="text-base text-rose-700">¥${totalCostSum.toFixed(2)}</span>
+                        </div>
+                        <div class="space-y-2">${html}</div>
+                    </div>
+                `;
+            } else if (type === 'qty') {
+                modalTitle.innerText = `[${selectedMonth}] 本月订单总量及型号明细`;
+                let totalQtySum = 0;
+                let html = monthOrders.length === 0 ? `<div class="text-slate-400 py-4 text-center">本月暂无订单数据</div>` : monthOrders.map(o => {
+                    const models = parseModels(o);
+                    const orderQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
+                    totalQtySum += orderQ;
+                    const unit = models[0]?.unit || '个';
+                    const modelDetails = models.map(m => `<div>• ${m.modelName}: 订购 ${m.qty} ${m.unit || unit} (售价 ¥${m.price})</div>`).join('');
+                    return `
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2">
+                            <div class="flex justify-between font-bold text-slate-800">
+                                <span>订单: <span class="font-mono text-indigo-600">${o.order_no}</span> (${o.customer})</span>
+                                <span class="text-indigo-600">小计: ${orderQ} ${unit}</span>
+                            </div>
+                            <div class="text-slate-500 pl-2 space-y-1">${modelDetails}</div>
+                        </div>
+                    `;
+                }).join('');
+                modalBody.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl flex justify-between font-bold text-indigo-950">
+                            <span>本月订单总量合计:</span>
+                            <span class="text-base text-indigo-700">${totalQtySum} 件</span>
+                        </div>
+                        <div class="space-y-2">${html}</div>
+                    </div>
+                `;
+            } else if (type === 'shipped') {
+                modalTitle.innerText = `[${selectedMonth}] 本月订单出库数及批次明细`;
+                let totalShippedSum = 0;
+                let html = monthOrders.length === 0 ? `<div class="text-slate-400 py-4 text-center">本月暂无订单发货数据</div>` : monthOrders.map(o => {
+                    let historyList = [];
+                    try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
+                    const monthBatches = historyList.filter(b => b.date && b.date.startsWith(selectedMonth));
+                    const orderShippedQ = monthBatches.reduce((sum, b) => sum + (b.items ? b.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(b.qty || 0)), 0);
+                    totalShippedSum += orderShippedQ;
+                    const unit = parseModels(o)[0]?.unit || '个';
+
+                    const batchDetails = monthBatches.length === 0 ? `<div class="text-slate-400 italic">本月无发货记录</div>` : monthBatches.map((b, idx) => {
+                        const items = b.items || [{ model: b.model, qty: b.qty, unit: b.unit }];
+                        const itemsStr = items.map(i => `${i.model}: ${i.qty}${i.unit || unit}`).join(' | ');
+                        return `<div>• [出库单 #${idx + 1}] 日期: ${b.date} | 明细: ${itemsStr}</div>`;
+                    }).join('');
+
+                    return `
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2">
+                            <div class="flex justify-between font-bold text-slate-800">
+                                <span>订单: <span class="font-mono text-indigo-600">${o.order_no}</span> (${o.customer})</span>
+                                <span class="text-blue-600">本月已出库: ${orderShippedQ} ${unit}</span>
+                            </div>
+                            <div class="text-slate-500 pl-2 space-y-1 text-xs">${batchDetails}</div>
+                        </div>
+                    `;
+                }).join('');
+                modalBody.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="bg-blue-50 border border-blue-100 p-3 rounded-xl flex justify-between font-bold text-blue-950">
+                            <span>本月订单出库数合计:</span>
+                            <span class="text-base text-blue-700">${totalShippedSum} 件</span>
+                        </div>
+                        <div class="space-y-2">${html}</div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('modal-report-detail').classList.remove('hidden');
+        }
+
+        function closeReportDetailModal() {
+            document.getElementById('modal-report-detail').classList.add('hidden');
+        }
+
         // 打开严格对齐新辉包装 Excel 模板的独立出库单预览
         function openDeliveryNoteModal(orderId, batchIndex) {
             const o = ordersData.find(item => item.id === orderId);
@@ -1626,7 +1752,6 @@
                 return;
             }
 
-            // 每次点击“新增发货”提交，都作为一个全新的独立批次存入历史记录中（生成一张独立出库单）
             historyList.push({
                 date: date,
                 items: newBatchItems
@@ -1778,7 +1903,7 @@
             if(!tbody) return;
 
             if (inventoryData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-400 text-xs">暂无原材料记录</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-400 text-xs">暂无原材料记录</td></tr>`;
             } else {
                 tbody.innerHTML = inventoryData.map(i => {
                     const qty = Number(i.quantity || 0);
@@ -1791,7 +1916,8 @@
                             <td class="p-2.5 sm:p-3 font-medium text-slate-800">${i.material || '-'}</td>
                             <td class="p-2.5 sm:p-3 text-slate-600">${i.supplier || '自主/无'}</td>
                             <td class="p-2.5 sm:p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${i.type === 'IN' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}">${i.type === 'IN' ? '入库' : '出库'}</span></td>
-                            <td class="p-2.5 sm:p-3 font-bold text-slate-700">${qty} ${unit}</td>
+                            <td class="p-2.5 sm:p-3 font-bold text-slate-700">${qty}</td>
+                            <td class="p-2.5 sm:p-3 text-slate-600">${unit}</td>
                             <td class="p-2.5 sm:p-3 text-slate-600">¥${price.toFixed(2)}</td>
                             <td class="p-2.5 sm:p-3 text-emerald-600 font-bold">¥${totalAmt.toFixed(2)}</td>
                             <td class="p-2.5 sm:p-3 text-slate-500">${i.remark || '无批注'}</td>
@@ -1886,15 +2012,9 @@
 
         function calcMonthStats(ymStr) {
             const mOrders = ordersData.filter(o => o.order_date && o.order_date.startsWith(ymStr));
-            const mInvs = inventoryData.filter(i => i.date && i.date.startsWith(ymStr) && i.type === 'IN');
 
             let revenue = mOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
-            let materialExp = mInvs.reduce((s, i) => {
-                const q = Number(i.quantity || 0);
-                const tAmt = i.total_amount !== undefined ? Number(i.total_amount) : (q * Number(i.price || 0));
-                return s + tAmt;
-            }, 0);
-
+            let totalCost = 0;
             let profit = 0;
             let totalQty = 0;
             let shippedQty = 0;
@@ -1903,6 +2023,7 @@
                 const models = parseModels(o);
                 const tQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
                 const cost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
+                totalCost += cost;
                 profit += (Number(o.total_amount || 0) - cost);
                 totalQty += tQ;
 
@@ -1914,7 +2035,7 @@
             return {
                 orderCount: mOrders.length,
                 revenue,
-                materialExp,
+                totalCost,
                 profit,
                 totalQty,
                 shippedQty
@@ -1938,7 +2059,7 @@
 
             document.getElementById('rep-kpi-count').innerText = `${curStats.orderCount} 笔`;
             document.getElementById('rep-kpi-amount').innerText = `¥${curStats.revenue.toFixed(2)}`;
-            document.getElementById('rep-kpi-material-exp').innerText = `¥${curStats.materialExp.toFixed(2)}`;
+            document.getElementById('rep-kpi-material-exp').innerText = `¥${curStats.totalCost.toFixed(2)}`;
             document.getElementById('rep-kpi-profit').innerText = `¥${curStats.profit.toFixed(2)}`;
             document.getElementById('rep-kpi-qty').innerText = `${curStats.totalQty} 个`;
             document.getElementById('rep-kpi-shipped').innerText = `${curStats.shippedQty} 个`;
@@ -1995,17 +2116,17 @@
 
             const revMom = calcMom(curStats.revenue, prevStats.revenue);
             const profMom = calcMom(curStats.profit, prevStats.profit);
-            const matMom = calcMom(curStats.materialExp, prevStats.materialExp);
+            const costMom = calcMom(curStats.totalCost, prevStats.totalCost);
 
             const smartText = document.getElementById('smart-report-text');
             if(smartText) {
                 smartText.innerHTML = `
-                    • <strong class="text-indigo-900">${selectedMonth}</strong> 期间共录入客户订单 <strong class="text-indigo-800">${curStats.orderCount}</strong> 笔，总营收额达 <strong class="text-emerald-700">¥${curStats.revenue.toFixed(2)}</strong>，原材料总支出 <strong class="text-rose-700">¥${curStats.materialExp.toFixed(2)}</strong>，实现总毛利润 <strong class="text-purple-700">¥${curStats.profit.toFixed(2)}</strong>。<br>
+                    • <strong class="text-indigo-900">${selectedMonth}</strong> 期间共录入客户订单 <strong class="text-indigo-800">${curStats.orderCount}</strong> 笔，总营收额达 <strong class="text-emerald-700">¥${curStats.revenue.toFixed(2)}</strong>，订单总成本 <strong class="text-rose-700">¥${curStats.totalCost.toFixed(2)}</strong>，实现总毛利润 <strong class="text-purple-700">¥${curStats.profit.toFixed(2)}</strong>。<br>
                     • <strong>环比(MoM)分析对比 (${prevMonthStr} vs ${selectedMonth})</strong>：
                       营收额环比 <span class="${curStats.revenue >= prevStats.revenue ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}">${revMom}</span>，
                       毛利润环比 <span class="${curStats.profit >= prevStats.profit ? 'text-purple-600 font-bold' : 'text-rose-600 font-bold'}">${profMom}</span>，
-                      原材料支出环比 <span class="${curStats.materialExp <= prevStats.materialExp ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}">${matMom}</span>。<br>
-                    • 发货追踪：本月已成功出库发货 <strong class="text-blue-700">${curStats.shippedQty}</strong> 个，剩余未出库积压量 <strong class="text-amber-700">${Math.max(0, curStats.totalQty - curStats.shippedQty)}</strong> 个。
+                      总成本环比 <span class="${curStats.totalCost <= prevStats.totalCost ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}">${costMom}</span>。<br>
+                    • 发货追踪：本月订单已成功出库发货 <strong class="text-blue-700">${curStats.shippedQty}</strong> 个，剩余未出库积压量 <strong class="text-amber-700">${Math.max(0, curStats.totalQty - curStats.shippedQty)}</strong> 个。
                 `;
             }
 
@@ -2052,7 +2173,7 @@
             }
 
             let csvContent = `\uFEFF${selectedMonth} 客户订单多型号、毛利与环比分析月度报表\n`;
-            csvContent += "订单号,客户名称,下单日期,预计发货时间,总数量,已发货总数,总金额(元),毛利润(元),发货批次详情\n";
+            csvContent += "订单号,客户名称,下单日期,预计发货时间,总数量,已发货总数,总金额(元),总成本(元),毛利润(元),发货批次详情\n";
 
             monthOrders.forEach(o => {
                 const models = parseModels(o);
@@ -2067,7 +2188,7 @@
                     const itemsText = items.map(i => `${i.model}:${i.qty}${i.unit || '个'}`).join('+');
                     return `[${itemsText}(${b.date})]`;
                 }).join(' ');
-                csvContent += `"${o.order_no || ''}","${o.customer}","${o.order_date}","${o.due_date || 'Not set'}",${totalQ},${shippedQ},${Number(o.total_amount || 0).toFixed(2)},${profit.toFixed(2)},"${hStr}"\n`;
+                csvContent += `"${o.order_no || ''}","${o.customer}","${o.order_date}","${o.due_date || 'Not set'}",${totalQ},${shippedQ},${Number(o.total_amount || 0).toFixed(2)},${cost.toFixed(2)},${profit.toFixed(2)},"${hStr}"\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
