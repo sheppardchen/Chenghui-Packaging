@@ -162,39 +162,39 @@
                 </button>
             </div>
 
-            <!-- KPI 看板 -->
+            <!-- KPI 看板 (全部支持点击查看详情) -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:bg-slate-50 transition" onclick="openReportDetailModal('qty')">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
                         <span>月度总订单数</span>
                         <i class="fa-solid fa-cart-shopping text-indigo-500"></i>
                     </div>
                     <div class="text-base sm:text-2xl font-bold mt-1.5 sm:mt-2 truncate" id="kpi-orders">0 笔</div>
                 </div>
-                <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:bg-slate-50 transition" onclick="openReportDetailModal('amount')">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
                         <span>月度订单总额</span>
                         <i class="fa-solid fa-sack-dollar text-emerald-500"></i>
                     </div>
                     <div class="text-base sm:text-2xl font-bold mt-1.5 sm:mt-2 text-emerald-600 truncate" id="kpi-amount">¥0.00</div>
                 </div>
-                <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:bg-slate-50 transition" onclick="openReportDetailModal('profit')">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
                         <span>当月毛利润</span>
                         <i class="fa-solid fa-chart-line text-purple-600"></i>
                     </div>
                     <div class="text-base sm:text-2xl font-bold mt-1.5 sm:mt-2 text-purple-600 truncate" id="kpi-profit">¥0.00</div>
                 </div>
-                <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:bg-slate-50 transition" onclick="openDashboardInvModal('IN')">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
-                        <span>原材料总入库</span>
+                        <span>本月原材料总入库</span>
                         <i class="fa-solid fa-arrow-down-long text-blue-500"></i>
                     </div>
                     <div class="text-base sm:text-2xl font-bold mt-1.5 sm:mt-2 text-blue-600 truncate" id="kpi-in-stock">0 件</div>
                 </div>
-                <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="bg-white p-3.5 sm:p-5 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:bg-slate-50 transition" onclick="openDashboardInvModal('OUT')">
                     <div class="flex justify-between items-center text-slate-500 text-xs sm:text-sm">
-                        <span>原材料总出库</span>
+                        <span>本月原材料总出库</span>
                         <i class="fa-solid fa-arrow-up-long text-rose-500"></i>
                     </div>
                     <div class="text-base sm:text-2xl font-bold mt-1.5 sm:mt-2 text-rose-600 truncate" id="kpi-out-stock">0 件</div>
@@ -307,23 +307,23 @@
 
                 <!-- 选定月份的 6 个专属经营指标统计卡片 -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
-                        <div class="text-[11px] text-slate-400">本月订单总数</div>
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl cursor-pointer hover:bg-slate-100 transition" onclick="openReportDetailModal('qty')">
+                        <div class="text-[11px] text-slate-400 flex justify-between items-center"><span>本月订单总数</span><i class="fa-solid fa-circle-info text-indigo-500"></i></div>
                         <div class="text-sm sm:text-lg font-bold text-slate-800 mt-1" id="rep-kpi-count">0 笔</div>
                     </div>
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
-                        <div class="text-[11px] text-slate-400">本月总营收额</div>
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl cursor-pointer hover:bg-slate-100 transition" onclick="openReportDetailModal('amount')">
+                        <div class="text-[11px] text-slate-400 flex justify-between items-center"><span>本月总营收额</span><i class="fa-solid fa-circle-info text-indigo-500"></i></div>
                         <div class="text-sm sm:text-lg font-bold text-emerald-600 mt-1 truncate" id="rep-kpi-amount">¥0.00</div>
                     </div>
                     <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl cursor-pointer hover:bg-slate-100 transition" onclick="openReportDetailModal('cost')">
                         <div class="text-[11px] text-slate-400 flex justify-between items-center"><span>本月总成本</span><i class="fa-solid fa-circle-info text-indigo-500"></i></div>
                         <div class="text-sm sm:text-lg font-bold text-rose-600 mt-1 truncate" id="rep-kpi-material-exp">¥0.00</div>
                     </div>
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
-                        <div class="text-[11px] text-slate-400">本月总毛利润</div>
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl cursor-pointer hover:bg-slate-100 transition" onclick="openReportDetailModal('profit')">
+                        <div class="text-[11px] text-slate-400 flex justify-between items-center"><span>本月总毛利润</span><i class="fa-solid fa-circle-info text-indigo-500"></i></div>
                         <div class="text-sm sm:text-lg font-bold text-purple-600 mt-1 truncate" id="rep-kpi-profit">¥0.00</div>
                     </div>
-                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl cursor-pointer hover:bg-slate-100 transition" onclick="openReportDetailModal('qty')">
+                    <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl cursor-pointer hover:bg-slate-100 transition" onclick="openReportDetailModal('total_qty')">
                         <div class="text-[11px] text-slate-400 flex justify-between items-center"><span>本月订单总量</span><i class="fa-solid fa-circle-info text-indigo-500"></i></div>
                         <div class="text-sm sm:text-lg font-bold text-indigo-600 mt-1" id="rep-kpi-qty">0 件</div>
                     </div>
@@ -372,7 +372,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：报表 KPI 点击查看详情弹窗 -->
+    <!-- 弹窗：报表/看板 KPI 点击查看详情弹窗 -->
     <div id="modal-report-detail" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-[220] p-3 sm:p-6">
         <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
             <div class="bg-indigo-900 text-white px-5 py-4 flex justify-between items-center shrink-0">
@@ -449,7 +449,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：完全对齐新辉包装 Excel 模板的出库单/送货单打印预览视图 (每次独立提交一张) -->
+    <!-- 弹窗：完全对齐新辉包装 Excel 模板的出库单/送货单打印预览视图 (金额行已与上方表格等宽紧凑对齐) -->
     <div id="modal-delivery-note" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-[250] p-3 sm:p-6">
         <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden border border-slate-300">
             <!-- 头部控制栏 (打印时隐藏) -->
@@ -1178,7 +1178,7 @@
             document.getElementById('modal-global-search-detail').classList.add('hidden');
         }
 
-        // 打开报表 KPI 点击详情弹窗
+        // 打开报表或主看板 KPI 点击详情弹窗
         function openReportDetailModal(type) {
             const select = document.getElementById('report-month-select');
             const selectedMonth = select ? select.value : new Date().toISOString().slice(0, 7);
@@ -1215,8 +1215,9 @@
                         <div class="space-y-2">${html}</div>
                     </div>
                 `;
-            } else if (type === 'qty') {
-                modalTitle.innerText = `[${selectedMonth}] 本月订单总量及型号明细`;
+            } else if (type === 'qty' || type === 'total_qty') {
+                const isCount = (type === 'qty');
+                modalTitle.innerText = isCount ? `[${selectedMonth}] 本月订单总数明细` : `[${selectedMonth}] 本月订单总量及款式明细`;
                 let totalQtySum = 0;
                 let html = monthOrders.length === 0 ? `<div class="text-slate-400 py-4 text-center">本月暂无订单数据</div>` : monthOrders.map(o => {
                     const models = parseModels(o);
@@ -1237,8 +1238,60 @@
                 modalBody.innerHTML = `
                     <div class="space-y-3">
                         <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl flex justify-between font-bold text-indigo-950">
-                            <span>本月订单总量合计:</span>
-                            <span class="text-base text-indigo-700">${totalQtySum} 件</span>
+                            <span>${isCount ? '本月订单总笔数:' : '本月订单总量合计:'}</span>
+                            <span class="text-base text-indigo-700">${isCount ? monthOrders.length + ' 笔' : totalQtySum + ' 件'}</span>
+                        </div>
+                        <div class="space-y-2">${html}</div>
+                    </div>
+                `;
+            } else if (type === 'amount') {
+                modalTitle.innerText = `[${selectedMonth}] 本月订单总营收金额明细`;
+                let totalAmtSum = 0;
+                let html = monthOrders.length === 0 ? `<div class="text-slate-400 py-4 text-center">本月暂无订单营收数据</div>` : monthOrders.map(o => {
+                    const amt = Number(o.total_amount || 0);
+                    totalAmtSum += amt;
+                    return `
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                            <div>
+                                <span class="font-mono text-indigo-600 font-bold">${o.order_no}</span> (${o.customer})
+                                <div class="text-xs text-slate-400 mt-0.5">下单日期: ${o.order_date || '-'}</div>
+                            </div>
+                            <div class="text-emerald-600 font-bold text-base">¥${amt.toFixed(2)}</div>
+                        </div>
+                    `;
+                }).join('');
+                modalBody.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-xl flex justify-between font-bold text-emerald-900">
+                            <span>本月订单总营收额合计:</span>
+                            <span class="text-base text-emerald-700">¥${totalAmtSum.toFixed(2)}</span>
+                        </div>
+                        <div class="space-y-2">${html}</div>
+                    </div>
+                `;
+            } else if (type === 'profit') {
+                modalTitle.innerText = `[${selectedMonth}] 本月毛利润详细核算`;
+                let totalProfitSum = 0;
+                let html = monthOrders.length === 0 ? `<div class="text-slate-400 py-4 text-center">本月暂无毛利数据</div>` : monthOrders.map(o => {
+                    const models = parseModels(o);
+                    const cost = models.reduce((s, m) => s + (Number(m.qty || 0) * Number(m.costPrice || 0)), 0);
+                    const profit = Number(o.total_amount || 0) - cost;
+                    totalProfitSum += profit;
+                    return `
+                        <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                            <div>
+                                <span class="font-mono text-indigo-600 font-bold">${o.order_no}</span> (${o.customer})
+                                <div class="text-xs text-slate-400 mt-0.5">营收: ¥${Number(o.total_amount || 0).toFixed(2)} | 成本: ¥${cost.toFixed(2)}</div>
+                            </div>
+                            <div class="text-purple-600 font-bold text-base">¥${profit.toFixed(2)}</div>
+                        </div>
+                    `;
+                }).join('');
+                modalBody.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="bg-purple-50 border border-purple-100 p-3 rounded-xl flex justify-between font-bold text-purple-900">
+                            <span>本月总毛利润合计:</span>
+                            <span class="text-base text-purple-700">¥${totalProfitSum.toFixed(2)}</span>
                         </div>
                         <div class="space-y-2">${html}</div>
                     </div>
@@ -1284,6 +1337,48 @@
             document.getElementById('modal-report-detail').classList.remove('hidden');
         }
 
+        // 打开主看板原材料入库/出库详情弹窗
+        function openDashboardInvModal(invType) {
+            const modalTitle = document.getElementById('report-detail-modal-title');
+            const modalBody = document.getElementById('report-detail-modal-body');
+            if(!modalTitle || !modalBody) return;
+
+            const filteredInv = inventoryData.filter(i => i.type === invType);
+            const isIN = (invType === 'IN');
+            modalTitle.innerText = isIN ? `原材料总入库历史记录明细` : `原材料总出库历史记录明细`;
+
+            let totalQty = 0;
+            let html = filteredInv.length === 0 ? `<div class="text-slate-400 py-4 text-center">暂无${isIN ? '入库' : '出库'}记录</div>` : filteredInv.map(i => {
+                const q = Number(i.quantity || 0);
+                totalQty += q;
+                const unit = i.unit || '个';
+                const totalAmt = Number(i.total_amount || 0);
+                return `
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                        <div>
+                            <span class="font-bold text-slate-800 text-sm">${i.material}</span> (${i.supplier || '自主'})
+                            <div class="text-slate-400 mt-0.5">日期: ${i.date || '-'} | 单价: ¥${Number(i.price || 0).toFixed(2)}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold ${isIN ? 'text-blue-600' : 'text-rose-600'} text-sm">${isIN ? '+' : '-'}${q} ${unit}</div>
+                            <div class="text-slate-500">金额: ¥${totalAmt.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            modalBody.innerHTML = `
+                <div class="space-y-3">
+                    <div class="${isIN ? 'bg-blue-50 border-blue-100 text-blue-950' : 'bg-rose-50 border-rose-100 text-rose-950'} border p-3 rounded-xl flex justify-between font-bold">
+                        <span>原材料总${isIN ? '入库' : '出库'}数量合计:</span>
+                        <span class="text-base">${totalQty} 件</span>
+                    </div>
+                    <div class="space-y-2">${html}</div>
+                </div>
+            `;
+            document.getElementById('modal-report-detail').classList.remove('hidden');
+        }
+
         function closeReportDetailModal() {
             document.getElementById('modal-report-detail').classList.add('hidden');
         }
@@ -1313,7 +1408,7 @@
             return head + s.replace(/(零.)*零元/, '元').replace(/(零.)+/g, '零').replace(/^整$/, '零元整');
         }
 
-        // 打开严格对齐新辉包装 Excel 模板的独立出库单预览
+        // 打开严格对齐新辉包装 Excel 模板的独立出库单预览 (已优化高度与宽度并排对齐)
         function openDeliveryNoteModal(orderId, batchIndex) {
             const o = ordersData.find(item => item.id === orderId);
             if (!o) return;
@@ -1391,7 +1486,7 @@
                         <div class="text-right">经手人：王海萍 18858825222 &nbsp;&nbsp;|&nbsp;&nbsp; 电话/传真：0577-86817627</div>
                     </div>
 
-                    <!-- 表格区 (每次独立提交一张出库单) -->
+                    <!-- 表格区 (金额行已与上方表格列宽完全对齐并压缩高度，消除多余空白) -->
                     <table class="w-full text-center border-collapse border border-slate-900 text-xs sm:text-sm">
                         <thead>
                             <tr class="bg-emerald-100/60 font-bold text-slate-900">
