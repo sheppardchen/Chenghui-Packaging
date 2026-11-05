@@ -223,24 +223,33 @@
                 <div id="orders-grouped-container" class="space-y-3 sm:space-y-4"></div>
             </section>
 
-            <!-- 2. 独立发货模块 -->
+            <!-- 2. 独立发货模块 (带折叠卡片头部) -->
             <section id="sec-order-shipping" class="bg-white p-3.5 sm:p-6 rounded-b-xl shadow-sm border border-t-0 border-slate-200 hidden space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                    <h2 class="text-base sm:text-lg font-bold text-slate-800"><i class="fa-solid fa-truck-ramp-box text-indigo-600"></i> 客户订单独立发货与出库批次看板</h2>
+                <div onclick="toggleSectionCollapse('order-shipping-content-wrap', 'shipping-toggle-icon')" class="bg-slate-50 p-3.5 rounded-xl flex justify-between items-center cursor-pointer hover:bg-slate-100 transition border border-slate-200">
+                    <h2 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-truck-ramp-box text-indigo-600"></i> 客户订单发货与出库
+                    </h2>
+                    <span class="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+                        <span id="shipping-count-badge" class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-bold">0笔</span> 
+                        <i id="shipping-toggle-icon" class="fa-solid fa-chevron-down transition-transform duration-200"></i>
+                    </span>
                 </div>
-                <!-- PC端表格视图 -->
-                <div class="pc-table-view overflow-x-auto custom-scroll border border-slate-200 rounded-lg">
-                    <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[1000px]">
-                        <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
-                            <tr>
-                                <th class="p-3">订单号</th><th class="p-3">客户名称</th><th class="p-3">型号/款式明细</th><th class="p-3">预计发货时间</th><th class="p-3">订单总数</th><th class="p-3">已发货总计</th><th class="p-3">已发货总金额</th><th class="p-3">剩余未发货明细</th><th class="p-3">历次出库批次明细与出库单</th><th class="p-3 text-right">独立发货操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="order-shipping-table-body"></tbody>
-                    </table>
+                
+                <div id="order-shipping-content-wrap" class="space-y-4 pt-1">
+                    <!-- PC端表格视图 -->
+                    <div class="pc-table-view overflow-x-auto custom-scroll border border-slate-200 rounded-lg">
+                        <table class="w-full text-xs sm:text-sm text-left text-slate-600 min-w-[1000px]">
+                            <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3">订单号</th><th class="p-3">客户名称</th><th class="p-3">型号/款式明细</th><th class="p-3">预计发货时间</th><th class="p-3">订单总数</th><th class="p-3">已发货总计</th><th class="p-3">已发货总金额</th><th class="p-3">剩余未发货明细</th><th class="p-3">历次出库批次明细与出库单</th><th class="p-3 text-right">独立发货操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-shipping-table-body"></tbody>
+                        </table>
+                    </div>
+                    <!-- 手机端卡片视图 -->
+                    <div id="order-shipping-card-body" class="mobile-card-view space-y-3"></div>
                 </div>
-                <!-- 手机端卡片视图 -->
-                <div id="order-shipping-card-body" class="mobile-card-view space-y-3"></div>
             </section>
 
             <!-- 3. 原材料模块 -->
@@ -1279,6 +1288,31 @@
             document.getElementById('modal-report-detail').classList.add('hidden');
         }
 
+        // 金额转中文大写辅助函数
+        function convertCurrencyToChinese(n) {
+            if (isNaN(n)) return "零元整";
+            let fraction = ['角', '分'];
+            let digit = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
+            let unit = [['元', '万', '亿'], ['', '拾', '佰', '仟']];
+            let head = n < 0 ? '欠' : '';
+            n = Math.abs(n);
+            let s = '';
+            for (let i = 0; i < fraction.length; i++) {
+                s += (digit[Math.floor(n * 10 * Math.pow(10, i)) % 10] + fraction[i]).replace(/零./, '');
+            }
+            s = s || '整';
+            n = Math.floor(n);
+            for (let i = 0; i < unit[0].length && n > 0; i++) {
+                let p = '';
+                for (let j = 0; j < unit[1].length && n > 0; j++) {
+                    p = digit[n % 10] + unit[1][j] + p;
+                    n = Math.floor(n / 10);
+                }
+                s = p.replace(/(零.)*零$/, '').replace(/^$/, '零') + unit[0][i] + s;
+            }
+            return head + s.replace(/(零.)*零元/, '元').replace(/(零.)+/g, '零').replace(/^整$/, '零元整');
+        }
+
         // 打开严格对齐新辉包装 Excel 模板的独立出库单预览
         function openDeliveryNoteModal(orderId, batchIndex) {
             const o = ordersData.find(item => item.id === orderId);
@@ -1337,6 +1371,7 @@
 
             const deliveryNoteId = `XHD-${o.order_no ? o.order_no.replace('CH-', '') : '2026'}-${batchIndex + 1}`;
             const todayStr = batch.date || new Date().toISOString().slice(0, 10);
+            const chineseAmount = convertCurrencyToChinese(batchTotalAmount);
 
             const contentDiv = document.getElementById('delivery-note-content');
             contentDiv.innerHTML = `
@@ -1375,7 +1410,12 @@
                         </tbody>
                         <tfoot>
                             <tr class="font-bold bg-slate-50">
-                                <td colspan="6" class="border border-slate-900 p-2.5 text-right">合集总计金额：</td>
+                                <td colspan="8" class="border border-slate-900 p-2.5 text-left text-slate-800">
+                                    人民币大写：<span class="text-indigo-700 font-bold tracking-wider">${chineseAmount}</span>
+                                </td>
+                            </tr>
+                            <tr class="font-bold bg-slate-50">
+                                <td colspan="6" class="border border-slate-900 p-2.5 text-right">总计金额：</td>
                                 <td colspan="2" class="border border-slate-900 p-2.5 text-left text-emerald-700 text-base">¥${batchTotalAmount.toFixed(2)}</td>
                             </tr>
                         </tfoot>
@@ -1479,6 +1519,8 @@
         function renderOrderShippingModule() {
             const tbody = document.getElementById('order-shipping-table-body');
             const cardBody = document.getElementById('order-shipping-card-body');
+            const shippingBadge = document.getElementById('shipping-count-badge');
+            if(shippingBadge) shippingBadge.innerText = ordersData.length + ' 笔';
             if(!tbody || !cardBody) return;
 
             if(ordersData.length === 0) {
