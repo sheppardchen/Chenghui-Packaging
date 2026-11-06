@@ -1406,7 +1406,6 @@
             return head + s.replace(/(零.)*零元/, '元').replace(/(零.)+/g, '零').replace(/^整$/, '零元整');
         }
 
-        // 打开专为 24cm * 9.3cm 幅面优化的出库单预览（自动合并同商品/款式的数量至同一行）
         function openDeliveryNoteModal(orderId, batchIndex) {
             const o = ordersData.find(item => item.id === orderId);
             if (!o) return;
@@ -1421,7 +1420,6 @@
             const rawItems = batch.items || [{ model: batch.model, qty: batch.qty, unit: batch.unit }];
             const models = parseModels(o);
 
-            // 合并同商品名称、款式的数量到同一行
             const mergedMap = {};
             rawItems.forEach(item => {
                 const mName = item.model || '标准包装款式';
@@ -1697,7 +1695,7 @@
                     const totalModelQ = Number(m.qty || 0);
                     const mUnit = m.unit || '个';
                     const shippedModelQ = historyList.reduce((sum, batch) => {
-                        const items = batch.items || [{ model: batch.model, qty: batch.model === m.modelName ? batch.qty : 0 }];
+                        const items = batch.items || [{ model: batch.model, qty: batch.qty, unit: batch.unit }];
                         const matchItem = items.find(i => i.model === m.modelName);
                         return sum + (matchItem ? Number(matchItem.qty || 0) : 0);
                     }, 0);
@@ -1768,7 +1766,7 @@
                     const totalModelQ = Number(m.qty || 0);
                     const mUnit = m.unit || '个';
                     const shippedModelQ = historyList.reduce((sum, batch) => {
-                        const items = batch.items || [{ model: batch.model, qty: batch.model === m.modelName ? batch.qty : 0 }];
+                        const items = batch.items || [{ model: batch.model, qty: batch.qty, unit: batch.unit }];
                         const matchItem = items.find(i => i.model === m.modelName);
                         return sum + (matchItem ? Number(matchItem.qty || 0) : 0);
                     }, 0);
@@ -1855,7 +1853,7 @@
                 const totalQ = Number(m.qty || 0);
                 const mUnit = m.unit || '个';
                 const shippedQ = historyList.reduce((sum, batch) => {
-                    const items = batch.items || [{ model: batch.model, qty: batch.model === m.modelName ? batch.qty : 0 }];
+                    const items = batch.items || [{ model: batch.model, qty: batch.qty, unit: batch.unit }];
                     const matchItem = items.find(i => i.model === m.modelName);
                     return sum + (matchItem ? Number(matchItem.qty || 0) : 0);
                 }, 0);
@@ -1917,8 +1915,8 @@
                 const mUnit = targetModel?.unit || '个';
 
                 const shippedModelQty = historyList.reduce((sum, batch) => {
-                    const items = batch.items || [{ model: batch.model, qty: batch.model === m.modelName ? batch.qty : 0 }];
-                    const matchItem = items.find(i => i.model === m.modelName);
+                    const items = batch.items || [{ model: batch.model, qty: batch.qty, unit: batch.unit }];
+                    const matchItem = items.find(i => i.model === modelName);
                     return sum + (matchItem ? Number(matchItem.qty || 0) : 0);
                 }, 0) + newBatchItems.reduce((sum, item) => sum + (item.model === modelName ? Number(item.qty || 0) : 0), 0);
 
