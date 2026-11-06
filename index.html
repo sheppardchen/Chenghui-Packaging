@@ -1507,7 +1507,7 @@
                     </table>
 
                     <div class="border border-slate-900 p-0.5 text-center text-[10px] font-mono font-bold text-slate-900 bg-slate-50 leading-tight">
-                        农行: 6228430339412517172 王炳辉 &nbsp;|&nbsp; 农商行: 6228580399085322993 王炳辉 &nbsp;|&nbsp; 支付宝微信: 13777799028 王炳辉
+                        农行: 6228430339412517172 王炳辉 &nbsp;|&nbsp; 农商行: 6228580399085322993 &nbsp;|&nbsp; 电话微信: 13777799028
                     </div>
 
                     <div class="flex justify-between items-center pt-0.5 font-medium text-slate-800 text-[10px]">
@@ -2003,8 +2003,8 @@
                 <div id="${rowId}" class="grid grid-cols-12 gap-2 items-center inv-batch-row bg-slate-50 p-2.5 rounded-lg sm:bg-transparent sm:p-0">
                     <input type="date" value="${new Date().toISOString().split('T')[0]}" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs" required>
                     <input type="text" placeholder="原材料名称" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs inv-material-input" required oninput="syncMaterialUnitPrice('${rowId}')">
-                    <input type="text" placeholder="供应商" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs inv-supplier-input" oninput="syncMaterialUnitPrice('${rowId}')">
-                    <select class="col-span-6 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs"><option value="IN">入库</option><option value="OUT">出库</option></select>
+                    <input type="text" placeholder="供应商" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs inv-supplier-input" required oninput="syncMaterialUnitPrice('${rowId}')">
+                    <select class="col-span-6 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs" onchange="syncMaterialUnitPrice('${rowId}')"><option value="IN">入库</option><option value="OUT">出库</option></select>
                     <div class="col-span-6 sm:col-span-2 flex items-center gap-1">
                         <input type="number" inputmode="numeric" placeholder="数量" class="w-3/5 border border-slate-300 p-2.5 rounded-lg text-xs inv-qty" required oninput="calcInvRowTotal('${rowId}')">
                         <select class="w-2/5 border border-slate-300 p-2.5 rounded-lg text-xs bg-white inv-unit">${unitOptionsHtml}</select>
@@ -2021,26 +2021,51 @@
             if (!row) return;
             const matName = row.querySelector('.inv-material-input').value.trim().toLowerCase();
             const supName = row.querySelector('.inv-supplier-input').value.trim().toLowerCase();
+            const typeSelect = row.querySelector('select'); // 类型选择框 (IN / OUT)
+            
+            // 只有在选择“出库(OUT)”时，才进行严格的“材料名+供应商”核对与提示
+            if (typeSelect && typeSelect.value === 'OUT') {
+                if (!matName || !supName) return;
 
-            if (!matName) return;
-
-            let matchedItem = inventoryData.slice().reverse().find(i => {
-                const iMat = (i.material || '').trim().toLowerCase();
-                const iSup = (i.supplier || '').trim().toLowerCase();
-                if (supName) {
+                // 检查仓库中是否存在完全匹配该材料且该供应商的入库记录
+                let matchedItem = inventoryData.slice().reverse().find(i => {
+                    const iMat = (i.material || '').trim().toLowerCase();
+                    const iSup = (i.supplier || '').trim().toLowerCase();
                     return iMat === matName && iSup === supName && i.type === 'IN';
-                }
-                return iMat === matName && i.type === 'IN';
-            });
+                });
 
-            if (matchedItem) {
-                const q = Number(matchedItem.quantity || 0);
-                const totalAmt = Number(matchedItem.total_amount || 0);
-                const lastPrice = matchedItem.price !== undefined ? Number(matchedItem.price) : (q > 0 ? totalAmt / q : 0);
-                if (lastPrice > 0) {
-                    const priceInput = row.querySelector('.inv-price');
-                    priceInput.value = lastPrice.toFixed(2);
+                if (matchedItem) {
+                    const q = Number(matchedItem.quantity || 0);
+                    const totalAmt = Number(matchedItem.total_amount || 0);
+                    const lastPrice = matchedItem.price !== undefined ? Number(matchedItem.price) : (q > 0 ? totalAmt / q : 0);
+                    if (lastPrice > 0) {
+                        const priceInput = row.querySelector('.inv-price');
+                        priceInput.value = lastPrice.toFixed(2);
+                        calcInvRowTotal(rowId);
+                    }
+                } else {
+                    // 如果找不到对应的入库记录，清空单价并给出提示
+                    row.querySelector('.inv-price').value = '';
                     calcInvRowTotal(rowId);
+                }
+            } else if (typeSelect && typeSelect.value === 'IN') {
+                // 如果是入库，则仅根据材料名称尝试带出历史进货价参考
+                if (!matName) return;
+                let matchedItem = inventoryData.slice().reverse().find(i => {
+                    const iMat = (i.material || '').trim().toLowerCase();
+                    return iMat === matName && i.type === 'IN';
+                });
+                if (matchedItem) {
+                    const q = Number(matchedItem.quantity || 0);
+                    const totalAmt = Number(matchedItem.total_amount || 0);
+                    const lastPrice = matchedItem.price !== undefined ? Number(matchedItem.price) : (q > 0 ? totalAmt / q : 0);
+                    if (lastPrice > 0) {
+                        const priceInput = row.querySelector('.inv-price');
+                        if (!priceInput.value) {
+                            priceInput.value = lastPrice.toFixed(2);
+                            calcInvRowTotal(rowId);
+                        }
+                    }
                 }
             }
         }
@@ -2058,25 +2083,70 @@
             e.preventDefault();
             const rows = document.querySelectorAll('.inv-batch-row');
             const newItems = [];
-            rows.forEach(r => {
+
+            for (let r of rows) {
                 const inputs = r.querySelectorAll('input, select');
+                const date = inputs[0].value;
+                const material = inputs[1].value.trim();
+                const supplier = inputs[2].value.trim();
+                const type = inputs[3].value;
                 const qty = Number(inputs[4].value || 0);
                 const unit = inputs[5].value;
                 const price = Number(inputs[6].value || 0);
-                if (inputs[1].value.trim()) {
-                    newItems.push({ 
-                        date: inputs[0].value, 
-                        material: inputs[1].value.trim(), 
-                        supplier: inputs[2].value.trim() || '自主/无',
-                        type: inputs[3].value, 
-                        quantity: qty,
-                        unit: unit,
-                        price: price,
-                        total_amount: Number((qty * price).toFixed(2)),
-                        remark: inputs[8].value.trim() || '无批注' 
+                const remark = inputs[8].value.trim() || '无批注';
+
+                if (!material) continue;
+
+                // 如果是出库操作，严格校验：必须存在对应的“材料名称 + 供应商名称”入库记录，且结余库存足够
+                if (type === 'OUT') {
+                    if (!supplier) {
+                        alert(`出库失败！材料【${material}】必须填写对应的供应商名称以便精准核对入库批次。`);
+                        return;
+                    }
+
+                    // 计算该材料+供应商的总入库量与总出库量
+                    let inQty = 0;
+                    let outQty = 0;
+                    inventoryData.forEach(item => {
+                        const iMat = (item.material || '').trim().toLowerCase();
+                        const iSup = (item.supplier || '').trim().toLowerCase();
+                        if (iMat === material.toLowerCase() && iSup === supplier.toLowerCase()) {
+                            if (item.type === 'IN') inQty += Number(item.quantity || 0);
+                            if (item.type === 'OUT') outQty += Number(item.quantity || 0);
+                        }
                     });
+
+                    // 加上当前提交批次中同材料同供应商的其他行累计
+                    newItems.forEach(item => {
+                        if (item.material.toLowerCase() === material.toLowerCase() && item.supplier.toLowerCase() === supplier.toLowerCase()) {
+                            if (item.type === 'IN') inQty += item.quantity;
+                            if (item.type === 'OUT') outQty += item.quantity;
+                        }
+                    });
+
+                    const availableStock = inQty - outQty;
+                    if (inQty === 0) {
+                        alert(`出库拦截！系统中未找到材料名称【${material}】且供应商为【${supplier}】的任何入库记录，无法出库！请先核对或录入入库记录。`);
+                        return;
+                    }
+                    if (qty > availableStock) {
+                        alert(`出库拦截！材料【${material}】(供应商:【${supplier}】) 的入库结余仅剩 ${availableStock} ${unit}，本次出库申请数量 ${qty} 超出可用库存！`);
+                        return;
+                    }
                 }
-            });
+
+                newItems.push({ 
+                    date, 
+                    material, 
+                    supplier: supplier || '自主/无',
+                    type, 
+                    quantity: qty,
+                    unit,
+                    price,
+                    total_amount: Number((qty * price).toFixed(2)),
+                    remark 
+                });
+            }
 
             if (newItems.length === 0) {
                 alert("请至少填写一行有效的原材料数据！");
@@ -2103,7 +2173,7 @@
                 return;
             }
 
-            alert("原材料出入库记录已成功提交并保存在云端！");
+            alert("原材料出入库记录已成功提交并严格核对保存！");
             await fetchDataFromCloud();
             initInventoryBatchRows();
         }
