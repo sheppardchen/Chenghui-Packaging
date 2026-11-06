@@ -1351,11 +1351,12 @@
                 totalQty += q;
                 const unit = i.unit || '个';
                 const totalAmt = Number(i.total_amount || 0);
+                const price = i.price !== undefined ? Number(i.price) : (q > 0 ? totalAmt / q : 0);
                 return `
                     <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
                         <div>
                             <span class="font-bold text-slate-800 text-sm">${i.material}</span> (${i.supplier || '自主'})
-                            <div class="text-slate-400 mt-0.5">日期: ${i.date || '-'} | 单价: ¥${Number(i.price || 0).toFixed(2)}</div>
+                            <div class="text-slate-400 mt-0.5">日期: ${i.date || '-'} | 单价: ¥${price.toFixed(2)}</div>
                         </div>
                         <div class="text-right">
                             <div class="font-bold ${isIN ? 'text-blue-600' : 'text-rose-600'} text-sm">${isIN ? '+' : '-'}${q} ${unit}</div>
@@ -1783,7 +1784,7 @@
                                 <div class="font-bold text-slate-800 text-sm mt-0.5">${o.customer}</div>
                             </div>
                             <div class="text-right">
-                                <span class="text-[11px] font-bold text-indigo-700 bg-indigo-100 px-2 py-1 rounded">预计: ${o.due_date || '未设'}</span>
+                                <span class="text-[11px] font-bold text-indigo-700 bg-indigo-100 px-2 py-1 rounded">预计: ${o.due_date || 'Not set'}</span>
                             </div>
                         </div>
                         <div>
@@ -1988,8 +1989,8 @@
             container.insertAdjacentHTML('beforeend', `
                 <div id="${rowId}" class="grid grid-cols-12 gap-2 items-center inv-batch-row bg-slate-50 p-2.5 rounded-lg sm:bg-transparent sm:p-0">
                     <input type="date" value="${new Date().toISOString().split('T')[0]}" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs" required>
-                    <input type="text" placeholder="原材料名称" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs" required>
-                    <input type="text" placeholder="供应商" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs">
+                    <input type="text" placeholder="原材料名称" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs inv-material-input" required oninput="syncMaterialUnitPrice('${rowId}')">
+                    <input type="text" placeholder="供应商" class="col-span-6 sm:col-span-2 border border-slate-300 p-2.5 rounded-lg text-xs inv-supplier-input" oninput="syncMaterialUnitPrice('${rowId}')">
                     <select class="col-span-6 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs"><option value="IN">入库</option><option value="OUT">出库</option></select>
                     <div class="col-span-6 sm:col-span-2 flex items-center gap-1">
                         <input type="number" inputmode="numeric" placeholder="数量" class="w-3/5 border border-slate-300 p-2.5 rounded-lg text-xs inv-qty" required oninput="calcInvRowTotal('${rowId}')">
@@ -2000,6 +2001,37 @@
                     <input type="text" placeholder="批注" class="col-span-8 sm:col-span-1 border border-slate-300 p-2.5 rounded-lg text-xs">
                     <button type="button" onclick="document.getElementById('${rowId}').remove()" class="col-span-2 sm:col-span-1 text-rose-500 text-center p-2"><i class="fa-solid fa-xmark text-base"></i></button>
                 </div>`);
+        }
+
+        // 新增：自动匹配并同步该材料+供应商历史最近一次入库时的单价
+        function syncMaterialUnitPrice(rowId) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            const matName = row.querySelector('.inv-material-input').value.trim().toLowerCase();
+            const supName = row.querySelector('.inv-supplier-input').value.trim().toLowerCase();
+
+            if (!matName) return;
+
+            // 在已有库存数据中倒序查找匹配（优先完全匹配名称+供应商，其次匹配名称）
+            let matchedItem = inventoryData.slice().reverse().find(i => {
+                const iMat = (i.material || '').trim().toLowerCase();
+                const iSup = (i.supplier || '').trim().toLowerCase();
+                if (supName) {
+                    return iMat === matName && iSup === supName && i.type === 'IN';
+                }
+                return iMat === matName && i.type === 'IN';
+            });
+
+            if (matchedItem) {
+                const q = Number(matchedItem.quantity || 0);
+                const totalAmt = Number(matchedItem.total_amount || 0);
+                const lastPrice = matchedItem.price !== undefined ? Number(matchedItem.price) : (q > 0 ? totalAmt / q : 0);
+                if (lastPrice > 0) {
+                    const priceInput = row.querySelector('.inv-price');
+                    priceInput.value = lastPrice.toFixed(2);
+                    calcInvRowTotal(rowId);
+                }
+            }
         }
 
         function calcInvRowTotal(rowId) {
