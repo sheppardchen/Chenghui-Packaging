@@ -438,7 +438,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：完全对齐新辉包装 Excel 模板的出库单/送货单打印预览视图 (高度与宽度完美对齐，极致紧凑) -->
+    <!-- 弹窗：完全对齐新辉包装 Excel 模板的出库单/送货单标准预览（总金额行已彻底改为独立紧凑的一行） -->
     <div id="modal-delivery-note" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center z-[250] p-3 sm:p-6">
         <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden border border-slate-300">
             <!-- 头部控制栏 (打印时隐藏) -->
@@ -1394,7 +1394,7 @@
             return head + s.replace(/(零.)*零元/, '元').replace(/(零.)+/g, '零').replace(/^整$/, '零元整');
         }
 
-        // 打开出库单预览（底部总金额行已完美紧凑对齐，无巨高空白）
+        // 打开出库单预览（完全消除多余空白，总金额独立为精简的一行，完美对齐）
         function openDeliveryNoteModal(orderId, batchIndex) {
             const o = ordersData.find(item => item.id === orderId);
             if (!o) return;
@@ -1472,7 +1472,7 @@
                         <div class="text-right">经手人：王海萍 18858825222 &nbsp;|&nbsp; 电话: 0577-86817627</div>
                     </div>
 
-                    <!-- 表格区 (金额行高度与上方表格等宽且紧凑对齐) -->
+                    <!-- 表格区 (完全移除了rowspan，总金额与大写独立为紧凑整行，杜绝空白) -->
                     <table class="w-full text-center border-collapse border border-slate-900 text-xs sm:text-sm">
                         <thead>
                             <tr class="bg-emerald-100/60 font-bold text-slate-900">
@@ -1488,15 +1488,16 @@
                         </thead>
                         <tbody>
                             ${tableRowsHtml}
-                        </tbody>
-                        <tfoot>
+                            <!-- 完美对齐的独立紧凑总金额行 -->
                             <tr class="font-bold bg-slate-50">
-                                <td colspan="8" class="border border-slate-900 p-2 text-left text-slate-800 flex justify-between items-center">
-                                    <span>人民币大写：<span class="text-indigo-700 font-bold tracking-wider">${chineseAmount}</span></span>
-                                    <span>总计金额：<span class="text-emerald-700 font-bold text-base">¥${batchTotalAmount.toFixed(2)}</span></span>
+                                <td colspan="2" class="border border-slate-900 p-2 text-left text-indigo-700">
+                                    人民币大写：${chineseAmount}
+                                </td>
+                                <td colspan="6" class="border border-slate-900 p-2 text-right text-emerald-700 text-base">
+                                    总计金额：¥${batchTotalAmount.toFixed(2)}
                                 </td>
                             </tr>
-                        </tfoot>
+                        </tbody>
                     </table>
 
                     <!-- 银行账户条 -->
@@ -1543,7 +1544,6 @@
                 const list = groups[customer];
                 const totalAmt = list.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
                 
-                // PC 端表格行
                 const pcRowsHtml = list.map(o => {
                     const models = parseModels(o);
                     const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
@@ -1574,7 +1574,6 @@
                     `;
                 }).join('');
 
-                // 手机端优化卡片流
                 const mobileCardsHtml = list.map(o => {
                     const models = parseModels(o);
                     const totalQ = models.reduce((s, m) => s + Number(m.qty || 0), 0);
@@ -1637,7 +1636,6 @@
                             </div>
                         </div>
                         <div id="order-grp-${index}" class="order-group-content border-t border-slate-200 p-2.5 sm:p-3 text-xs">
-                            <!-- PC端表格视图 -->
                             <div class="pc-table-view overflow-x-auto custom-scroll">
                                 <table class="w-full text-left text-slate-600 min-w-[900px]">
                                     <tr class="bg-slate-100/60 text-slate-500 font-bold">
@@ -1646,7 +1644,6 @@
                                     ${pcRowsHtml}
                                 </table>
                             </div>
-                            <!-- 手机端优化卡片视图 -->
                             <div class="mobile-card-view space-y-3 pt-1">
                                 ${mobileCardsHtml}
                             </div>
@@ -2468,7 +2465,7 @@
             const models = parseModels(o);
             models.forEach(m => addOrderModelRow(m.modelName, m.qty, m.unit || '个', m.price, m.costPrice || 0, m.imgName));
 
-            document.getElementById('modal-order').classList.remove('hidden');
+            document.getElementById('modal-order').classList.add('hidden');
         }
 
         function closeOrderModal() { document.getElementById('modal-order').classList.add('hidden'); }
