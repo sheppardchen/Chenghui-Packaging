@@ -1406,7 +1406,7 @@
             return head + s.replace(/(零.)*零元/, '元').replace(/(零.)+/g, '零').replace(/^整$/, '零元整');
         }
 
-        // 打开专为 24cm * 9.3cm 幅面优化的出库单预览（精确单页打印，删除多余括号与占位行，左右缩进 1cm）
+        // 打开专为 24cm * 9.3cm 幅面优化的出库单预览（自动合并同商品/款式的数量至同一行）
         function openDeliveryNoteModal(orderId, batchIndex) {
             const o = ordersData.find(item => item.id === orderId);
             if (!o) return;
@@ -1418,24 +1418,39 @@
                 return;
             }
 
-            const items = batch.items || [{ model: batch.model, qty: batch.qty, unit: batch.unit }];
+            const rawItems = batch.items || [{ model: batch.model, qty: batch.qty, unit: batch.unit }];
             const models = parseModels(o);
+
+            // 合并同商品名称、款式的数量到同一行
+            const mergedMap = {};
+            rawItems.forEach(item => {
+                const mName = item.model || '标准包装款式';
+                const q = Number(item.qty || 0);
+                const u = item.unit || '';
+                if (!mergedMap[mName]) {
+                    mergedMap[mName] = { qty: 0, unit: u };
+                }
+                mergedMap[mName].qty += q;
+                if (u && !mergedMap[mName].unit) mergedMap[mName].unit = u;
+            });
 
             let tableRowsHtml = '';
             let batchTotalAmount = 0;
+            let rowIndex = 1;
 
-            items.forEach((item, idx) => {
-                const targetModel = models.find(m => m.modelName === item.model);
+            Object.keys(mergedMap).forEach(mName => {
+                const itemData = mergedMap[mName];
+                const targetModel = models.find(m => m.modelName === mName);
                 const unitPrice = targetModel ? Number(targetModel.price || 0) : Number(o.price || 0);
-                const q = Number(item.qty || 0);
+                const q = itemData.qty;
                 const amt = q * unitPrice;
                 batchTotalAmount += amt;
-                const u = item.unit || targetModel?.unit || '个';
+                const u = itemData.unit || targetModel?.unit || '个';
 
                 tableRowsHtml += `
                     <tr class="h-6">
-                        <td class="border border-slate-900 p-1 font-medium text-center">${idx + 1}</td>
-                        <td class="border border-slate-900 p-1 text-left font-bold">${item.model || '标准包装款式'}</td>
+                        <td class="border border-slate-900 p-1 font-medium text-center">${rowIndex++}</td>
+                        <td class="border border-slate-900 p-1 text-left font-bold">${mName}</td>
                         <td class="border border-slate-900 p-1 text-center font-mono">${o.order_no || '-'}</td>
                         <td class="border border-slate-900 p-1 text-center">${u}</td>
                         <td class="border border-slate-900 p-1 text-right font-bold text-indigo-700">${q}</td>
@@ -2003,7 +2018,6 @@
                 </div>`);
         }
 
-        // 新增：自动匹配并同步该材料+供应商历史最近一次入库时的单价
         function syncMaterialUnitPrice(rowId) {
             const row = document.getElementById(rowId);
             if (!row) return;
@@ -2012,7 +2026,6 @@
 
             if (!matName) return;
 
-            // 在已有库存数据中倒序查找匹配（优先完全匹配名称+供应商，其次匹配名称）
             let matchedItem = inventoryData.slice().reverse().find(i => {
                 const iMat = (i.material || '').trim().toLowerCase();
                 const iSup = (i.supplier || '').trim().toLowerCase();
