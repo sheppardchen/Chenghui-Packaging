@@ -156,6 +156,9 @@
                     <button onclick="openChangePwdModal()" class="bg-indigo-600 hover:bg-indigo-500 text-[11px] sm:text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1 mobile-touch-target">
                         <i class="fa-solid fa-key"></i> <span class="hidden sm:inline">修改密码</span>
                     </button>
+                    <button onclick="openRecycleBin()" class="bg-amber-600 hover:bg-amber-500 text-[11px] sm:text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1 mobile-touch-target">
+                        <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">回收站</span><span id="recycle-bin-count" class="bg-white/20 px-1.5 rounded-full text-[10px]">0</span>
+                    </button>
                     <button onclick="handleLogout()" class="bg-rose-600 hover:bg-rose-500 text-[11px] sm:text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1 mobile-touch-target">
                         <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">退出</span>
                     </button>
@@ -594,6 +597,29 @@
         </div>
     </div>
 
+    <!-- 弹窗：15天回收站 -->
+    <div id="modal-recycle-bin" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm hidden flex items-center justify-center z-[260] p-3 sm:p-6">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="bg-amber-600 text-white px-5 py-4 flex justify-between items-center shrink-0">
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-trash-can"></i> 回收站</h3>
+                    <p class="text-[11px] text-amber-100 mt-1">删除的订单、原材料记录和出库单保留15天，逾期自动永久清理</p>
+                </div>
+                <button onclick="closeRecycleBin()" class="bg-amber-700 hover:bg-amber-800 text-white px-3 py-2 rounded-lg text-xs"><i class="fa-solid fa-xmark"></i> 关闭</button>
+            </div>
+            <div class="p-3 sm:p-5 overflow-y-auto custom-scroll flex-1 bg-slate-50">
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+                    <span id="recycle-bin-summary" class="text-xs text-slate-500">正在加载回收站...</span>
+                    <button onclick="emptyRecycleBin()" class="text-xs text-rose-600 border border-rose-200 bg-white hover:bg-rose-50 px-3 py-2 rounded-lg"><i class="fa-solid fa-trash"></i> 清空回收站</button>
+                </div>
+                <div id="recycle-bin-list" class="space-y-2"></div>
+            </div>
+            <div class="bg-white px-5 py-3 border-t border-slate-200 flex justify-end shrink-0">
+                <button onclick="closeRecycleBin()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs px-5 py-2.5 rounded-xl">完成</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 逻辑处理脚本 -->
     <script>
         const RAW_SUPABASE_URL = "https://bmihjttxiqlzypdvxrdo.supabase.co";
@@ -630,6 +656,7 @@
                 document.getElementById('main-app').classList.remove('hidden');
                 initInventoryBatchRows();
                 fetchDataFromCloud();
+                loadRecycleBinData();
             } else {
                 document.getElementById('login-overlay').classList.remove('hidden');
                 document.getElementById('main-app').classList.add('hidden');
@@ -1961,15 +1988,24 @@
         }
 
         async function deleteShippingBatch(orderId, batchIndex) {
-            if(!confirm("确定要删除该张独立出库单记录吗？")) return;
-            const o = ordersData.find(item => item.id === orderId);
+            if(!confirm("确定将该张独立出库单移入回收站？15天内可以恢复。")) return;
+            const o = ordersData.find(item => String(item.id) === String(orderId));
             if(!o) return;
 
             let historyList = [];
             try { historyList = typeof o.shipping_history === 'string' ? JSON.parse(o.shipping_history) : (o.shipping_history || []); } catch(e){ historyList = []; }
+            if (batchIndex < 0 || batchIndex >= historyList.length) return;
+
+            const deletedBatch = historyList[batchIndex];
+            const archiveId = await addRecycleBinRecord('shipping_batch', orderId, {
+                order_id: orderId,
+                order_no: o.order_no || '',
+                batch_index: batchIndex,
+                batch: deletedBatch
+            });
+            if (!archived) return;
 
             historyList.splice(batchIndex, 1);
-
             const totalShippedQty = historyList.reduce((sum, batch) => {
                 return sum + (batch.items ? batch.items.reduce((bs, i) => bs + Number(i.qty || 0), 0) : Number(batch.qty || 0));
             }, 0);
@@ -1978,13 +2014,14 @@
                 shipping_history: JSON.stringify(historyList),
                 shipped_quantity: totalShippedQty
             };
-
             const res = await postSupabaseRest('orders', payload, 'PATCH', `id=eq.${orderId}`);
             if (res.error) {
-                alert("删除失败: " + res.error.message);
+                alert("删除失败，原出库单未移除：" + res.error.message);
+                // 精确清理本次刚写入的归档，避免产生重复恢复项
+                await deleteSupabaseRest('recycle_bin', `id=eq.${archiveId}`);
                 return;
             }
-            fetchDataFromCloud();
+            await fetchDataFromCloud();
         }
 
         function initInventoryBatchRows() { 
@@ -2632,18 +2669,220 @@
             closeOrderModal();
         }
 
-        async function deleteOrder(id) {
-            if (confirm('确认删除该笔订单？')) {
-                await deleteSupabaseRest('orders', `id=eq.${id}`);
-                fetchDataFromCloud();
+        // ==================== 15天回收站（新增，不改变原有业务数据结构） ====================
+        const RECYCLE_BIN_DAYS = 15;
+        let recycleBinData = [];
+
+        function recycleBinExpiryDate(deletedAt) {
+            const d = new Date(deletedAt);
+            d.setDate(d.getDate() + RECYCLE_BIN_DAYS);
+            return d;
+        }
+
+        function formatRecycleDate(value) {
+            if (!value) return '-';
+            const d = new Date(value);
+            if (Number.isNaN(d.getTime())) return '-';
+            return d.toLocaleString('zh-CN', { hour12: false });
+        }
+
+        function recycleTypeLabel(type) {
+            return type === 'order' ? '客户订单' : (type === 'inventory' ? '原材料记录' : '独立出库单');
+        }
+
+        function recycleRecordTitle(item) {
+            const data = item.record_data || {};
+            if (item.source_type === 'order') return `订单 ${data.order_no || item.source_id || ''} · ${data.customer || ''}`;
+            if (item.source_type === 'inventory') return `${data.material || '原材料'} · ${data.supplier || '无供应商'} · ${data.type === 'IN' ? '入库' : '出库'}`;
+            const batch = data.batch || {};
+            return `订单 ${data.order_no || item.source_id || ''} · ${batch.date || '出库批次'} · 独立出库单`;
+        }
+
+        async function purgeExpiredRecycleBin() {
+            const cutoff = new Date().toISOString();
+            const result = await deleteSupabaseRest('recycle_bin', `expires_at=lte.${encodeURIComponent(cutoff)}`);
+            if (result.error) console.warn('回收站过期清理失败：', result.error);
+        }
+
+        async function loadRecycleBinData() {
+            await purgeExpiredRecycleBin();
+            const rows = await fetchSupabaseRest('recycle_bin', 'select=*&order=deleted_at.desc');
+            recycleBinData = Array.isArray(rows) ? rows : [];
+            const badge = document.getElementById('recycle-bin-count');
+            if (badge) badge.innerText = recycleBinData.length;
+            renderRecycleBin();
+        }
+
+        function renderRecycleBin() {
+            const list = document.getElementById('recycle-bin-list');
+            const summary = document.getElementById('recycle-bin-summary');
+            if (!list) return;
+            if (summary) summary.innerText = `共 ${recycleBinData.length} 条记录 · 删除满15天后自动永久清理`;
+            if (!recycleBinData.length) {
+                list.innerHTML = `<div class="bg-white border border-dashed border-slate-300 rounded-xl p-10 text-center text-slate-400 text-sm"><i class="fa-solid fa-trash-can text-3xl mb-3 block"></i>回收站是空的</div>`;
+                return;
+            }
+            list.innerHTML = recycleBinData.map(item => {
+                const expires = new Date(item.expires_at);
+                const remaining = Math.max(0, Math.ceil((expires.getTime() - Date.now()) / 86400000));
+                return `<div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span class="text-[10px] px-2 py-1 rounded bg-amber-100 text-amber-800 font-bold">${recycleTypeLabel(item.source_type)}</span>
+                            <span class="text-xs font-bold text-slate-800 break-all">${recycleRecordTitle(item)}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500">删除时间：${formatRecycleDate(item.deleted_at)}</div>
+                        <div class="text-[11px] ${remaining <= 3 ? 'text-rose-600 font-bold' : 'text-slate-500'}">剩余保留：${remaining} 天 · 到期：${formatRecycleDate(item.expires_at)}</div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="restoreRecycleItem(${item.id})" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg"><i class="fa-solid fa-rotate-left"></i> 恢复</button>
+                        <button onclick="permanentlyDeleteRecycleItem(${item.id})" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-lg"><i class="fa-solid fa-trash"></i> 永久删除</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function openRecycleBin() {
+            document.getElementById('modal-recycle-bin').classList.remove('hidden');
+            document.getElementById('recycle-bin-list').innerHTML = `<div class="text-center text-slate-400 py-8 text-sm">正在加载...</div>`;
+            await loadRecycleBinData();
+        }
+
+        function closeRecycleBin() {
+            document.getElementById('modal-recycle-bin').classList.add('hidden');
+        }
+
+        async function addRecycleBinRecord(sourceType, sourceId, recordData) {
+            const deletedAt = new Date();
+            const expiresAt = new Date(deletedAt.getTime() + RECYCLE_BIN_DAYS * 86400000);
+            const payload = {
+                source_type: sourceType,
+                source_id: String(sourceId),
+                record_data: recordData,
+                deleted_at: deletedAt.toISOString(),
+                expires_at: expiresAt.toISOString()
+            };
+            try {
+                const response = await window.fetch(`${SUPABASE_URL}/rest/v1/recycle_bin`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify([payload])
+                });
+                if (!response.ok) throw new Error(await response.text());
+                const saved = await response.json();
+                return saved && saved[0] ? saved[0].id : null;
+            } catch (err) {
+                console.error('Recycle bin insert failed:', err);
+                alert('移入回收站失败，原记录未删除。请先确认已执行回收站数据库配置。\n' + (err.message || err));
+                return null;
             }
         }
 
-        async function deleteInventory(id) {
-            if (confirm('确认删除该条记录？')) {
-                await deleteSupabaseRest('inventory', `id=eq.${id}`);
-                fetchDataFromCloud();
+        async function removeRecycleBinRecord(id) {
+            return await deleteSupabaseRest('recycle_bin', `id=eq.${id}`);
+        }
+
+        async function restoreRecycleItem(id) {
+            const item = recycleBinData.find(x => String(x.id) === String(id));
+            if (!item) return;
+            if (new Date(item.expires_at).getTime() <= Date.now()) {
+                alert('该记录已超过15天有效期，不能恢复。');
+                await loadRecycleBinData();
+                return;
             }
+            if (!confirm(`确定恢复这条${recycleTypeLabel(item.source_type)}吗？`)) return;
+
+            let result = { error: null };
+            const data = item.record_data || {};
+            if (item.source_type === 'order' || item.source_type === 'inventory') {
+                result = await postSupabaseRest(item.source_type === 'order' ? 'orders' : 'inventory', [data], 'POST');
+            } else if (item.source_type === 'shipping_batch') {
+                const orderId = data.order_id;
+                const order = ordersData.find(o => String(o.id) === String(orderId));
+                if (!order) {
+                    alert('原订单已不存在，无法恢复这张出库单。请先恢复对应订单。');
+                    return;
+                }
+                let history = [];
+                try { history = typeof order.shipping_history === 'string' ? JSON.parse(order.shipping_history) : (order.shipping_history || []); } catch (e) { history = []; }
+                const insertAt = Math.max(0, Math.min(Number(data.batch_index || 0), history.length));
+                history.splice(insertAt, 0, data.batch);
+                const shippedQty = history.reduce((sum, batch) => sum + (batch.items ? batch.items.reduce((v, row) => v + Number(row.qty || 0), 0) : Number(batch.qty || 0)), 0);
+                result = await postSupabaseRest('orders', {
+                    shipping_history: JSON.stringify(history),
+                    shipped_quantity: shippedQty
+                }, 'PATCH', `id=eq.${orderId}`);
+            } else {
+                alert('无法识别的回收站记录类型。');
+                return;
+            }
+
+            if (result.error) {
+                alert('恢复失败：' + result.error.message + '\n如果提示主键重复，请检查原记录是否已经存在。');
+                return;
+            }
+            const removed = await removeRecycleBinRecord(id);
+            if (removed.error) {
+                alert('记录已恢复，但回收站条目未能清除。请刷新后检查。');
+                return;
+            }
+            alert('恢复成功！');
+            await fetchDataFromCloud();
+            await loadRecycleBinData();
+        }
+
+        async function permanentlyDeleteRecycleItem(id) {
+            if (!confirm('永久删除后将无法恢复，确定继续吗？')) return;
+            const result = await removeRecycleBinRecord(id);
+            if (result.error) {
+                alert('永久删除失败：' + result.error.message);
+                return;
+            }
+            await loadRecycleBinData();
+        }
+
+        async function emptyRecycleBin() {
+            if (!recycleBinData.length) return;
+            if (!confirm(`确定永久删除回收站中的全部 ${recycleBinData.length} 条记录吗？此操作无法撤销。`)) return;
+            const result = await deleteSupabaseRest('recycle_bin', 'id=not.is.null');
+            if (result.error) {
+                alert('清空失败：' + result.error.message);
+                return;
+            }
+            await loadRecycleBinData();
+        }
+
+        async function deleteOrder(id) {
+            const order = ordersData.find(o => String(o.id) === String(id));
+            if (!order) return;
+            if (!confirm('确认将该笔订单移入回收站？15天内可以恢复。')) return;
+            if (!await addRecycleBinRecord('order', id, order)) return;
+            const result = await deleteSupabaseRest('orders', `id=eq.${id}`);
+            if (result.error) {
+                alert('订单删除失败，正在撤销回收站操作。\n' + result.error.message);
+                await deleteSupabaseRest('recycle_bin', `id=eq.${archiveId}`);
+                return;
+            }
+            await fetchDataFromCloud();
+        }
+
+        async function deleteInventory(id) {
+            const record = inventoryData.find(i => String(i.id) === String(id));
+            if (!record) return;
+            if (!confirm('确认将该条原材料记录移入回收站？15天内可以恢复。')) return;
+            if (!await addRecycleBinRecord('inventory', id, record)) return;
+            const result = await deleteSupabaseRest('inventory', `id=eq.${id}`);
+            if (result.error) {
+                alert('原材料记录删除失败，正在撤销回收站操作。\n' + result.error.message);
+                await deleteSupabaseRest('recycle_bin', `id=eq.${archiveId}`);
+                return;
+            }
+            await fetchDataFromCloud();
         }
     </script>
 </body>
